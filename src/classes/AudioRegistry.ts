@@ -45,11 +45,11 @@ export default class AudioRegistry {
   }
 
   removePackageVersion(slug: string, version: string) {
-    let pkg: Package = this.getPackage(slug);
-    if (this.data.packages[slug] && this.data.packages[slug].versions[version]) {
-      delete this.data.packages[slug].versions[version];
+    const pkg: Package = this.getPackage(slug);
+    if (pkg && pkg.versions[version]) {
+      delete pkg.versions[version];
     }
-    if (!this.data.packages[slug].versions.length) {
+    if (!pkg.versions.length) {
       this.removePackage(slug);
     }
   }

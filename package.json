@@ -16,7 +16,7 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsx ./src/index.ts",
     "format": "prettier . --write",
-    "lint": "eslint ./**/*.ts",
+    "lint": "eslint './**/*.ts'",
     "start": "node build/index.js",
     "test": "vitest run ./tests",
     "test:watch": "vitest ./tests"
