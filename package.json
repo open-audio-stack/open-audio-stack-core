@@ -1,0 +1,47 @@
+{
+  "name": "open-audio-stack-core",
+  "version": "0.0.1",
+  "description": "Open-source audio plugin management software",
+  "type": "module",
+  "main": "./build/index.js",
+  "exports": {
+    "node": "./build/index.js",
+    "default": "./build/index-browser.js"
+  },
+  "types": "./build/index.d.ts",
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx ./src/index.ts",
+    "format": "prettier . --write",
+    "lint": "eslint ./**/*.ts",
+    "start": "node build/index.js",
+    "test": "vitest run ./tests",
+    "test:watch": "vitest ./tests"
+  },
+  "author": "kmturley",
+  "license": "cc0-1.0",
+  "keywords": [
+    "open",
+    "audio",
+    "stack",
+    "plugin",
+    "package",
+    "manager"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.2.0",
+    "eslint": "^8.57.0",
+    "globals": "^15.2.0",
+    "prettier": "^3.2.5",
+    "tsx": "^4.10.1",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.8.0",
+    "vitest": "^1.6.0"
+  }
+}
