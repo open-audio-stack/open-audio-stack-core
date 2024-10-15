@@ -1,4 +1,5 @@
-import { Package, PackageVersionType } from '../types/Package.js';
+import * as semver from 'semver';
+import { Package, PackageVersions, PackageVersionType } from '../types/Package.js';
 import { Registry } from '../types/Registry.js';
 
 export default class AudioRegistry {
@@ -27,13 +28,21 @@ export default class AudioRegistry {
       pkg = this.addPackage(slug);
     }
     pkg.versions[version] = pkgVersion;
-    if (version > pkg.version) {
-      pkg.version = version;
-    }
+    pkg.version = this.getPackageVersionLatest(pkg.versions);
   }
 
   getPackage(slug: string) {
     return this.data.packages[slug];
+  }
+
+  getPackageVersionLatest(versions: PackageVersions) {
+    let latest: string = '0.0.0';
+    Object.keys(versions).forEach((version: string) => {
+      if (semver.gt(version, latest)) {
+        latest = version;
+      }
+    });
+    return latest;
   }
 
   getRegistry() {
@@ -48,8 +57,9 @@ export default class AudioRegistry {
     const pkg: Package = this.getPackage(slug);
     if (pkg && pkg.versions[version]) {
       delete pkg.versions[version];
+      pkg.version = this.getPackageVersionLatest(pkg.versions);
     }
-    if (!pkg.versions.length) {
+    if (!Object.keys(pkg.versions).length) {
       this.removePackage(slug);
     }
   }

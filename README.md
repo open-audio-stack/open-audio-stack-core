@@ -4,7 +4,7 @@ Open-source audio plugin management software using:
 
 - NodeJS 20.x
 - TypeScript 5.x
-- eslint 8.x
+- eslint 9.x
 - prettier 3.x
 - vitest 1.x
 
