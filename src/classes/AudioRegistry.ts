@@ -3,19 +3,14 @@ import { Package, PackageVersions, PackageVersionType } from '../types/Package.j
 import { Registry } from '../types/Registry.js';
 
 export default class AudioRegistry {
-  data: Registry;
+  registry: Registry;
 
-  constructor(name: string, url: string, version: string) {
-    this.data = {
-      name,
-      packages: {},
-      url,
-      version,
-    };
+  constructor(registry: Registry) {
+    this.registry = registry;
   }
 
   addPackage(slug: string) {
-    return (this.data.packages[slug] = {
+    return (this.registry.packages[slug] = {
       slug,
       version: '',
       versions: {},
@@ -32,7 +27,7 @@ export default class AudioRegistry {
   }
 
   getPackage(slug: string) {
-    return this.data.packages[slug];
+    return this.registry.packages[slug];
   }
 
   getPackageVersionLatest(versions: PackageVersions) {
@@ -46,11 +41,11 @@ export default class AudioRegistry {
   }
 
   getRegistry() {
-    return this.data;
+    return this.registry;
   }
 
   removePackage(slug: string) {
-    delete this.data.packages[slug];
+    delete this.registry.packages[slug];
   }
 
   removePackageVersion(slug: string, version: string) {

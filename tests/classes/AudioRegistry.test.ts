@@ -6,11 +6,7 @@ import { PLUGIN } from '../data/Plugin.js';
 import { PackageVersions } from '../../src/types/Package.js';
 
 test('Create new Registry', () => {
-  const registry: AudioRegistry = new AudioRegistry(
-    'Open Audio Registry',
-    'https://openaudio.github.io/registry',
-    '1.0.0',
-  );
+  const registry: AudioRegistry = new AudioRegistry(REGISTRY);
   expect(registry.getRegistry()).toEqual(REGISTRY);
 });
 
@@ -23,21 +19,13 @@ test('Registry add a package', () => {
       versions: {},
     },
   };
-  const registry: AudioRegistry = new AudioRegistry(
-    'Open Audio Registry',
-    'https://openaudio.github.io/registry',
-    '1.0.0',
-  );
+  const registry: AudioRegistry = new AudioRegistry(REGISTRY);
   registry.addPackage('surge-synth/surge');
   expect(registry.getRegistry()).toEqual(REGISTRY_PACKAGE);
 });
 
 test('Registry add and remove package', () => {
-  const registry: AudioRegistry = new AudioRegistry(
-    'Open Audio Registry',
-    'https://openaudio.github.io/registry',
-    '1.0.0',
-  );
+  const registry: AudioRegistry = new AudioRegistry(REGISTRY);
   registry.addPackage('surge-synth/surge');
   registry.removePackage('surge-synth/surge');
   expect(registry.getRegistry()).toEqual(REGISTRY);
@@ -54,21 +42,13 @@ test('Registry add a package version', () => {
       },
     },
   };
-  const registry: AudioRegistry = new AudioRegistry(
-    'Open Audio Registry',
-    'https://openaudio.github.io/registry',
-    '1.0.0',
-  );
+  const registry: AudioRegistry = new AudioRegistry(REGISTRY);
   registry.addPackageVersion('surge-synth/surge', '1.3.1', PLUGIN);
   expect(registry.getRegistry()).toEqual(REGISTRY_WITH_PLUGIN);
 });
 
 test('Registry add and remove a package', () => {
-  const registry: AudioRegistry = new AudioRegistry(
-    'Open Audio Registry',
-    'https://openaudio.github.io/registry',
-    '1.0.0',
-  );
+  const registry: AudioRegistry = new AudioRegistry(REGISTRY);
   registry.addPackageVersion('surge-synth/surge', '1.3.1', PLUGIN);
   registry.removePackageVersion('surge-synth/surge', '1.3.1');
   expect(registry.getRegistry()).toEqual(REGISTRY);
@@ -86,11 +66,7 @@ test('Registry add multiple package versions', () => {
       },
     },
   };
-  const registry: AudioRegistry = new AudioRegistry(
-    'Open Audio Registry',
-    'https://openaudio.github.io/registry',
-    '1.0.0',
-  );
+  const registry: AudioRegistry = new AudioRegistry(REGISTRY);
   registry.addPackageVersion('surge-synth/surge', '1.3.2', PLUGIN);
   registry.addPackageVersion('surge-synth/surge', '1.3.1', PLUGIN);
   expect(registry.getRegistry()).toEqual(REGISTRY_WITH_PLUGIN);
@@ -107,11 +83,7 @@ test('Registry add and remove multiple package versions', () => {
       },
     },
   };
-  const registry: AudioRegistry = new AudioRegistry(
-    'Open Audio Registry',
-    'https://openaudio.github.io/registry',
-    '1.0.0',
-  );
+  const registry: AudioRegistry = new AudioRegistry(REGISTRY);
   registry.addPackageVersion('surge-synth/surge', '1.3.2', PLUGIN);
   registry.addPackageVersion('surge-synth/surge', '1.3.1', PLUGIN);
   registry.removePackageVersion('surge-synth/surge', '1.3.2');
@@ -119,11 +91,7 @@ test('Registry add and remove multiple package versions', () => {
 });
 
 test('Get package latest version', () => {
-  const registry: AudioRegistry = new AudioRegistry(
-    'Open Audio Registry',
-    'https://openaudio.github.io/registry',
-    '1.0.0',
-  );
+  const registry: AudioRegistry = new AudioRegistry(REGISTRY);
   const VERSIONS: PackageVersions = {
     '1.3.1': PLUGIN,
     '10.3.2': PLUGIN,
