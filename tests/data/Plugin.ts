@@ -1,8 +1,9 @@
-import { License, System } from '../../src/types/Config';
-import { FileFormat, FileType } from '../../src/types/File';
-import { Plugin, PluginFormat, PluginType } from '../../src/types/Plugin';
+import { FileFormat, FileId } from '../../src/types/File';
+import { LicenseId } from '../../src/types/License';
+import { PluginType, PluginFormat, PluginId } from '../../src/types/Plugin';
+import { SystemId } from '../../src/types/System';
 
-export const PLUGIN: Plugin = {
+export const PLUGIN: PluginType = {
   author: 'Surge Synth Team',
   changes: '- Fixed bug with audio\n- New feature added',
   date: '2024-03-02T00:00:00.000Z',
@@ -13,15 +14,15 @@ export const PLUGIN: Plugin = {
       format: FileFormat.Zip,
       formats: [PluginFormat.VST3],
       hash: '3af35f0212',
-      systems: [System.MacBit32],
+      systems: [SystemId.MacBit32],
       size: 94448096,
-      type: FileType.Archive,
+      type: FileId.Archive,
       url: 'https://a.com/b/file.zip',
     },
   ],
-  license: License.GNUGeneralPublicLicensev3,
+  license: LicenseId.GNUGeneralPublicLicensev3,
   name: 'Surge XT',
   tags: ['80s', 'Synth', 'Modulation'],
-  type: PluginType.Instrument,
+  type: PluginId.Instrument,
   url: 'https://github.com/surge-synthesizer/surge',
 };

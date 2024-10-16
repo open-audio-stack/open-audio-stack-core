@@ -1,13 +1,13 @@
-import { File } from './File.js';
+import { FileType } from './File.js';
 import { PackageVersion } from './Package.js';
 
-export interface Project extends PackageVersion {
+export interface ProjectType extends PackageVersion {
   files: Array<ProjectFile>;
   plugins: ProjectPlugins;
-  type: ProjectType;
+  type: ProjectId;
 }
 
-export interface ProjectFile extends File {
+export interface ProjectFile extends FileType {
   formats: Array<ProjectFormat>;
 }
 
@@ -27,7 +27,7 @@ export interface ProjectPlugins {
   [slug: string]: string;
 }
 
-export enum ProjectType {
+export enum ProjectId {
   Audiobook = 'audiobook',
   DJSet = 'dj',
   Performance = 'performance',

@@ -1,8 +1,9 @@
-import { License, System } from '../../src/types/Config';
-import { FileFormat, FileType } from '../../src/types/File';
-import { Project, ProjectFormat, ProjectType } from '../../src/types/Project';
+import { FileFormat, FileId } from '../../src/types/File';
+import { LicenseId } from '../../src/types/License';
+import { ProjectId, ProjectFormat, ProjectType } from '../../src/types/Project';
+import { SystemId } from '../../src/types/System';
 
-export const PROJECT: Project = {
+export const PROJECT: ProjectType = {
   author: 'KMT',
   changes: '- Fixed levels\n- New instrument added',
   date: '2024-03-02T00:00:00.000Z',
@@ -12,19 +13,19 @@ export const PROJECT: Project = {
       format: FileFormat.Zip,
       formats: [ProjectFormat.AbletonLive],
       hash: '3af35f0212',
-      systems: [System.MacBit32],
+      systems: [SystemId.MacBit32],
       size: 94448096,
-      type: FileType.Archive,
+      type: FileId.Archive,
       url: 'https://a.com/b/file.zip',
     },
   ],
-  license: License.CreativeCommonsZerov1Universal,
+  license: LicenseId.CreativeCommonsZerov1Universal,
   plugins: {
     'freepats/glasses': '1.0.0',
     'surge-synth/surge': '1.3.1',
   },
   name: 'Banwer',
   tags: ['Idea', 'Synth', 'Rock'],
-  type: ProjectType.Song,
+  type: ProjectId.Song,
   url: 'https://myproject.com',
 };

@@ -1,11 +1,11 @@
-import { System } from './Config.js';
+import { SystemId } from './System.js';
 
-export interface File {
+export interface FileType {
   format: FileFormat;
   hash: string;
-  systems: Array<System>;
+  systems: Array<SystemId>;
   size: number;
-  type: FileType;
+  type: FileId;
   url: string;
 }
 
@@ -19,7 +19,7 @@ export enum FileFormat {
   Zip = 'zip',
 }
 
-export enum FileType {
+export enum FileId {
   Archive = 'archive',
   Installer = 'installer',
 }

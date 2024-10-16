@@ -1,12 +1,12 @@
-import { File } from './File.js';
+import { FileType } from './File.js';
 import { PackageVersion } from './Package.js';
 
-export interface Plugin extends PackageVersion {
+export interface PluginType extends PackageVersion {
   files: Array<PluginFile>;
-  type: PluginType;
+  type: PluginId;
 }
 
-export interface PluginFile extends File {
+export interface PluginFile extends FileType {
   formats: Array<PluginFormat>;
 }
 
@@ -25,7 +25,7 @@ export enum PluginFormat {
   VST3 = 'vst3',
 }
 
-export enum PluginType {
+export enum PluginId {
   Effect = 'effect',
   Instrument = 'instrument',
   Preset = 'preset',

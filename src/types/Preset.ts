@@ -1,13 +1,13 @@
-import { File } from './File.js';
+import { FileType } from './File.js';
 import { PackageVersion } from './Package.js';
 
-export interface Preset extends PackageVersion {
+export interface PresetType extends PackageVersion {
   files: Array<PresetFile>;
   plugins: PresetPlugins;
-  type: PresetType;
+  type: PresetId;
 }
 
-export interface PresetFile extends File {
+export interface PresetFile extends FileType {
   formats: Array<PresetFormat>;
 }
 
@@ -23,6 +23,6 @@ export interface PresetPlugins {
   [slug: string]: string;
 }
 
-export enum PresetType {
+export enum PresetId {
   Sound = 'sound',
 }
