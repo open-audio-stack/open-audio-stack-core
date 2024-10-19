@@ -1,6 +1,7 @@
 import { FileInterface } from './File.js';
 import { PackageVersion } from './Package.js';
 import { ProjectFormat } from './ProjectFormat.js';
+import { ProjectType } from './ProjectType.js';
 
 export interface ProjectInterface extends PackageVersion {
   files: ProjectFile[];
