@@ -1,11 +1,11 @@
 import * as semver from 'semver';
-import { PackageType, PackageVersions, PackageVersionType } from './types/Package.js';
-import { RegistryType } from './types/Registry.js';
+import { PackageInterface, PackageVersions, PackageVersionType } from './types/Package.js';
+import { RegistryInterface } from './types/Registry.js';
 
 export default class Registry {
-  registry: RegistryType;
+  registry: RegistryInterface;
 
-  constructor(registry: RegistryType) {
+  constructor(registry: RegistryInterface) {
     this.registry = registry;
   }
 
@@ -18,7 +18,7 @@ export default class Registry {
   }
 
   addPackageVersion(slug: string, version: string, pkgVersion: PackageVersionType) {
-    let pkg: PackageType = this.getPackage(slug);
+    let pkg: PackageInterface = this.getPackage(slug);
     if (!pkg) {
       pkg = this.addPackage(slug);
     }
@@ -49,7 +49,7 @@ export default class Registry {
   }
 
   removePackageVersion(slug: string, version: string) {
-    const pkg: PackageType = this.getPackage(slug);
+    const pkg: PackageInterface = this.getPackage(slug);
     if (pkg && pkg.versions[version]) {
       delete pkg.versions[version];
       pkg.version = this.getPackageVersionLatest(pkg.versions);

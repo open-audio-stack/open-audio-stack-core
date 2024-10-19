@@ -1,9 +1,12 @@
-import { FileFormat, FileId } from '../../src/types/File';
-import { LicenseId } from '../../src/types/License';
-import { PluginType, PluginFormat, PluginId } from '../../src/types/Plugin';
-import { SystemId } from '../../src/types/System';
+import { FileFormat } from '../../src/types/FileFormat';
+import { FileType } from '../../src/types/FileType';
+import { License } from '../../src/types/License';
+import { PluginInterface } from '../../src/types/Plugin';
+import { PluginFormat } from '../../src/types/PluginFormat';
+import { PluginType } from '../../src/types/PluginType';
+import { System } from '../../src/types/System';
 
-export const PLUGIN: PluginType = {
+export const PLUGIN: PluginInterface = {
   author: 'Surge Synth Team',
   changes: '- Fixed bug with audio\n- New feature added',
   date: '2024-03-02T00:00:00.000Z',
@@ -14,15 +17,15 @@ export const PLUGIN: PluginType = {
       format: FileFormat.Zip,
       formats: [PluginFormat.VST3],
       hash: '3af35f0212',
-      systems: [SystemId.MacBit32],
+      systems: [System.MacBit32],
       size: 94448096,
-      type: FileId.Archive,
+      type: FileType.Archive,
       url: 'https://a.com/b/file.zip',
     },
   ],
-  license: LicenseId.GNUGeneralPublicLicensev3,
+  license: License.GNUGeneralPublicLicensev3,
   name: 'Surge XT',
   tags: ['80s', 'Synth', 'Modulation'],
-  type: PluginId.Instrument,
+  type: PluginType.Instrument,
   url: 'https://github.com/surge-synthesizer/surge',
 };

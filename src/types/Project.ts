@@ -1,38 +1,17 @@
-import { FileType } from './File.js';
+import { FileInterface } from './File.js';
 import { PackageVersion } from './Package.js';
+import { ProjectFormat } from './ProjectFormat.js';
 
-export interface ProjectType extends PackageVersion {
-  files: Array<ProjectFile>;
+export interface ProjectInterface extends PackageVersion {
+  files: ProjectFile[];
   plugins: ProjectPlugins;
-  type: ProjectId;
+  type: ProjectType;
 }
 
-export interface ProjectFile extends FileType {
-  formats: Array<ProjectFormat>;
-}
-
-export enum ProjectFormat {
-  AbletonLive = 'als',
-  Bitwig = 'bwproject',
-  Cubase = 'cpr',
-  DAWproject = 'dawproject',
-  FLStudio = 'flp',
-  Logic = 'logic',
-  ProTools = 'ptx',
-  Reaper = 'rpp',
-  Sonar = 'cwp',
+export interface ProjectFile extends FileInterface {
+  formats: ProjectFormat[];
 }
 
 export interface ProjectPlugins {
   [slug: string]: string;
-}
-
-export enum ProjectId {
-  Audiobook = 'audiobook',
-  DJSet = 'dj',
-  Performance = 'performance',
-  Podcast = 'podcast',
-  Remix = 'remix',
-  Song = 'song',
-  Score = 'score',
 }

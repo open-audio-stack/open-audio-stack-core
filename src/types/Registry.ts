@@ -1,6 +1,6 @@
-import { PackageType } from './Package.js';
+import { PackageInterface } from './Package.js';
 
-export interface RegistryType {
+export interface RegistryInterface {
   name: string;
   packages: RegistryPackages;
   url: string;
@@ -8,5 +8,5 @@ export interface RegistryType {
 }
 
 export interface RegistryPackages {
-  [slug: string]: PackageType;
+  [slug: string]: PackageInterface;
 }

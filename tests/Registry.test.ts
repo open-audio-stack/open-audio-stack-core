@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import Registry from '../src/Registry.js';
-import { RegistryType } from '../src/types/Registry.js';
+import { RegistryInterface } from '../src/types/Registry.js';
 import { REGISTRY } from './data/Registry.js';
 import { PLUGIN } from './data/Plugin.js';
 import { PackageVersions } from '../src/types/Package.js';
@@ -11,7 +11,7 @@ test('Create new Registry', () => {
 });
 
 test('Registry add a package', () => {
-  const REGISTRY_PACKAGE: RegistryType = structuredClone(REGISTRY);
+  const REGISTRY_PACKAGE: RegistryInterface = structuredClone(REGISTRY);
   REGISTRY_PACKAGE.packages = {
     'surge-synth/surge': {
       slug: 'surge-synth/surge',
@@ -32,7 +32,7 @@ test('Registry add and remove package', () => {
 });
 
 test('Registry add a package version', () => {
-  const REGISTRY_WITH_PLUGIN: RegistryType = structuredClone(REGISTRY);
+  const REGISTRY_WITH_PLUGIN: RegistryInterface = structuredClone(REGISTRY);
   REGISTRY_WITH_PLUGIN.packages = {
     'surge-synth/surge': {
       slug: 'surge-synth/surge',
@@ -55,7 +55,7 @@ test('Registry add and remove a package', () => {
 });
 
 test('Registry add multiple package versions', () => {
-  const REGISTRY_WITH_PLUGIN: RegistryType = structuredClone(REGISTRY);
+  const REGISTRY_WITH_PLUGIN: RegistryInterface = structuredClone(REGISTRY);
   REGISTRY_WITH_PLUGIN.packages = {
     'surge-synth/surge': {
       slug: 'surge-synth/surge',
@@ -73,7 +73,7 @@ test('Registry add multiple package versions', () => {
 });
 
 test('Registry add and remove multiple package versions', () => {
-  const REGISTRY_WITH_PLUGIN: RegistryType = structuredClone(REGISTRY);
+  const REGISTRY_WITH_PLUGIN: RegistryInterface = structuredClone(REGISTRY);
   REGISTRY_WITH_PLUGIN.packages = {
     'surge-synth/surge': {
       slug: 'surge-synth/surge',

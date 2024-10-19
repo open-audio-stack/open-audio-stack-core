@@ -1,1 +1,1 @@
-export interface ConfigType {}
+export interface ConfigInterface {}

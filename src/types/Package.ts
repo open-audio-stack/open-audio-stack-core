@@ -1,9 +1,9 @@
-import { PluginType } from './Plugin.js';
-import { PresetType } from './Preset.js';
-import { ProjectType } from './Project.js';
-import { LicenseId } from './License.js';
+import { PluginInterface } from './Plugin.js';
+import { PresetInterface } from './Preset.js';
+import { ProjectInterface } from './Project.js';
+import { License } from './License.js';
 
-export interface PackageType {
+export interface PackageInterface {
   slug: string;
   version: string;
   versions: PackageVersions;
@@ -18,10 +18,10 @@ export interface PackageVersion {
   changes: string;
   date: string;
   description: string;
-  license: LicenseId;
+  license: License;
   name: string;
-  tags: Array<string>;
+  tags: string[];
   url: string;
 }
 
-export type PackageVersionType = PluginType | PresetType | ProjectType;
+export type PackageVersionType = PluginInterface | PresetInterface | ProjectInterface;

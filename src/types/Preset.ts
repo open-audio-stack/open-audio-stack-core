@@ -1,28 +1,18 @@
-import { FileType } from './File.js';
+import { FileInterface } from './File.js';
 import { PackageVersion } from './Package.js';
+import { PresetFormat } from './PresetFormat.js';
+import { PresetType } from './PresetType.js';
 
-export interface PresetType extends PackageVersion {
-  files: Array<PresetFile>;
+export interface PresetInterface extends PackageVersion {
+  files: PresetFile[];
   plugins: PresetPlugins;
-  type: PresetId;
+  type: PresetType;
 }
 
-export interface PresetFile extends FileType {
-  formats: Array<PresetFormat>;
-}
-
-export enum PresetFormat {
-  AU = 'aupreset',
-  NativeInstruments = 'nksf',
-  VST = 'fxp',
-  VSTLegacy = 'fxb',
-  VST3 = 'vstpreset',
+export interface PresetFile extends FileInterface {
+  formats: PresetFormat[];
 }
 
 export interface PresetPlugins {
   [slug: string]: string;
-}
-
-export enum PresetId {
-  Sound = 'sound',
 }

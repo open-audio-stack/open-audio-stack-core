@@ -1,25 +1,12 @@
-import { SystemId } from './System.js';
+import { FileFormat } from './FileFormat.js';
+import { FileType } from './FileType.js';
+import { System } from './System.js';
 
-export interface FileType {
+export interface FileInterface {
   format: FileFormat;
   hash: string;
-  systems: Array<SystemId>;
+  systems: System[];
   size: number;
-  type: FileId;
+  type: FileType;
   url: string;
-}
-
-export enum FileFormat {
-  DebianPackage = 'deb',
-  AppleDiskImage = 'dmg',
-  ExecutableInstaller = 'exe',
-  Tarball = 'tar.gz',
-  TarballLegacy = 'tgz',
-  WindowsInstaller = 'msi',
-  Zip = 'zip',
-}
-
-export enum FileId {
-  Archive = 'archive',
-  Installer = 'installer',
 }

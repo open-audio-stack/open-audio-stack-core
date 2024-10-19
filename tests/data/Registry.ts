@@ -1,6 +1,6 @@
-import { RegistryType } from '../../src/types/Registry';
+import { RegistryInterface } from '../../src/types/Registry';
 
-export const REGISTRY: RegistryType = {
+export const REGISTRY: RegistryInterface = {
   name: 'Open Audio Registry',
   packages: {},
   url: 'https://openaudio.github.io/registry',
