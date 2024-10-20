@@ -1,10 +1,11 @@
+import { Architecture } from '../../src/types/Architecture';
 import { FileFormat } from '../../src/types/FileFormat';
 import { FileType } from '../../src/types/FileType';
 import { License } from '../../src/types/License';
 import { PluginInterface } from '../../src/types/Plugin';
 import { PluginFormat } from '../../src/types/PluginFormat';
 import { PluginType } from '../../src/types/PluginType';
-import { System } from '../../src/types/System';
+import { SystemType } from '../../src/types/SystemType';
 
 export const PLUGIN: PluginInterface = {
   author: 'Surge Synth Team',
@@ -14,10 +15,11 @@ export const PLUGIN: PluginInterface = {
     'Hybrid synthesizer featuring many synthesis techniques, a great selection of filters, a flexible modulation engine, a smorgasbord of effects, and modern features like MPE and microtuning.',
   files: [
     {
+      architectures: [Architecture.Bit32],
       format: FileFormat.Zip,
       formats: [PluginFormat.VST3],
       hash: '3af35f0212',
-      systems: [System.MacBit32],
+      systems: [{ min: 13.7, type: SystemType.Macintosh }],
       size: 94448096,
       type: FileType.Archive,
       url: 'https://a.com/b/file.zip',

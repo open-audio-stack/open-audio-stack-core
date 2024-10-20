@@ -1,17 +1,16 @@
 import { expect, test } from 'vitest';
 import Config from '../src/Config.js';
 import { architectures, Architecture } from '../src/types/Architecture.js';
-import { Platform, platforms } from '../src/types/Platform.js';
-import { System, systems } from '../src/types/System.js';
 import { PluginFormat, pluginFormats } from '../src/types/PluginFormat.js';
 import { FileFormat, fileFormats } from '../src/types/FileFormat.js';
 import { FileType, fileTypes } from '../src/types/FileType.js';
-import { License, licenses } from '../src/index-browser.js';
+import { License, licenses } from '../src/types/License.js';
 import { PluginType, pluginTypes } from '../src/types/PluginType.js';
 import { PresetFormat, presetFormats } from '../src/types/PresetFormat.js';
 import { PresetType, presetTypes } from '../src/types/PresetType.js';
 import { ProjectType, projectTypes } from '../src/types/ProjectType.js';
 import { ProjectFormat, projectFormats } from '../src/types/ProjectFormat.js';
+import { SystemType, systemTypes } from '../src/types/SystemType.js';
 
 test('Create new Config', () => {
   const config: Config = new Config({});
@@ -56,16 +55,6 @@ test('Get license', () => {
 test('Get licenses', () => {
   const config: Config = new Config({});
   expect(config.getLicenses()).toEqual(licenses);
-});
-
-test('Get platform', () => {
-  const config: Config = new Config({});
-  expect(config.getPlatform(Platform.Linux)).toEqual(platforms[1]);
-});
-
-test('Get platforms', () => {
-  const config: Config = new Config({});
-  expect(config.getPlatforms()).toEqual(platforms);
 });
 
 test('Get plugin format', () => {
@@ -130,10 +119,10 @@ test('Get project types', () => {
 
 test('Get system', () => {
   const config: Config = new Config({});
-  expect(config.getSystem(System.LinuxArm32)).toEqual(systems[0]);
+  expect(config.getSystem(SystemType.Linux)).toEqual(systemTypes[0]);
 });
 
 test('Get systems', () => {
   const config: Config = new Config({});
-  expect(config.getSystems()).toEqual(systems);
+  expect(config.getSystems()).toEqual(systemTypes);
 });

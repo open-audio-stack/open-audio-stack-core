@@ -1,9 +1,11 @@
-import { PresetInterface } from '../../src/index-browser';
+import { Architecture } from '../../src/types/Architecture';
 import { FileFormat } from '../../src/types/FileFormat';
+import { FileType } from '../../src/types/FileType';
 import { License } from '../../src/types/License';
 import { PresetFormat } from '../../src/types/PresetFormat';
+import { PresetInterface } from '../../src/types/Preset';
 import { PresetType } from '../../src/types/PresetType';
-import { System } from '../../src/types/System';
+import { SystemType } from '../../src/types/SystemType';
 
 export const PRESET: PresetInterface = {
   author: 'Audiotown',
@@ -12,12 +14,13 @@ export const PRESET: PresetInterface = {
   description: 'Synthwave preset for Surge',
   files: [
     {
+      architectures: [Architecture.Bit32],
       format: FileFormat.Zip,
       formats: [PresetFormat.VST3],
       hash: '3af35f0212',
-      systems: [System.MacBit32],
+      systems: [{ min: 13.7, type: SystemType.Macintosh }],
       size: 94448096,
-      type: FileId.Archive,
+      type: FileType.Archive,
       url: 'https://a.com/b/file.zip',
     },
   ],

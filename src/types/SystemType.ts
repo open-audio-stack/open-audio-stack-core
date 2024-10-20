@@ -1,29 +1,29 @@
-export enum Platform {
+export enum SystemType {
   Macintosh = 'mac',
   Linux = 'linux',
   Windows = 'win',
 }
 
-export interface PlatformOption {
+export interface SystemTypeOption {
   description: string;
-  value: Platform;
+  value: SystemType;
   name: string;
 }
 
-export const platforms: PlatformOption[] = [
-  {
-    description: 'Operating system designed and sold by Apple, and is known for its ease of use.',
-    value: Platform.Macintosh,
-    name: 'Macintosh',
-  },
+export const systemTypes: SystemTypeOption[] = [
   {
     description: 'Open-source operating system. One of the most widely used for IT computers and servers.',
-    value: Platform.Linux,
+    value: SystemType.Linux,
     name: 'Linux',
   },
   {
+    description: 'Operating system designed and sold by Apple, and is known for its ease of use.',
+    value: SystemType.Macintosh,
+    name: 'Macintosh',
+  },
+  {
     description: 'Most popular home operating system, preloaded on most new personal computers.',
-    value: Platform.Windows,
+    value: SystemType.Windows,
     name: 'Windows',
   },
 ];

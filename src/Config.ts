@@ -1,16 +1,15 @@
-import { PluginFormat, pluginFormats } from './types/PluginFormat.js';
 import { architectures, Architecture } from './types/Architecture.js';
 import { ConfigInterface } from './types/Config.js';
-import { Platform, platforms } from './types/Platform.js';
-import { System, systems } from './types/System.js';
 import { FileFormat, fileFormats } from './types/FileFormat.js';
 import { FileType, fileTypes } from './types/FileType.js';
-import { License, licenses } from './index-browser.js';
+import { License, licenses } from './types/License.js';
+import { PluginFormat, pluginFormats } from './types/PluginFormat.js';
 import { PluginType, pluginTypes } from './types/PluginType.js';
 import { PresetFormat, presetFormats } from './types/PresetFormat.js';
 import { PresetType, presetTypes } from './types/PresetType.js';
 import { ProjectFormat, projectFormats } from './types/ProjectFormat.js';
 import { ProjectType, projectTypes } from './types/ProjectType.js';
+import { SystemType, systemTypes } from './types/SystemType.js';
 
 export default class Config {
   config: ConfigInterface;
@@ -59,16 +58,6 @@ export default class Config {
 
   getLicenses() {
     return licenses;
-  }
-
-  // Platforms.
-
-  getPlatform(type: Platform) {
-    return platforms.filter(platform => type === platform.value)[0];
-  }
-
-  getPlatforms() {
-    return platforms;
   }
 
   // Plugin formats and types.
@@ -127,11 +116,11 @@ export default class Config {
 
   // Systems.
 
-  getSystem(type: System) {
-    return systems.filter(system => type === system.value)[0];
+  getSystem(type: SystemType) {
+    return systemTypes.filter(system => type === system.value)[0];
   }
 
   getSystems() {
-    return systems;
+    return systemTypes;
   }
 }
