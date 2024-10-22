@@ -30,6 +30,10 @@ export default class Registry {
     return this.registry.packages[slug];
   }
 
+  getPackages() {
+    return this.registry.packages;
+  }
+
   getPackageVersionLatest(versions: PackageVersions) {
     let latest: string = '0.0.0';
     Object.keys(versions).forEach((version: string) => {
@@ -42,6 +46,18 @@ export default class Registry {
 
   getRegistry() {
     return this.registry;
+  }
+
+  getRegistryName() {
+    return this.registry.name;
+  }
+
+  getRegistryUrl() {
+    return this.registry.url;
+  }
+
+  getRegistryVersion() {
+    return this.registry.version;
   }
 
   removePackage(slug: string) {

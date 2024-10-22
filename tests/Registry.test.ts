@@ -90,6 +90,26 @@ test('Registry add and remove multiple package versions', () => {
   expect(registry.getRegistry()).toEqual(REGISTRY_WITH_PLUGIN);
 });
 
+test('Get packages', () => {
+  const registry: Registry = new Registry(REGISTRY);
+  expect(registry.getPackages()).toEqual(REGISTRY.packages);
+});
+
+test('Get registry name', () => {
+  const registry: Registry = new Registry(REGISTRY);
+  expect(registry.getRegistryName()).toEqual(REGISTRY.name);
+});
+
+test('Get registry url', () => {
+  const registry: Registry = new Registry(REGISTRY);
+  expect(registry.getRegistryUrl()).toEqual(REGISTRY.url);
+});
+
+test('Get registry version', () => {
+  const registry: Registry = new Registry(REGISTRY);
+  expect(registry.getRegistryVersion()).toEqual(REGISTRY.version);
+});
+
 test('Get package latest version', () => {
   const registry: Registry = new Registry(REGISTRY);
   const VERSIONS: PackageVersions = {
