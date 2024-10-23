@@ -18,109 +18,109 @@ export default class Config {
     this.config = config;
   }
 
-  getConfig() {
+  get() {
     return this.config;
   }
 
   // Architectures.
 
-  getArchitecture(type: Architecture) {
+  architecture(type: Architecture) {
     return architectures.filter(architecture => type === architecture.value)[0];
   }
 
-  getArchitectures() {
+  architectures() {
     return architectures;
   }
 
   // File formats and types.
 
-  getFileFormat(format: FileFormat) {
+  fileFormat(format: FileFormat) {
     return fileFormats.filter(fileFormat => format === fileFormat.value)[0];
   }
 
-  getFileFormats() {
+  fileFormats() {
     return fileFormats;
   }
 
-  getFileType(type: FileType) {
+  fileType(type: FileType) {
     return fileTypes.filter(fileType => type === fileType.value)[0];
   }
 
-  getFileTypes() {
+  fileTypes() {
     return fileTypes;
   }
 
   // Licenses
 
-  getLicense(type: License) {
+  license(type: License) {
     return licenses.filter(license => type === license.value)[0];
   }
 
-  getLicenses() {
+  licenses() {
     return licenses;
   }
 
   // Plugin formats and types.
 
-  getPluginFormat(format: PluginFormat) {
+  pluginFormat(format: PluginFormat) {
     return pluginFormats.filter(pluginFormat => format === pluginFormat.value)[0];
   }
 
-  getPluginFormats() {
+  pluginFormats() {
     return pluginFormats;
   }
 
-  getPluginType(type: PluginType) {
+  pluginType(type: PluginType) {
     return pluginTypes.filter(pluginType => type === pluginType.value)[0];
   }
 
-  getPluginTypes() {
+  pluginTypes() {
     return pluginTypes;
   }
 
   // Preset formats and types.
 
-  getPresetFormat(format: PresetFormat) {
+  presetFormat(format: PresetFormat) {
     return presetFormats.filter(presetFormat => format === presetFormat.value)[0];
   }
 
-  getPresetFormats() {
+  presetFormats() {
     return presetFormats;
   }
 
-  getPresetType(type: PresetType) {
+  presetType(type: PresetType) {
     return presetTypes.filter(presetType => type === presetType.value)[0];
   }
 
-  getPresetTypes() {
+  presetTypes() {
     return presetTypes;
   }
 
   // Project formats and types.
 
-  getProjectFormat(format: ProjectFormat) {
+  projectFormat(format: ProjectFormat) {
     return projectFormats.filter(projectFormat => format === projectFormat.value)[0];
   }
 
-  getProjectFormats() {
+  projectFormats() {
     return projectFormats;
   }
 
-  getProjectType(type: ProjectType) {
+  projectType(type: ProjectType) {
     return projectTypes.filter(projectType => type === projectType.value)[0];
   }
 
-  getProjectTypes() {
+  projectTypes() {
     return projectTypes;
   }
 
   // Systems.
 
-  getSystem(type: SystemType) {
+  system(type: SystemType) {
     return systemTypes.filter(system => type === system.value)[0];
   }
 
-  getSystems() {
+  systems() {
     return systemTypes;
   }
 }

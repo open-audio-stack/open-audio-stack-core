@@ -15,6 +15,7 @@ import { globSync } from 'glob';
 import { moveSync } from 'fs-extra/esm';
 import os from 'os';
 import path from 'path';
+import yaml from 'js-yaml';
 import { PackageInterface } from '../src/types/Package.js';
 
 export default class FileSystem {
@@ -182,6 +183,11 @@ export default class FileSystem {
   fileReadString(filePath: string) {
     console.log('⎋', filePath);
     return readFileSync(filePath).toString();
+  }
+
+  fileReadYaml(filePath: string) {
+    const file: string = this.fileReadString(filePath);
+    return yaml.load(file);
   }
 
   fileSize(filePath: string) {

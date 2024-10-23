@@ -14,115 +14,115 @@ import { SystemType, systemTypes } from '../src/types/SystemType.js';
 
 test('Create new Config', () => {
   const config: Config = new Config({});
-  expect(config.getConfig()).toEqual({});
+  expect(config.get()).toEqual({});
 });
 
 test('Get architecture', () => {
   const config: Config = new Config({});
-  expect(config.getArchitecture(Architecture.Bit32)).toEqual(architectures[2]);
+  expect(config.architecture(Architecture.Bit32)).toEqual(architectures[2]);
 });
 
 test('Get architectures', () => {
   const config: Config = new Config({});
-  expect(config.getArchitectures()).toEqual(architectures);
+  expect(config.architectures()).toEqual(architectures);
 });
 
 test('Get file format', () => {
   const config: Config = new Config({});
-  expect(config.getFileFormat(FileFormat.DebianPackage)).toEqual(fileFormats[1]);
+  expect(config.fileFormat(FileFormat.DebianPackage)).toEqual(fileFormats[1]);
 });
 
 test('Get file formats', () => {
   const config: Config = new Config({});
-  expect(config.getFileFormats()).toEqual(fileFormats);
+  expect(config.fileFormats()).toEqual(fileFormats);
 });
 
 test('Get file type', () => {
   const config: Config = new Config({});
-  expect(config.getFileType(FileType.Installer)).toEqual(fileTypes[1]);
+  expect(config.fileType(FileType.Installer)).toEqual(fileTypes[1]);
 });
 
 test('Get file types', () => {
   const config: Config = new Config({});
-  expect(config.getFileTypes()).toEqual(fileTypes);
+  expect(config.fileTypes()).toEqual(fileTypes);
 });
 
 test('Get license', () => {
   const config: Config = new Config({});
-  expect(config.getLicense(License.ApacheLicense2)).toEqual(licenses[1]);
+  expect(config.license(License.ApacheLicense2)).toEqual(licenses[1]);
 });
 
 test('Get licenses', () => {
   const config: Config = new Config({});
-  expect(config.getLicenses()).toEqual(licenses);
+  expect(config.licenses()).toEqual(licenses);
 });
 
 test('Get plugin format', () => {
   const config: Config = new Config({});
-  expect(config.getPluginFormat(PluginFormat.AvidAudioExtension)).toEqual(pluginFormats[1]);
+  expect(config.pluginFormat(PluginFormat.AvidAudioExtension)).toEqual(pluginFormats[1]);
 });
 
 test('Get plugin formats', () => {
   const config: Config = new Config({});
-  expect(config.getPluginFormats()).toEqual(pluginFormats);
+  expect(config.pluginFormats()).toEqual(pluginFormats);
 });
 
 test('Get plugin type', () => {
   const config: Config = new Config({});
-  expect(config.getPluginType(PluginType.Generator)).toEqual(pluginTypes[1]);
+  expect(config.pluginType(PluginType.Generator)).toEqual(pluginTypes[1]);
 });
 
 test('Get plugin types', () => {
   const config: Config = new Config({});
-  expect(config.getPluginTypes()).toEqual(pluginTypes);
+  expect(config.pluginTypes()).toEqual(pluginTypes);
 });
 
 test('Get preset format', () => {
   const config: Config = new Config({});
-  expect(config.getPresetFormat(PresetFormat.NativeInstruments)).toEqual(presetFormats[1]);
+  expect(config.presetFormat(PresetFormat.NativeInstruments)).toEqual(presetFormats[1]);
 });
 
 test('Get preset formats', () => {
   const config: Config = new Config({});
-  expect(config.getPresetFormats()).toEqual(presetFormats);
+  expect(config.presetFormats()).toEqual(presetFormats);
 });
 
 test('Get preset type', () => {
   const config: Config = new Config({});
-  expect(config.getPresetType(PresetType.Sound)).toEqual(presetTypes[0]);
+  expect(config.presetType(PresetType.Sound)).toEqual(presetTypes[0]);
 });
 
 test('Get preset types', () => {
   const config: Config = new Config({});
-  expect(config.getPresetTypes()).toEqual(presetTypes);
+  expect(config.presetTypes()).toEqual(presetTypes);
 });
 
 test('Get project format', () => {
   const config: Config = new Config({});
-  expect(config.getProjectFormat(ProjectFormat.Bitwig)).toEqual(projectFormats[1]);
+  expect(config.projectFormat(ProjectFormat.Bitwig)).toEqual(projectFormats[1]);
 });
 
 test('Get project formats', () => {
   const config: Config = new Config({});
-  expect(config.getProjectFormats()).toEqual(projectFormats);
+  expect(config.projectFormats()).toEqual(projectFormats);
 });
 
 test('Get project type', () => {
   const config: Config = new Config({});
-  expect(config.getProjectType(ProjectType.DJSet)).toEqual(projectTypes[1]);
+  expect(config.projectType(ProjectType.DJSet)).toEqual(projectTypes[1]);
 });
 
 test('Get project types', () => {
   const config: Config = new Config({});
-  expect(config.getProjectTypes()).toEqual(projectTypes);
+  expect(config.projectTypes()).toEqual(projectTypes);
 });
 
 test('Get system', () => {
   const config: Config = new Config({});
-  expect(config.getSystem(SystemType.Linux)).toEqual(systemTypes[0]);
+  expect(config.system(SystemType.Linux)).toEqual(systemTypes[0]);
 });
 
 test('Get systems', () => {
   const config: Config = new Config({});
-  expect(config.getSystems()).toEqual(systemTypes);
+  expect(config.systems()).toEqual(systemTypes);
 });

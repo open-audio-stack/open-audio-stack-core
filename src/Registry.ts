@@ -1,5 +1,12 @@
 import * as semver from 'semver';
-import { PackageInterface, PackageVersions, PackageVersionType } from './types/Package.js';
+import {
+  PackageInterface,
+  PackageValidation,
+  PackageValidationError,
+  PackageValidationField,
+  PackageVersions,
+  PackageVersionType,
+} from './types/Package.js';
 import { RegistryInterface } from './types/Registry.js';
 
 export default class Registry {
@@ -9,7 +16,7 @@ export default class Registry {
     this.registry = registry;
   }
 
-  addPackage(slug: string) {
+  packageAdd(slug: string) {
     return (this.registry.packages[slug] = {
       slug,
       version: '',
@@ -17,24 +24,24 @@ export default class Registry {
     });
   }
 
-  addPackageVersion(slug: string, version: string, pkgVersion: PackageVersionType) {
-    let pkg: PackageInterface = this.getPackage(slug);
+  packageVersionAdd(slug: string, version: string, pkgVersion: PackageVersionType) {
+    let pkg: PackageInterface = this.package(slug);
     if (!pkg) {
-      pkg = this.addPackage(slug);
+      pkg = this.packageAdd(slug);
     }
     pkg.versions[version] = pkgVersion;
-    pkg.version = this.getPackageVersionLatest(pkg.versions);
+    pkg.version = this.packageVersionLatest(pkg.versions);
   }
 
-  getPackage(slug: string) {
+  package(slug: string) {
     return this.registry.packages[slug];
   }
 
-  getPackages() {
+  packages() {
     return this.registry.packages;
   }
 
-  getPackageVersionLatest(versions: PackageVersions) {
+  packageVersionLatest(versions: PackageVersions) {
     let latest: string = '0.0.0';
     Object.keys(versions).forEach((version: string) => {
       if (semver.gt(version, latest)) {
@@ -44,34 +51,69 @@ export default class Registry {
     return latest;
   }
 
-  getRegistry() {
+  get() {
     return this.registry;
   }
 
-  getRegistryName() {
+  name() {
     return this.registry.name;
   }
 
-  getRegistryUrl() {
+  url() {
     return this.registry.url;
   }
 
-  getRegistryVersion() {
+  version() {
     return this.registry.version;
   }
 
-  removePackage(slug: string) {
+  packageRemove(slug: string) {
     delete this.registry.packages[slug];
   }
 
-  removePackageVersion(slug: string, version: string) {
-    const pkg: PackageInterface = this.getPackage(slug);
+  packageVersionRemove(slug: string, version: string) {
+    const pkg: PackageInterface = this.package(slug);
     if (pkg && pkg.versions[version]) {
       delete pkg.versions[version];
-      pkg.version = this.getPackageVersionLatest(pkg.versions);
+      pkg.version = this.packageVersionLatest(pkg.versions);
     }
     if (!Object.keys(pkg.versions).length) {
-      this.removePackage(slug);
+      this.packageRemove(slug);
     }
+  }
+
+  packageVersionValidate(pkgVersion: PackageVersionType) {
+    const fields: PackageValidationField[] = [
+      { name: 'author', type: 'string' },
+      { name: 'changes', type: 'string' },
+      { name: 'date', type: 'string' },
+      { name: 'description', type: 'string' },
+      { name: 'files', type: 'object' },
+      { name: 'license', type: 'string' },
+      { name: 'name', type: 'string' },
+      { name: 'tags', type: 'object' },
+      { name: 'type', type: 'string' },
+      { name: 'url', type: 'string' },
+    ];
+    const errors: PackageValidationError[] = [];
+    fields.forEach((field: PackageValidationField) => {
+      const versionField = pkgVersion[field.name as keyof PackageVersionType];
+      if (!versionField) {
+        errors.push({
+          field: field.name,
+          error: PackageValidation.MISSING_FIELD,
+          valueExpected: field.type,
+          valueReceived: 'undefined',
+        });
+      } else if (typeof versionField !== field.type) {
+        errors.push({
+          field: field.name,
+          error: PackageValidation.INVALID_TYPE,
+          valueExpected: field.type,
+          valueReceived: typeof versionField,
+        });
+      }
+    });
+    return errors;
   }
 }
