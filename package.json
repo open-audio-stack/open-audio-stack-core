@@ -56,5 +56,9 @@
     "glob": "^11.0.0",
     "js-yaml": "^4.1.0",
     "semver": "^7.6.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/open-audio-stack/open-audio-stack-core.git"
   }
 }
