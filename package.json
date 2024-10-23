@@ -1,5 +1,5 @@
 {
-  "name": "open-audio-stack-core",
+  "name": "@open-audio-stack/core",
   "version": "0.0.1",
   "description": "Open-source audio plugin management software",
   "type": "module",

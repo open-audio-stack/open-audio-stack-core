@@ -27,6 +27,17 @@ Create a build using:
 
     npm run build
 
+## Deployment
+
+This package is versioned using git tags:
+
+    npm version patch
+    git push && git push origin --tags
+
+GitHub Actions will automatically publish the package to npm:
+
+    https://www.npmjs.com/package/@open-audio-stack/core
+
 ## Contact
 
 For more information please contact kmturley
