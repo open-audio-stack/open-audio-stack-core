@@ -1,7 +1,9 @@
 export enum FileFormat {
+  AppImage = 'appimage',
   AppleDiskImage = 'dmg',
   DebianPackage = 'deb',
   ExecutableInstaller = 'exe',
+  RedHatPackage = 'rpm',
   Tarball = 'tar.gz',
   TarballLegacy = 'tgz',
   WindowsInstaller = 'msi',
@@ -16,6 +18,11 @@ export interface FileFormatOption {
 
 export const fileFormats: FileFormatOption[] = [
   {
+    description: 'App package for Linux systems.',
+    value: FileFormat.AppImage,
+    name: 'AppImage',
+  },
+  {
     description: 'Disk image format used on macOS.',
     value: FileFormat.AppleDiskImage,
     name: 'Apple Disk Image',
@@ -28,26 +35,31 @@ export const fileFormats: FileFormatOption[] = [
   {
     description: 'Executable file format used by Windows.',
     value: FileFormat.ExecutableInstaller,
-    name: 'Executable Installer',
+    name: 'Executable installer',
+  },
+  {
+    description: 'Originally developed for Red Hat, but is now used in many other Linux distributions.',
+    value: FileFormat.RedHatPackage,
+    name: 'Red Hat package',
   },
   {
     description: 'Compressed archive format common on Linux and Unix systems.',
     value: FileFormat.Tarball,
-    name: 'Tarball (.tar.gz)',
+    name: 'Tarball',
   },
   {
     description: 'Legacy compressed archive format similar to .tar.gz.',
     value: FileFormat.TarballLegacy,
-    name: 'Tarball Legacy (.tgz)',
+    name: 'Tarball (alt)',
   },
   {
     description: 'Installer format for Windows.',
     value: FileFormat.WindowsInstaller,
-    name: 'Windows Installer (.msi)',
+    name: 'Windows installer',
   },
   {
     description: 'Widely-used compressed file format compatible with many operating systems.',
     value: FileFormat.Zip,
-    name: 'Zip Archive (.zip)',
+    name: 'Zip',
   },
 ];

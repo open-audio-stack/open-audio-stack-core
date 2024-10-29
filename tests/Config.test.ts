@@ -29,7 +29,7 @@ test('Get architectures', () => {
 
 test('Get file format', () => {
   const config: Config = new Config({});
-  expect(config.fileFormat(FileFormat.DebianPackage)).toEqual(fileFormats[1]);
+  expect(config.fileFormat(FileFormat.AppleDiskImage)).toEqual(fileFormats[1]);
 });
 
 test('Get file formats', () => {
@@ -79,7 +79,7 @@ test('Get plugin types', () => {
 
 test('Get preset format', () => {
   const config: Config = new Config({});
-  expect(config.presetFormat(PresetFormat.NativeInstruments)).toEqual(presetFormats[1]);
+  expect(config.presetFormat(PresetFormat.AvidAudioExtension)).toEqual(presetFormats[1]);
 });
 
 test('Get preset formats', () => {
@@ -89,7 +89,7 @@ test('Get preset formats', () => {
 
 test('Get preset type', () => {
   const config: Config = new Config({});
-  expect(config.presetType(PresetType.Sound)).toEqual(presetTypes[0]);
+  expect(config.presetType(PresetType.Mapping)).toEqual(presetTypes[2]);
 });
 
 test('Get preset types', () => {

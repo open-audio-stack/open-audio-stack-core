@@ -4,7 +4,9 @@ export enum ProjectFormat {
   Cubase = 'cpr',
   DAWproject = 'dawproject',
   FLStudio = 'flp',
+  Garageband = 'band',
   Logic = 'logic',
+  Musescore = 'mscz',
   ProTools = 'ptx',
   Reaper = 'rpp',
   Sonar = 'cwp',
@@ -20,7 +22,7 @@ export const projectFormats: ProjectFormatOption[] = [
   {
     description: 'Used to store all information about a Live set.',
     value: ProjectFormat.AbletonLive,
-    name: 'Ableton Live Set',
+    name: 'Ableton Live Project',
   },
   {
     description: 'Containing all Bitwig project-related information.',
@@ -35,7 +37,7 @@ export const projectFormats: ProjectFormatOption[] = [
   {
     description: 'Open standard for storing various audio project settings.',
     value: ProjectFormat.DAWproject,
-    name: 'Generic DAW Project',
+    name: 'DAWproject Project',
   },
   {
     description: 'Used for saving FL Studio compositions and arrangements.',
@@ -43,9 +45,19 @@ export const projectFormats: ProjectFormatOption[] = [
     name: 'FL Studio Project',
   },
   {
+    description: 'A package containing audio files and Garageband timeline and settings.',
+    value: ProjectFormat.Garageband,
+    name: 'Garageband Project',
+  },
+  {
     description: "Containing all Apple's Logic Pro audio, MIDI, and arrangement data.",
     value: ProjectFormat.Logic,
     name: 'Logic Pro Project',
+  },
+  {
+    description: 'Compressed Musescore project along with metadata and image preview.',
+    value: ProjectFormat.Musescore,
+    name: 'Musescore Project',
   },
   {
     description: 'Used for Avid Pro Tools audio recording and production.',
