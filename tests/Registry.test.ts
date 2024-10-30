@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import Registry from '../src/Registry.js';
+import { Registry } from '../src/Registry.js';
 import { RegistryInterface } from '../src/types/Registry.js';
 import { REGISTRY } from './data/Registry.js';
 import { PLUGIN } from './data/Plugin.js';

@@ -11,7 +11,7 @@ import { ProjectFormat, projectFormats } from './types/ProjectFormat.js';
 import { ProjectType, projectTypes } from './types/ProjectType.js';
 import { SystemType, systemTypes } from './types/SystemType.js';
 
-export default class Config {
+export class Config {
   config: ConfigInterface;
 
   constructor(config: ConfigInterface) {

@@ -9,7 +9,7 @@ import {
 } from './types/Package.js';
 import { RegistryInterface } from './types/Registry.js';
 
-export default class Registry {
+export class Registry {
   registry: RegistryInterface;
 
   constructor(registry: RegistryInterface) {

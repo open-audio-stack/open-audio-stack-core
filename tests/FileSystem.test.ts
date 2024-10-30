@@ -1,6 +1,6 @@
 import os from 'os';
 import { expect, test } from 'vitest';
-import FileSystem from '../src/FileSystem.js';
+import { FileSystem } from '../src/FileSystem.js';
 import { PackageInterface } from '../src/types/Package.js';
 
 test('Get directory app', () => {

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import Config from '../src/Config.js';
+import { Config } from '../src/Config.js';
 import { architectures, Architecture } from '../src/types/Architecture.js';
 import { PluginFormat, pluginFormats } from '../src/types/PluginFormat.js';
 import { FileFormat, fileFormats } from '../src/types/FileFormat.js';

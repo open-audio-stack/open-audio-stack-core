@@ -5,6 +5,7 @@
 
 // Classes
 export * from './Config.js';
+// export * from './FileSystem.js';
 export * from './Registry.js';
 
 // Types

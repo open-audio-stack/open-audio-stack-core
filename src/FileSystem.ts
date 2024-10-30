@@ -18,7 +18,7 @@ import path from 'path';
 import yaml from 'js-yaml';
 import { PackageInterface } from '../src/types/Package.js';
 
-export default class FileSystem {
+export class FileSystem {
   constructor() {}
 
   dirApp() {
