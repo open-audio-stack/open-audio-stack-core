@@ -1,6 +1,30 @@
 # open-audio-stack-core
 
-Open-source audio plugin management software using:
+![Test](https://github.com/open-audio-stack/open-audio-stack-core/workflows/Test/badge.svg)
+
+Common methods package shared across Open Audio Stack compatible registries, command-line tools, apps and websites for handling installing DAW VST plugin dependencies.
+
+## Features
+
+- Config - Get types, formats, values, paths and urls.
+- FileSystem - Perform operations on directories and files.
+- Registry - Create an audio registry with packages and files.
+
+## Installation
+
+To install the common package, run the command:
+
+    npm install @open-audio-stack/core
+
+Import the package using:
+
+    import { Registry } from '@open-audio-stack/core';
+
+Then use the available methods as normal.
+
+## Developer information
+
+Open Audio Stack Core was built using:
 
 - NodeJS 20.x
 - TypeScript 5.x
@@ -8,13 +32,13 @@ Open-source audio plugin management software using:
 - prettier 3.x
 - vitest 1.x
 
-## Installation
+## Developer installation
 
-Install dependencies using:
+To install, build and run code locally, first install dependencies:
 
     npm install
 
-## Usage
+## Developer usage
 
 Run dev commands using:
 
@@ -23,11 +47,11 @@ Run dev commands using:
     npm run dev
     npm test
 
-Create a build using:
+Create a production build using:
 
     npm run build
 
-## Deployment
+## Developer deployment
 
 This package is versioned using git tags:
 
