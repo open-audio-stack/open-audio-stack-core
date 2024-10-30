@@ -5,6 +5,7 @@ export enum ProjectFormat {
   DAWproject = 'dawproject',
   FLStudio = 'flp',
   Garageband = 'band',
+  Lmms = 'lmms',
   Logic = 'logic',
   Musescore = 'mscz',
   ProTools = 'ptx',
@@ -48,6 +49,11 @@ export const projectFormats: ProjectFormatOption[] = [
     description: 'A package containing audio files and Garageband timeline and settings.',
     value: ProjectFormat.Garageband,
     name: 'Garageband Project',
+  },
+  {
+    description: 'Music project for open-source, cross-platform software.',
+    value: ProjectFormat.Lmms,
+    name: 'LMMS Project',
   },
   {
     description: "Containing all Apple's Logic Pro audio, MIDI, and arrangement data.",
