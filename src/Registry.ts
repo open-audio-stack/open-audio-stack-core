@@ -84,11 +84,13 @@ export class Registry {
 
   packageVersionValidate(pkgVersion: PackageVersionType) {
     const fields: PackageValidationField[] = [
+      { name: 'audio', type: 'string' },
       { name: 'author', type: 'string' },
       { name: 'changes', type: 'string' },
       { name: 'date', type: 'string' },
       { name: 'description', type: 'string' },
       { name: 'files', type: 'object' },
+      { name: 'image', type: 'string' },
       { name: 'license', type: 'string' },
       { name: 'name', type: 'string' },
       { name: 'tags', type: 'object' },

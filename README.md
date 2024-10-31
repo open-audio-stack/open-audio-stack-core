@@ -1,6 +1,6 @@
 # open-audio-stack-core
 
-![Test](https://github.com/open-audio-stack/open-audio-stack-core/workflows/Test/badge.svg)
+![Release](https://github.com/open-audio-stack/open-audio-stack-core/workflows/Release/badge.svg)
 
 Common methods package shared across Open Audio Stack compatible registries, command-line tools, apps and websites for handling installing DAW VST plugin dependencies.
 
