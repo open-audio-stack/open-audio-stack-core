@@ -8,6 +8,7 @@ import { ProjectType } from '../../src/types/ProjectType';
 import { SystemType } from '../../src/types/SystemType';
 
 export const PROJECT: ProjectInterface = {
+  audio: 'https://myproject.com/audio.flac',
   author: 'KMT',
   changes: '- Fixed levels\n- New instrument added',
   date: '2024-03-02T00:00:00.000Z',
@@ -15,8 +16,8 @@ export const PROJECT: ProjectInterface = {
   files: [
     {
       architectures: [Architecture.Bit32],
+      contains: [ProjectFormat.AbletonLive],
       format: FileFormat.Zip,
-      formats: [ProjectFormat.AbletonLive],
       hash: '3af35f0212',
       systems: [{ min: 13.7, type: SystemType.Macintosh }],
       size: 94448096,
@@ -24,6 +25,7 @@ export const PROJECT: ProjectInterface = {
       url: 'https://a.com/b/file.zip',
     },
   ],
+  image: 'https://myproject.com/image.jpg',
   license: License.CreativeCommonsZerov1Universal,
   plugins: {
     'freepats/glasses': '1.0.0',

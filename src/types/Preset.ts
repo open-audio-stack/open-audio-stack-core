@@ -10,7 +10,7 @@ export interface PresetInterface extends PackageVersion {
 }
 
 export interface PresetFile extends FileInterface {
-  formats: PresetFormat[];
+  contains: PresetFormat[];
 }
 
 export interface PresetPlugins {

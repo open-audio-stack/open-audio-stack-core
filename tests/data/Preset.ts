@@ -8,6 +8,7 @@ import { PresetType } from '../../src/types/PresetType';
 import { SystemType } from '../../src/types/SystemType';
 
 export const PRESET: PresetInterface = {
+  audio: 'https://mypreset.com/audio.flac',
   author: 'Audiotown',
   changes: '- Tweaked preset\n- New sound',
   date: '2024-03-02T00:00:00.000Z',
@@ -15,8 +16,8 @@ export const PRESET: PresetInterface = {
   files: [
     {
       architectures: [Architecture.Bit32],
+      contains: [PresetFormat.VST3],
       format: FileFormat.Zip,
-      formats: [PresetFormat.VST3],
       hash: '3af35f0212',
       systems: [{ min: 13.7, type: SystemType.Macintosh }],
       size: 94448096,
@@ -24,6 +25,7 @@ export const PRESET: PresetInterface = {
       url: 'https://a.com/b/file.zip',
     },
   ],
+  image: 'https://mypreset.com/image.jpg',
   license: License.CreativeCommonsZerov1Universal,
   plugins: {
     'freepats/glasses': '1.0.0',
@@ -31,6 +33,6 @@ export const PRESET: PresetInterface = {
   },
   name: 'Synthwave',
   tags: ['Synthwave', 'Synth', '80s'],
-  type: PresetType.Sound,
+  type: PresetType.Patch,
   url: 'https://myproject.com',
 };

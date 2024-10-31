@@ -10,7 +10,7 @@ export interface ProjectInterface extends PackageVersion {
 }
 
 export interface ProjectFile extends FileInterface {
-  formats: ProjectFormat[];
+  contains: ProjectFormat[];
 }
 
 export interface ProjectPlugins {

@@ -9,5 +9,5 @@ export interface PluginInterface extends PackageVersion {
 }
 
 export interface PluginFile extends FileInterface {
-  formats: PluginFormat[];
+  contains: PluginFormat[];
 }

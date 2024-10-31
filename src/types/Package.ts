@@ -14,10 +14,12 @@ export interface PackageVersions {
 }
 
 export interface PackageVersion {
+  audio: string;
   author: string;
   changes: string;
   date: string;
   description: string;
+  image: string;
   license: License;
   name: string;
   tags: string[];

@@ -3,6 +3,8 @@ export enum PluginFormat {
   AvidAudioExtension = 'aax',
   CleverAudioPlugin = 'clap',
   LADSPAVersion2 = 'lv2',
+  LinuxStandalone = 'elf',
+  MacStandalone = 'app',
   RealTimeAudioSuite = 'rta',
   SoundFont2 = 'sf2',
   SFZ = 'sfz',
@@ -11,6 +13,7 @@ export enum PluginFormat {
   VSTMac = 'vst',
   VSTWin = 'dll',
   VST3 = 'vst3',
+  WinStandalone = 'exe',
 }
 
 export interface PluginFormatOption {
@@ -46,6 +49,16 @@ export const pluginFormats: PluginFormatOption[] = [
     name: 'LADSPA Version 2',
   },
   {
+    description: 'Linux standalone application.',
+    value: PluginFormat.LinuxStandalone,
+    name: 'Linux Standalone',
+  },
+  {
+    description: 'MacOS standalone application.',
+    value: PluginFormat.MacStandalone,
+    name: 'MacOS Standalone',
+  },
+  {
     description: 'Widely used format for sound samples in musical instruments.',
     value: PluginFormat.SoundFont2,
     name: 'SoundFont 2',
@@ -79,5 +92,10 @@ export const pluginFormats: PluginFormatOption[] = [
     description: 'Third-generation VST format, offering better performance and features.',
     value: PluginFormat.VST3,
     name: 'Virtual Studio Technology 3',
+  },
+  {
+    description: 'Windows standalone application.',
+    value: PluginFormat.WinStandalone,
+    name: 'Windows Standalone',
   },
 ];
