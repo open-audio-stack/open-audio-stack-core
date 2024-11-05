@@ -7,7 +7,10 @@ import {
   PackageVersions,
   PackageVersionType,
 } from './types/Package.js';
-import { RegistryInterface } from './types/Registry.js';
+import { RegistryInterface, RegistryPackages } from './types/Registry.js';
+import { PluginType } from './types/PluginType.js';
+import { PresetType } from './types/PresetType.js';
+import { ProjectType } from './types/ProjectType.js';
 
 export class Registry {
   registry: RegistryInterface;
@@ -39,6 +42,21 @@ export class Registry {
 
   packages() {
     return this.registry.packages;
+  }
+
+  packagesFilter(type: typeof PluginType | typeof PresetType | typeof ProjectType) {
+    const registryFiltered: RegistryPackages = {};
+    Object.keys(this.registry.packages).forEach((slug: string) => {
+      if (Object.values(type).includes(this.packageLatest(slug).type))
+        registryFiltered[slug] = this.registry.packages[slug];
+    });
+    return registryFiltered;
+  }
+
+  packageLatest(slug: string, version?: string) {
+    const pkg: PackageInterface = this.package(slug);
+    const pkgVersion: string = this.packageVersionLatest(pkg.versions);
+    return pkg.versions[version || pkgVersion];
   }
 
   packageVersionLatest(versions: PackageVersions) {

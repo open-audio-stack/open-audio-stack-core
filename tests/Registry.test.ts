@@ -1,9 +1,12 @@
 import { expect, test } from 'vitest';
+import { PackageVersions } from '../src/types/Package.js';
 import { Registry } from '../src/Registry.js';
-import { RegistryInterface } from '../src/types/Registry.js';
+import { RegistryInterface, RegistryPackages } from '../src/types/Registry.js';
 import { REGISTRY } from './data/Registry.js';
 import { PLUGIN } from './data/Plugin.js';
-import { PackageVersions } from '../src/types/Package.js';
+import { PRESET } from './data/Preset.js';
+import { PROJECT } from './data/Project.js';
+import { PluginType } from '../src/types/PluginType.js';
 
 test('Create new Registry', () => {
   const registry: Registry = new Registry(REGISTRY);
@@ -90,8 +93,70 @@ test('Registry add and remove multiple package versions', () => {
   expect(registry.get()).toEqual(REGISTRY_WITH_PLUGIN);
 });
 
+test('Registry add different package types', () => {
+  const REGISTRY_WITH_PACKAGES: RegistryInterface = structuredClone(REGISTRY);
+  REGISTRY_WITH_PACKAGES.packages = {
+    'surge-synth/surge': {
+      slug: 'surge-synth/surge',
+      version: '1.3.1',
+      versions: {
+        '1.3.1': PLUGIN,
+      },
+    },
+    'jh/floating-rhodes': {
+      slug: 'jh/floating-rhodes',
+      version: '1.0.0',
+      versions: {
+        '1.0.0': PRESET,
+      },
+    },
+    'kmt/banwer': {
+      slug: 'kmt/banwer',
+      version: '1.0.1',
+      versions: {
+        '1.0.1': PROJECT,
+      },
+    },
+  };
+  const registry: Registry = new Registry(REGISTRY);
+  registry.packageVersionAdd('surge-synth/surge', '1.3.1', PLUGIN);
+  registry.packageVersionAdd('jh/floating-rhodes', '1.0.0', PRESET);
+  registry.packageVersionAdd('kmt/banwer', '1.0.1', PROJECT);
+  expect(registry.get()).toEqual(REGISTRY_WITH_PACKAGES);
+});
+
 test('Get packages', () => {
   const registry: Registry = new Registry(REGISTRY);
+  expect(registry.packages()).toEqual(REGISTRY.packages);
+});
+
+test('Get packages filtered', () => {
+  const REGISTRY_PACKAGES: RegistryPackages = {
+    'surge-synth/surge': {
+      slug: 'surge-synth/surge',
+      version: '1.3.1',
+      versions: {
+        '1.3.1': PLUGIN,
+      },
+    },
+  };
+  const registry: Registry = new Registry(REGISTRY);
+  expect(registry.packagesFilter(PluginType)).toEqual(REGISTRY_PACKAGES);
+});
+
+test('Get packages latest', () => {
+  const registry: Registry = new Registry(REGISTRY);
+  registry.packageVersionAdd('surge-synth/surge', '1.3.1', PRESET);
+  registry.packageVersionAdd('surge-synth/surge', '1.4.1', PLUGIN);
+  expect(registry.packageLatest('surge-synth/surge')).toEqual(PLUGIN);
+  expect(registry.packageLatest('surge-synth/surge', '1.4.1')).toEqual(PLUGIN);
+});
+
+test('Get packages by type', () => {
+  const registry: Registry = new Registry(REGISTRY);
+  registry.packageVersionAdd('surge-synth/surge', '1.3.1', PLUGIN);
+  registry.packageVersionAdd('jh/floating-rhodes', '1.0.0', PRESET);
+  registry.packageVersionAdd('kmt/banwer', '1.0.1', PROJECT);
   expect(registry.packages()).toEqual(REGISTRY.packages);
 });
 

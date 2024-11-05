@@ -28,7 +28,6 @@ export const PROJECT: ProjectInterface = {
   image: 'https://myproject.com/image.jpg',
   license: License.CreativeCommonsZerov1Universal,
   plugins: {
-    'freepats/glasses': '1.0.0',
     'surge-synth/surge': '1.3.1',
   },
   name: 'Banwer',
