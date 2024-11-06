@@ -7,6 +7,7 @@
 export * from './Config.js';
 // export * from './FileSystem.js';
 export * from './Registry.js';
+export * from './utils.js';
 
 // Types
 export * from './types/Architecture.js';
