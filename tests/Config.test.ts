@@ -13,8 +13,10 @@ import { ProjectFormat, projectFormats } from '../src/types/ProjectFormat.js';
 import { SystemType, systemTypes } from '../src/types/SystemType.js';
 
 test('Create new Config', () => {
-  const config: Config = new Config({});
+  const config: Config = new Config();
+  const config2: Config = new Config({});
   expect(config.get()).toEqual({});
+  expect(config2.get()).toEqual({});
 });
 
 test('Get architecture', () => {

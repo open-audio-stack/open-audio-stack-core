@@ -9,8 +9,10 @@ import { PROJECT } from './data/Project.js';
 import { PluginType } from '../src/types/PluginType.js';
 
 test('Create new Registry', () => {
-  const registry: Registry = new Registry(REGISTRY);
-  expect(registry.get()).toEqual(REGISTRY);
+  const registry: Registry = new Registry();
+  const registry2: Registry = new Registry(REGISTRY);
+  expect(registry.get()).toEqual({});
+  expect(registry2.get()).toEqual(REGISTRY);
 });
 
 test('Registry add a package', () => {

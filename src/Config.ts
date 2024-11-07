@@ -14,8 +14,8 @@ import { SystemType, systemTypes } from './types/SystemType.js';
 export class Config {
   config: ConfigInterface;
 
-  constructor(config: ConfigInterface) {
-    this.config = config;
+  constructor(config?: ConfigInterface) {
+    this.config = Object.assign({}, config);
   }
 
   get() {

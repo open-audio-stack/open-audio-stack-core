@@ -15,8 +15,8 @@ import { ProjectType } from './types/ProjectType.js';
 export class Registry {
   registry: RegistryInterface;
 
-  constructor(registry: RegistryInterface) {
-    this.registry = registry;
+  constructor(registry?: RegistryInterface) {
+    this.registry = Object.assign({}, registry);
   }
 
   packageAdd(slug: string) {
