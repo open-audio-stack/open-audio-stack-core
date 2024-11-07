@@ -1,6 +1,6 @@
 import path from 'path';
 import { expect, test } from 'vitest';
-import { pathGetDirectory, pathGetExt, pathGetFilename, pathGetSlug, pathGetVersion } from '../src/utils';
+import { pathGetDirectory, pathGetExt, pathGetFilename, pathGetSlug, pathGetVersion } from '../../src/helpers/utils';
 
 const PLUGIN_DIR = path.join('surge-synthesizer', 'surge', '1.3.1');
 const PLUGIN_EXT = 'vst3';

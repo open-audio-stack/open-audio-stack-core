@@ -5,9 +5,11 @@
 
 // Classes
 export * from './Config.js';
-// export * from './FileSystem.js';
 export * from './Registry.js';
-export * from './utils.js';
+
+// Helpers
+// export * from './helpers/file.js';
+export * from './helpers/utils.js';
 
 // Types
 export * from './types/Architecture.js';
