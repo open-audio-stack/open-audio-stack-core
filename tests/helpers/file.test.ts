@@ -1,7 +1,41 @@
 import os from 'os';
+import path from 'path';
 import { expect, test } from 'vitest';
-import { dirApp, dirPackage, dirPlugins, dirPresets, dirProjects } from '../../src/helpers/file.js';
+import {
+  dirApp,
+  dirCreate,
+  dirDelete,
+  dirEmpty,
+  dirExists,
+  dirIs,
+  dirMove,
+  dirOpen,
+  dirPackage,
+  dirPlugins,
+  dirPresets,
+  dirProjects,
+  dirRead,
+  dirRename,
+  fileCreate,
+  // fileDate,
+  // fileDelete,
+  // fileExec,
+  // fileExists,
+  // fileJsonCreate,
+  // fileMove,
+  // fileOpen,
+  // fileRead,
+  // fileReadJson,
+  // fileReadString,
+  // fileReadYaml,
+  // fileSize,
+} from '../../src/helpers/file.js';
 import { PackageInterface } from '../../src/types/Package.js';
+
+const DIR_PATH: string = path.join('test', 'new-directory');
+const DIR_PATH_GLOB: string = path.join('test', 'new-directory', '**', '*.txt');
+const DIR_RENAME: string = path.join('test', 'new-directory-renamed');
+const FILE_PATH: string = path.join('test', 'new-directory', 'file.txt');
 
 test('Get directory app', () => {
   if (process.platform === 'win32') {
@@ -11,6 +45,37 @@ test('Get directory app', () => {
   } else {
     expect(dirApp()).toEqual(`${os.homedir()}/.local/share`);
   }
+});
+
+test('Create new directory', () => {
+  expect(dirCreate(DIR_PATH)).toEqual(DIR_PATH);
+});
+
+test('Create existing directory', () => {
+  expect(dirCreate(DIR_PATH)).toEqual(false);
+});
+
+test('Directory is empty', () => {
+  expect(dirEmpty(DIR_PATH)).toEqual(true);
+});
+
+test('Directory exists', () => {
+  expect(dirExists(DIR_PATH)).toEqual(true);
+});
+
+test('Directory is', () => {
+  fileCreate(FILE_PATH, 'file contents');
+  expect(dirIs(DIR_PATH)).toEqual(true);
+  expect(dirIs(FILE_PATH)).toEqual(false);
+});
+
+test('Directory move', () => {
+  expect(dirMove(DIR_PATH, DIR_RENAME)).toBeUndefined();
+  expect(dirMove(DIR_RENAME, DIR_PATH)).toBeUndefined();
+});
+
+test('Directory open', () => {
+  expect(dirOpen(DIR_PATH)).toEqual(new Buffer(''));
 });
 
 test('Get directory package', () => {
@@ -54,4 +119,28 @@ test('Get directory projects', () => {
   } else {
     expect(dirProjects()).toEqual(`${os.homedir()}/Documents/Audio`);
   }
+});
+
+test('Read directory', () => {
+  expect(dirRead(DIR_PATH)).toEqual([DIR_PATH]);
+});
+
+test('Read directory glob', () => {
+  expect(dirRead(DIR_PATH_GLOB)).toEqual([FILE_PATH]);
+});
+
+test('Create file', () => {
+  expect(fileCreate(FILE_PATH, 'file contents')).toBeUndefined();
+});
+
+test('Rename directory', () => {
+  expect(dirRename(DIR_PATH, DIR_RENAME)).toBeUndefined();
+});
+
+test('Delete existing directory', () => {
+  expect(dirDelete(DIR_RENAME)).toBeUndefined();
+});
+
+test('Delete missing directory', () => {
+  expect(dirDelete(DIR_RENAME)).toEqual(false);
 });

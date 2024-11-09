@@ -66,8 +66,8 @@ export function dirMove(dir: string, dirNew: string): void | boolean {
 export function dirOpen(dir: string) {
   let command: string = '';
   if (process.env.CI) return new Buffer('');
-  if (process.platform === 'win32') command = 'open';
-  else if (process.platform === 'darwin') command = 'start ""';
+  if (process.platform === 'win32') command = 'start ""';
+  else if (process.platform === 'darwin') command = 'open';
   else command = 'xdg-open';
   console.log('⎋', `${command} "${dir}"`);
   return execSync(`${command} "${dir}"`);

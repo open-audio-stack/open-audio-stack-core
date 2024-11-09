@@ -118,7 +118,7 @@ export class Registry {
     const errors: PackageValidationError[] = [];
     fields.forEach((field: PackageValidationField) => {
       const versionField = pkgVersion[field.name as keyof PackageVersionType];
-      if (!versionField) {
+      if (versionField === undefined) {
         errors.push({
           field: field.name,
           error: PackageValidation.MISSING_FIELD,
