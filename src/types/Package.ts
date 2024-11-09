@@ -45,3 +45,8 @@ export interface PackageValidationError {
   valueExpected: string;
   valueReceived: string;
 }
+
+export interface PackageValidationRec {
+  field: string;
+  rec: string;
+}

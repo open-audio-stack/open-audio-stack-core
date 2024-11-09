@@ -207,7 +207,7 @@ test('Validate package version missing field', () => {
   ]);
 });
 
-test('Validatepackage version invalid type', () => {
+test('Validate package version invalid type', () => {
   const registry: Registry = new Registry(REGISTRY);
   const PLUGIN_BAD: PackageVersionType = structuredClone(PLUGIN);
   // @ts-expect-error this is intentionally bad data.
@@ -218,6 +218,23 @@ test('Validatepackage version invalid type', () => {
       field: 'audio',
       valueExpected: 'string',
       valueReceived: 'number',
+    },
+  ]);
+});
+
+test('Recommendations good package version', () => {
+  const registry: Registry = new Registry(REGISTRY);
+  expect(registry.packageVersionRecommendations(PLUGIN)).toEqual([]);
+});
+
+test('Recommendations bad package version', () => {
+  const registry: Registry = new Registry(REGISTRY);
+  const PLUGIN_BAD: PackageVersionType = structuredClone(PLUGIN);
+  PLUGIN_BAD.url = 'http://www.github.com';
+  expect(registry.packageVersionRecommendations(PLUGIN_BAD)).toEqual([
+    {
+      field: 'url',
+      rec: 'should use https url',
     },
   ]);
 });
