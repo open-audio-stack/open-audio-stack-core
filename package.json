@@ -1,6 +1,6 @@
 {
   "name": "@open-audio-stack/core",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Open-source audio plugin management software",
   "type": "module",
   "main": "./build/index.js",
