@@ -172,20 +172,20 @@ export function fileOpen(filePath: string) {
 
 export function fileRead(filePath: string) {
   console.log('⎋', filePath);
-  return readFileSync(filePath);
+  return readFileSync(filePath, 'utf-8');
 }
 
 export function fileReadJson(filePath: string) {
   if (fileExists(filePath)) {
     console.log('⎋', filePath);
-    return JSON.parse(readFileSync(filePath).toString());
+    return JSON.parse(readFileSync(filePath, 'utf-8').toString());
   }
   return false;
 }
 
 export function fileReadString(filePath: string) {
   console.log('⎋', filePath);
-  return readFileSync(filePath).toString();
+  return readFileSync(filePath, 'utf-8').toString();
 }
 
 export function fileReadYaml(filePath: string) {
