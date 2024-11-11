@@ -11,6 +11,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from 'fs';
+import { createHash } from 'crypto';
 import { globSync } from 'glob';
 import { moveSync } from 'fs-extra/esm';
 import os from 'os';
@@ -143,6 +144,11 @@ export function fileExists(filePath: string): boolean {
 
 export function fileJsonCreate(filePath: string, data: object): void {
   return fileCreate(filePath, JSON.stringify(data, null, 2));
+}
+
+export function fileHash(filePath: string, algorithm = 'sha256'): string {
+  const fileData = fileReadString(filePath);
+  return createHash(algorithm).update(fileData, 'utf8').digest('hex');
 }
 
 export function fileMove(filePath: string, newPath: string): void | boolean {
