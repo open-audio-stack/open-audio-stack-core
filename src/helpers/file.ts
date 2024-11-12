@@ -147,8 +147,9 @@ export function fileJsonCreate(filePath: string, data: object): void {
 }
 
 export function fileHash(filePath: string, algorithm = 'sha256'): string {
-  const fileData = fileReadString(filePath);
-  return createHash(algorithm).update(fileData, 'utf8').digest('hex');
+  const fileData: string = fileReadString(filePath);
+  const fileNormalized: string = fileData.replace(/\r\n/g, '\n');
+  return createHash(algorithm).update(fileNormalized, 'utf8').digest('hex');
 }
 
 export function fileMove(filePath: string, newPath: string): void | boolean {
@@ -172,20 +173,20 @@ export function fileOpen(filePath: string) {
 
 export function fileRead(filePath: string) {
   console.log('⎋', filePath);
-  return readFileSync(filePath, 'utf-8');
+  return readFileSync(filePath, 'utf8');
 }
 
 export function fileReadJson(filePath: string) {
   if (fileExists(filePath)) {
     console.log('⎋', filePath);
-    return JSON.parse(readFileSync(filePath, 'utf-8').toString());
+    return JSON.parse(readFileSync(filePath, 'utf8').toString());
   }
   return false;
 }
 
 export function fileReadString(filePath: string) {
   console.log('⎋', filePath);
-  return readFileSync(filePath, 'utf-8').toString();
+  return readFileSync(filePath, 'utf8').toString();
 }
 
 export function fileReadYaml(filePath: string) {
