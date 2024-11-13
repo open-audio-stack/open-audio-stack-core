@@ -17,7 +17,10 @@ import { moveSync } from 'fs-extra/esm';
 import os from 'os';
 import path from 'path';
 import yaml from 'js-yaml';
-import { PackageInterface } from '../types/Package.js';
+import { PackageInterface, PackageValidation, PackageValidationError } from '../types/Package.js';
+import { PluginFile } from '../types/Plugin.js';
+import { PresetFile } from '../types/Preset.js';
+import { ProjectFile } from '../types/Project.js';
 
 export function dirApp() {
   if (process.platform === 'win32') return process.env.APPDATA || os.homedir();
@@ -196,6 +199,26 @@ export function fileReadYaml(filePath: string) {
 
 export function fileSize(filePath: string) {
   return statSync(filePath).size;
+}
+
+export function fileValidateMetadata(filePath: string, fileMetadata: PluginFile | PresetFile | ProjectFile) {
+  const errors: PackageValidationError[] = [];
+  if (fileMetadata.hash !== fileHash(filePath)) {
+    errors.push({
+      field: 'hash',
+      error: PackageValidation.INVALID_VALUE,
+      valueExpected: fileHash(filePath),
+      valueReceived: fileMetadata.hash,
+    });
+  }
+  if (fileMetadata.size !== fileSize(filePath)) {
+    errors.push({
+      field: 'size',
+      error: PackageValidation.INVALID_VALUE,
+      valueExpected: String(fileSize(filePath)),
+      valueReceived: String(fileMetadata.size),
+    });
+  }
 }
 
 export function zipCreate(filesPath: string, zipPath: string): void {

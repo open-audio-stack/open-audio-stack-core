@@ -1,3 +1,32 @@
+import chalk from 'chalk';
+import { PackageValidationError, PackageValidationRec } from '../types/Package.js';
+
+export function logReport(info: string, errors?: PackageValidationError[], recs?: PackageValidationRec[]) {
+  if (errors) {
+    console.log(chalk.red(`X ${info}`));
+    logErrors(errors);
+  } else {
+    console.log(chalk.green(`✓ ${info}`));
+  }
+  if (recs) logRecommendations(recs);
+}
+
+export function logErrors(errors: PackageValidationError[]) {
+  errors.forEach(error => {
+    console.log(
+      chalk.red(
+        `- ${error.field} (${error.error}) received '${error.valueReceived}' expected '${error.valueExpected}'`,
+      ),
+    );
+  });
+}
+
+export function logRecommendations(recs: PackageValidationRec[]) {
+  recs.forEach(rec => {
+    console.log(chalk.yellow(`- ${rec.field} ${rec.rec}`));
+  });
+}
+
 export function pathGetExt(path: string, sep: string = '.') {
   return path.substring(path.lastIndexOf(sep) + 1);
 }

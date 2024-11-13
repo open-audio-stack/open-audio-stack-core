@@ -12,7 +12,7 @@ import { RegistryInterface, RegistryPackages } from './types/Registry.js';
 import { PluginType } from './types/PluginType.js';
 import { PresetType } from './types/PresetType.js';
 import { ProjectType } from './types/ProjectType.js';
-import { License } from './index-browser.js';
+import { License } from './types/License.js';
 
 export class Registry {
   registry: RegistryInterface;
