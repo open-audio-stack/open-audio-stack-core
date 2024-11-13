@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import { PackageValidationError, PackageValidationRec } from '../types/Package.js';
 
 export function logReport(info: string, errors?: PackageValidationError[], recs?: PackageValidationRec[]) {
-  if (errors) {
+  if (errors && errors.length > 0) {
     console.log(chalk.red(`X ${info}`));
     logErrors(errors);
   } else {
