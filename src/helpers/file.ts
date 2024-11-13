@@ -219,6 +219,7 @@ export function fileValidateMetadata(filePath: string, fileMetadata: PluginFile 
       valueReceived: String(fileMetadata.size),
     });
   }
+  return errors;
 }
 
 export function zipCreate(filesPath: string, zipPath: string): void {
