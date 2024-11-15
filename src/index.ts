@@ -10,6 +10,7 @@ export * from './Registry.js';
 // Helpers
 export * from './helpers/api.js';
 export * from './helpers/file.js';
+export * from './helpers/package.js';
 export * from './helpers/utils.js';
 
 // Types

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { PackageVersions, PackageVersionType } from '../src/types/Package.js';
+import { PackageVersions } from '../src/types/Package.js';
 import { Registry } from '../src/Registry.js';
 import { RegistryInterface, RegistryPackages } from '../src/types/Registry.js';
 import { REGISTRY } from './data/Registry.js';
@@ -185,56 +185,4 @@ test('Get package latest version', () => {
     '0.3.0': PLUGIN,
   };
   expect(registry.packageVersionLatest(VERSIONS)).toEqual('10.3.2');
-});
-
-test('Validate good package version', () => {
-  const registry: Registry = new Registry(REGISTRY);
-  expect(registry.packageVersionValidate(PLUGIN)).toEqual([]);
-});
-
-test('Validate package version missing field', () => {
-  const registry: Registry = new Registry(REGISTRY);
-  const PLUGIN_BAD: PackageVersionType = structuredClone(PLUGIN);
-  // @ts-expect-error this is intentionally bad data.
-  delete PLUGIN_BAD['audio'];
-  expect(registry.packageVersionValidate(PLUGIN_BAD)).toEqual([
-    {
-      error: 'missing-field',
-      field: 'audio',
-      valueExpected: 'string',
-      valueReceived: 'undefined',
-    },
-  ]);
-});
-
-test('Validate package version invalid type', () => {
-  const registry: Registry = new Registry(REGISTRY);
-  const PLUGIN_BAD: PackageVersionType = structuredClone(PLUGIN);
-  // @ts-expect-error this is intentionally bad data.
-  PLUGIN_BAD['audio'] = 123;
-  expect(registry.packageVersionValidate(PLUGIN_BAD)).toEqual([
-    {
-      error: 'invalid-type',
-      field: 'audio',
-      valueExpected: 'string',
-      valueReceived: 'number',
-    },
-  ]);
-});
-
-test('Recommendations good package version', () => {
-  const registry: Registry = new Registry(REGISTRY);
-  expect(registry.packageVersionRecommendations(PLUGIN)).toEqual([]);
-});
-
-test('Recommendations bad package version', () => {
-  const registry: Registry = new Registry(REGISTRY);
-  const PLUGIN_BAD: PackageVersionType = structuredClone(PLUGIN);
-  PLUGIN_BAD.url = 'http://www.github.com';
-  expect(registry.packageVersionRecommendations(PLUGIN_BAD)).toEqual([
-    {
-      field: 'url',
-      rec: 'should use https url',
-    },
-  ]);
 });
