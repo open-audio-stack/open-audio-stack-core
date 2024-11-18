@@ -1,9 +1,6 @@
 import * as semver from 'semver';
-import { PackageInterface, PackageVersions, PackageVersionType } from './types/Package.js';
-import { RegistryInterface, RegistryPackages } from './types/Registry.js';
-import { PluginType } from './types/PluginType.js';
-import { PresetType } from './types/PresetType.js';
-import { ProjectType } from './types/ProjectType.js';
+import { PackageInterface, PackageVersion, PackageVersions, PackageVersionType } from './types/Package.js';
+import { RegistryInterface, RegistryPackages, RegistryType } from './types/Registry.js';
 
 export class Registry {
   registry: RegistryInterface;
@@ -12,42 +9,43 @@ export class Registry {
     this.registry = Object.assign({}, registry);
   }
 
-  packageAdd(slug: string) {
-    return (this.registry.packages[slug] = {
+  packageAdd(slug: string, type: RegistryType) {
+    return (this.registry[type][slug] = {
       slug,
       version: '',
       versions: {},
     });
   }
 
-  packageVersionAdd(slug: string, version: string, pkgVersion: PackageVersionType) {
-    let pkg: PackageInterface = this.package(slug);
+  packageVersionAdd(slug: string, type: RegistryType, version: string, pkgVersion: PackageVersionType) {
+    let pkg: PackageInterface = this.package(slug, type);
     if (!pkg) {
-      pkg = this.packageAdd(slug);
+      pkg = this.packageAdd(slug, type);
     }
     pkg.versions[version] = pkgVersion;
     pkg.version = this.packageVersionLatest(pkg.versions);
   }
 
-  package(slug: string) {
-    return this.registry.packages[slug];
+  package(slug: string, type: RegistryType) {
+    return this.registry[type][slug];
   }
 
-  packages() {
-    return this.registry.packages;
+  packages(type: RegistryType) {
+    return this.registry[type];
   }
 
-  packagesFilter(type: typeof PluginType | typeof PresetType | typeof ProjectType) {
+  packagesFilter(type: RegistryType, field: keyof PackageVersion, value: string | number | object) {
     const registryFiltered: RegistryPackages = {};
-    Object.keys(this.registry.packages).forEach((slug: string) => {
-      if (Object.values(type).includes(this.packageLatest(slug).type))
-        registryFiltered[slug] = this.registry.packages[slug];
+    Object.keys(this.registry[type]).forEach((slug: string) => {
+      if (this.packageLatest(slug, type)[field] === value) {
+        registryFiltered[slug] = this.registry[type][slug];
+      }
     });
     return registryFiltered;
   }
 
-  packageLatest(slug: string, version?: string) {
-    const pkg: PackageInterface = this.package(slug);
+  packageLatest(slug: string, type: RegistryType, version?: string) {
+    const pkg: PackageInterface = this.package(slug, type);
     const pkgVersion: string = this.packageVersionLatest(pkg.versions);
     return pkg.versions[version || pkgVersion];
   }
@@ -78,18 +76,18 @@ export class Registry {
     return this.registry.version;
   }
 
-  packageRemove(slug: string) {
-    delete this.registry.packages[slug];
+  packageRemove(slug: string, type: RegistryType) {
+    delete this.registry[type][slug];
   }
 
-  packageVersionRemove(slug: string, version: string) {
-    const pkg: PackageInterface = this.package(slug);
+  packageVersionRemove(slug: string, type: RegistryType, version: string) {
+    const pkg: PackageInterface = this.package(slug, type);
     if (pkg && pkg.versions[version]) {
       delete pkg.versions[version];
       pkg.version = this.packageVersionLatest(pkg.versions);
     }
     if (!Object.keys(pkg.versions).length) {
-      this.packageRemove(slug);
+      this.packageRemove(slug, type);
     }
   }
 }
