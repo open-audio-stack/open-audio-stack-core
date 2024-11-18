@@ -18,7 +18,7 @@ export const PROJECT: ProjectInterface = {
       architectures: [Architecture.Bit32],
       contains: [ProjectFormat.AbletonLive],
       format: FileFormat.Zip,
-      hash: '3af35f0212',
+      sha256: '3af35f0212',
       systems: [{ min: 13.7, type: SystemType.Macintosh }],
       size: 94448096,
       type: FileType.Archive,

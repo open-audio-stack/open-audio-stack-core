@@ -6,7 +6,7 @@ import { System } from './System.js';
 export interface FileInterface {
   architectures: Architecture[];
   format: FileFormat;
-  hash: string;
+  sha256: string;
   size: number;
   systems: System[];
   type: FileType;

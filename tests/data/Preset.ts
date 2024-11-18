@@ -18,7 +18,7 @@ export const PRESET: PresetInterface = {
       architectures: [Architecture.Arm32, Architecture.Arm64, Architecture.Bit32, Architecture.Bit64],
       contains: [PresetFormat.VSTPreset],
       format: FileFormat.Zip,
-      hash: '111e43b5e603a3849e390961381880f509c835bd',
+      sha256: '111e43b5e603a3849e390961381880f509c835bd',
       systems: [{ type: SystemType.Linux }, { type: SystemType.Macintosh }, { type: SystemType.Windows }],
       size: 3773,
       type: FileType.Archive,

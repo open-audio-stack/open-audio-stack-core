@@ -203,12 +203,12 @@ export function fileSize(filePath: string) {
 
 export function fileValidateMetadata(filePath: string, fileMetadata: PluginFile | PresetFile | ProjectFile) {
   const errors: PackageValidationError[] = [];
-  if (fileMetadata.hash !== fileHash(filePath)) {
+  if (fileMetadata.sha256 !== fileHash(filePath)) {
     errors.push({
-      field: 'hash',
+      field: 'sha256',
       error: PackageValidation.INVALID_VALUE,
       valueExpected: fileHash(filePath),
-      valueReceived: fileMetadata.hash,
+      valueReceived: fileMetadata.sha256,
     });
   }
   if (fileMetadata.size !== fileSize(filePath)) {
