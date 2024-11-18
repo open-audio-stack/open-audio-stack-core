@@ -18,6 +18,7 @@ export class Registry {
   }
 
   packageVersionAdd(slug: string, type: RegistryType, version: string, pkgVersion: PackageVersionType) {
+    if (!semver.valid(version)) throw Error(`${version} is not a valid Semantic version`);
     let pkg: PackageInterface = this.package(slug, type);
     if (!pkg) {
       pkg = this.packageAdd(slug, type);
@@ -45,6 +46,7 @@ export class Registry {
   }
 
   packageLatest(slug: string, type: RegistryType, version?: string) {
+    if (version && !semver.valid(version)) throw Error(`${version} is not a valid Semantic version`);
     const pkg: PackageInterface = this.package(slug, type);
     const pkgVersion: string = this.packageVersionLatest(pkg.versions);
     return pkg.versions[version || pkgVersion];
@@ -81,6 +83,7 @@ export class Registry {
   }
 
   packageVersionRemove(slug: string, type: RegistryType, version: string) {
+    if (!semver.valid(version)) throw Error(`${version} is not a valid Semantic version`);
     const pkg: PackageInterface = this.package(slug, type);
     if (pkg && pkg.versions[version]) {
       delete pkg.versions[version];
