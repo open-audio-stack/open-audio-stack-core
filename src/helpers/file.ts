@@ -12,8 +12,9 @@ import {
   unlinkSync,
   writeFileSync,
 } from 'fs';
-import stream from 'stream/promises';
 import { createHash } from 'crypto';
+import stream from 'stream/promises';
+import { Transform } from 'stream';
 import { globSync } from 'glob';
 import { moveSync } from 'fs-extra/esm';
 import os from 'os';
@@ -152,9 +153,15 @@ export function fileJsonCreate(filePath: string, data: object): void {
 }
 
 export async function fileHash(filePath: string, algorithm = 'sha256'): Promise<string> {
+  const normalizeLineEndings = new Transform({
+    transform(chunk: Buffer, encoding, callback) {
+      const normalized = chunk.toString('utf8').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      callback(null, Buffer.from(normalized));
+    },
+  });
   const input = createReadStream(filePath);
   const hash = createHash(algorithm);
-  await stream.pipeline(input, hash);
+  await stream.pipeline(input, normalizeLineEndings, hash);
   return hash.digest('hex');
 }
 
