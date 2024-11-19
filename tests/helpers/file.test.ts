@@ -146,6 +146,6 @@ test('Delete missing directory', () => {
   expect(dirDelete(DIR_RENAME)).toEqual(false);
 });
 
-test('File hash', () => {
-  expect(fileHash('LICENSE')).toEqual('a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499');
+test('File hash', async () => {
+  expect(await fileHash('LICENSE')).toEqual('a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499');
 });

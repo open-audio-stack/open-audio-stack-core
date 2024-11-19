@@ -1,6 +1,7 @@
 import AdmZip from 'adm-zip';
 import { execSync } from 'child_process';
 import {
+  createReadStream,
   chmodSync,
   existsSync,
   mkdirSync,
@@ -11,6 +12,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from 'fs';
+import stream from 'stream/promises';
 import { createHash } from 'crypto';
 import { globSync } from 'glob';
 import { moveSync } from 'fs-extra/esm';
@@ -149,10 +151,11 @@ export function fileJsonCreate(filePath: string, data: object): void {
   return fileCreate(filePath, JSON.stringify(data, null, 2));
 }
 
-export function fileHash(filePath: string, algorithm = 'sha256'): string {
-  const fileData: string = fileReadString(filePath);
-  const fileNormalized: string = fileData.replace(/\r\n/g, '\n');
-  return createHash(algorithm).update(fileNormalized, 'utf8').digest('hex');
+export async function fileHash(filePath: string, algorithm = 'sha256'): Promise<string> {
+  const input = createReadStream(filePath);
+  const hash = createHash(algorithm);
+  await stream.pipeline(input, hash);
+  return hash.digest('hex');
 }
 
 export function fileMove(filePath: string, newPath: string): void | boolean {
@@ -201,13 +204,14 @@ export function fileSize(filePath: string) {
   return statSync(filePath).size;
 }
 
-export function fileValidateMetadata(filePath: string, fileMetadata: PluginFile | PresetFile | ProjectFile) {
+export async function fileValidateMetadata(filePath: string, fileMetadata: PluginFile | PresetFile | ProjectFile) {
   const errors: PackageValidationError[] = [];
-  if (fileMetadata.sha256 !== fileHash(filePath)) {
+  const hash = await fileHash(filePath);
+  if (fileMetadata.sha256 !== hash) {
     errors.push({
       field: 'sha256',
       error: PackageValidation.INVALID_VALUE,
-      valueExpected: fileHash(filePath),
+      valueExpected: hash,
       valueReceived: fileMetadata.sha256,
     });
   }
