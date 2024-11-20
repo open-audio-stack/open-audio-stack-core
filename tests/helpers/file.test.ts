@@ -32,6 +32,7 @@ import {
   // fileSize,
 } from '../../src/helpers/file.js';
 import { PackageInterface } from '../../src/types/Package.js';
+import { apiText } from '../../src/helpers/api.js';
 
 const DIR_PATH: string = path.join('test', 'new-directory');
 const DIR_PATH_GLOB: string = path.join('test', 'new-directory', '**', '*.txt');
@@ -147,5 +148,12 @@ test('Delete missing directory', () => {
 });
 
 test('File hash', async () => {
-  expect(await fileHash('LICENSE')).toEqual('a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499');
+  // Hashing a file which has been checked out from git source will produce inconsistent hashes.
+  // git checkout converts file line endings based on the system running.
+  // Using a file downloaded outside of git will avoide this issue.
+  const fileData: string = await apiText(
+    'https://github.com/open-audio-stack/open-audio-stack-core/raw/refs/heads/main/LICENSE',
+  );
+  fileCreate('./test/fileHash', fileData);
+  expect(await fileHash('./test/fileHash')).toEqual('a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499');
 });
