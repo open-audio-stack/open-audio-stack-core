@@ -8,6 +8,7 @@ export enum FileFormat {
   TarballLegacy = 'tgz',
   WindowsInstaller = 'msi',
   Zip = 'zip',
+  Zip7 = '7z',
 }
 
 export interface FileFormatOption {
@@ -61,5 +62,10 @@ export const fileFormats: FileFormatOption[] = [
     description: 'Widely-used compressed file format compatible with many operating systems.',
     value: FileFormat.Zip,
     name: 'Zip',
+  },
+  {
+    description: 'Archive file format which compresses files and folders into a single file.',
+    value: FileFormat.Zip7,
+    name: '7-Zip',
   },
 ];
