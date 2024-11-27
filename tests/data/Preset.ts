@@ -15,7 +15,7 @@ export const PRESET: PresetInterface = {
   description: 'Floating Rhodes sounds.',
   files: [
     {
-      architectures: [Architecture.Arm32, Architecture.Arm64, Architecture.Bit32, Architecture.Bit64],
+      architectures: [Architecture.Arm32, Architecture.Arm64, Architecture.X32, Architecture.X64],
       contains: [PresetFormat.VSTPreset],
       format: FileFormat.Zip,
       sha256: '111e43b5e603a3849e390961381880f509c835bd',

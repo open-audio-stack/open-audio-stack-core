@@ -16,7 +16,7 @@ export const PLUGIN: PluginInterface = {
     'Hybrid synthesizer featuring many synthesis techniques, a great selection of filters, a flexible modulation engine, a smorgasbord of effects, and modern features like MPE and microtuning.',
   files: [
     {
-      architectures: [Architecture.Bit64],
+      architectures: [Architecture.X64],
       contains: [
         PluginFormat.LinuxStandalone,
         PluginFormat.CleverAudioPlugin,
@@ -31,7 +31,7 @@ export const PLUGIN: PluginInterface = {
       url: 'https://github.com/surge-synthesizer/releases-xt/releases/download/1.3.1/surge-xt-linux-1.3.1-pluginsonly.tar.gz',
     },
     {
-      architectures: [Architecture.Arm64, Architecture.Bit64],
+      architectures: [Architecture.Arm64, Architecture.X64],
       contains: [
         PluginFormat.MacStandalone,
         PluginFormat.CleverAudioPlugin,
@@ -46,7 +46,7 @@ export const PLUGIN: PluginInterface = {
       url: 'https://github.com/surge-synthesizer/releases-xt/releases/download/1.3.1/surge-xt-macos-1.3.1-pluginsonly.zip',
     },
     {
-      architectures: [Architecture.Bit64],
+      architectures: [Architecture.X64],
       contains: [PluginFormat.WinStandalone, PluginFormat.CleverAudioPlugin, PluginFormat.VST3],
       format: FileFormat.Zip,
       sha256: '415e08c30f275f212149b5351e651e65',

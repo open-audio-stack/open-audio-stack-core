@@ -1,8 +1,8 @@
 export enum Architecture {
   Arm32 = 'arm32',
   Arm64 = 'arm64',
-  Bit32 = 'bit32',
-  Bit64 = 'bit64',
+  X32 = 'x32',
+  X64 = 'x64',
 }
 
 export interface ArchitectureOption {
@@ -24,12 +24,12 @@ export const architectures: ArchitectureOption[] = [
   },
   {
     description: 'X86 processors are commonly used in desktop computers and laptops.',
-    value: Architecture.Bit32,
+    value: Architecture.X32,
     name: 'x86 machine - 32-bit',
   },
   {
     description: 'X86 processors are commonly used in desktop computers and laptops.',
-    value: Architecture.Bit64,
+    value: Architecture.X64,
     name: 'x86 machine - 64-bit',
   },
 ];

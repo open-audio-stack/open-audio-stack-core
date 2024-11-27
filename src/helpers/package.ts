@@ -50,8 +50,8 @@ export function packageRecommendations(pkgVersion: PackageVersionType) {
       supportedSystems[system.type] = true;
     });
   });
-  if (!supportedArchitectures.arm64) recs.push({ field: 'architectures', rec: 'should support Arm64' });
-  if (!supportedArchitectures.bit64) recs.push({ field: 'architectures', rec: 'should support Bit64' });
+  if (!supportedArchitectures.arm64) recs.push({ field: 'architectures', rec: 'should support arm64' });
+  if (!supportedArchitectures.x64) recs.push({ field: 'architectures', rec: 'should support x64' });
   if (!supportedSystems.linux) recs.push({ field: 'systems', rec: 'should support Linux' });
   if (!supportedSystems.mac) recs.push({ field: 'systems', rec: 'should support Mac' });
   if (!supportedSystems.win) recs.push({ field: 'systems', rec: 'should support Windows' });

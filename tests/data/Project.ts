@@ -15,7 +15,7 @@ export const PROJECT: ProjectInterface = {
   description: 'Song idea using synthesizers',
   files: [
     {
-      architectures: [Architecture.Bit32],
+      architectures: [Architecture.X32],
       contains: [ProjectFormat.AbletonLive],
       format: FileFormat.Zip,
       sha256: '3af35f0212',

@@ -21,7 +21,7 @@ test('Create new Config', () => {
 
 test('Get architecture', () => {
   const config: Config = new Config({});
-  expect(config.architecture(Architecture.Bit32)).toEqual(architectures[2]);
+  expect(config.architecture(Architecture.X32)).toEqual(architectures[2]);
 });
 
 test('Get architectures', () => {
