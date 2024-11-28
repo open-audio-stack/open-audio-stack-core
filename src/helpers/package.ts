@@ -1,3 +1,4 @@
+import { PluginFile, PresetFile, ProjectFile } from '../index-browser.js';
 import { License } from '../types/License.js';
 import {
   PackageValidation,
@@ -11,28 +12,18 @@ import {
 export function packageRecommendations(pkgVersion: PackageVersionType) {
   const recs: PackageValidationRec[] = [];
 
-  // Urls
-  if (!pkgVersion.url.startsWith('https://')) {
-    recs.push({
-      field: 'url',
-      rec: 'should use https url',
-    });
-  }
-  if (!pkgVersion.url.includes('github.com') && !pkgVersion.url.includes('github.io')) {
-    recs.push({
-      field: 'url',
-      rec: 'should point to GitHub',
-    });
-  }
+  packageRecommendationsUrl(pkgVersion, recs, 'audio');
+  packageRecommendationsUrl(pkgVersion, recs, 'image');
+  packageRecommendationsUrl(pkgVersion, recs, 'url');
 
   // Image/audio previews
-  if (pkgVersion.image && pkgVersion.image.includes('png')) {
+  if (pkgVersion.image && pkgVersion.image.endsWith('png')) {
     recs.push({
       field: 'image',
       rec: 'should use the jpg format',
     });
   }
-  if (pkgVersion.audio && pkgVersion.audio.includes('wav')) {
+  if (pkgVersion.audio && pkgVersion.audio.endsWith('wav')) {
     recs.push({
       field: 'audio',
       rec: 'should use the flac format',
@@ -49,6 +40,7 @@ export function packageRecommendations(pkgVersion: PackageVersionType) {
     file.systems.forEach(system => {
       supportedSystems[system.type] = true;
     });
+    packageRecommendationsUrl(file, recs, 'url');
   });
   if (!supportedArchitectures.arm64) recs.push({ field: 'architectures', rec: 'should support arm64' });
   if (!supportedArchitectures.x64) recs.push({ field: 'architectures', rec: 'should support x64' });
@@ -67,6 +59,28 @@ export function packageRecommendations(pkgVersion: PackageVersionType) {
     recs.push({ field: 'license', rec: 'should be more specific' });
   }
   return recs;
+}
+
+export function packageRecommendationsUrl(
+  obj: PackageVersionType | PluginFile | PresetFile | ProjectFile,
+  recs: PackageValidationRec[],
+  field: string,
+) {
+  // @ts-expect-error indexing a field with multiple package types.
+  const val = obj[field];
+  if (typeof val !== 'string') return;
+  if (!val.startsWith('https://')) {
+    recs.push({
+      field,
+      rec: 'should use https url',
+    });
+  }
+  if (!val.includes('github.com') && !val.includes('github.io')) {
+    recs.push({
+      field,
+      rec: 'should point to GitHub',
+    });
+  }
 }
 
 export function packageValidate(pkgVersion: PackageVersionType) {
