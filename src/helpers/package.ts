@@ -1,12 +1,52 @@
-import { PluginFile, PresetFile, ProjectFile } from '../index-browser.js';
+import { z } from 'zod';
+import { Architecture } from '../types/Architecture.js';
+import { FileFormat } from '../types/FileFormat.js';
+import { FileType } from '../types/FileType.js';
 import { License } from '../types/License.js';
-import {
-  PackageValidation,
-  PackageValidationError,
-  PackageValidationField,
-  PackageValidationRec,
-  PackageVersionType,
-} from '../types/Package.js';
+import { PluginFile } from '../types/Plugin.js';
+import { PluginType } from '../types/PluginType.js';
+import { PresetFile } from '../types/Preset.js';
+import { PresetType } from '../types/PresetType.js';
+import { ProjectFile } from '../types/Project.js';
+import { ProjectType } from '../types/ProjectType.js';
+import { SystemType } from '../types/SystemType.js';
+import { PackageValidationRec, PackageVersionType } from '../types/Package.js';
+
+// This is a first version using zod library for validation.
+// If it works well, consider updating all types to infer from Zod objects.
+// This will remove duplicatation of code between types and validators.
+
+export const PackageSystemValidator = z.object({
+  max: z.number().min(0).max(99).optional(),
+  min: z.number().min(0).max(99).optional(),
+  type: z.nativeEnum(SystemType),
+});
+
+export const PackageFileValidator = z.object({
+  architectures: z.nativeEnum(Architecture).array(),
+  format: z.nativeEnum(FileFormat),
+  sha256: z.string().length(64),
+  size: z.number().min(0).max(9999999999),
+  systems: PackageSystemValidator.array(),
+  type: z.nativeEnum(FileType),
+  url: z.string().min(0).max(256).startsWith('https://'),
+});
+
+export const PackageTypeObj = { ...PluginType, ...PresetType, ...ProjectType };
+export const PackageVersionValidator = z.object({
+  audio: z.string().min(0).max(256).startsWith('https://'),
+  author: z.string().min(0).max(256),
+  changes: z.string().min(0).max(256),
+  date: z.string().datetime(),
+  description: z.string().min(0).max(256),
+  files: z.array(PackageFileValidator),
+  image: z.string().min(0).max(256).startsWith('https://'),
+  license: z.nativeEnum(License),
+  name: z.string().min(0).max(256),
+  tags: z.string().min(0).max(256).array(),
+  type: z.nativeEnum(PackageTypeObj),
+  url: z.string().min(0).max(256).startsWith('https://'),
+});
 
 // TODO refactor all this using a proper validation library.
 export function packageRecommendations(pkgVersion: PackageVersionType) {
@@ -81,41 +121,4 @@ export function packageRecommendationsUrl(
       rec: 'should point to GitHub',
     });
   }
-}
-
-export function packageValidate(pkgVersion: PackageVersionType) {
-  const fields: PackageValidationField[] = [
-    { name: 'audio', type: 'string' },
-    { name: 'author', type: 'string' },
-    { name: 'changes', type: 'string' },
-    { name: 'date', type: 'string' },
-    { name: 'description', type: 'string' },
-    { name: 'files', type: 'object' },
-    { name: 'image', type: 'string' },
-    { name: 'license', type: 'string' },
-    { name: 'name', type: 'string' },
-    { name: 'tags', type: 'object' },
-    { name: 'type', type: 'string' },
-    { name: 'url', type: 'string' },
-  ];
-  const errors: PackageValidationError[] = [];
-  fields.forEach((field: PackageValidationField) => {
-    const versionField = pkgVersion[field.name as keyof PackageVersionType];
-    if (versionField === undefined) {
-      errors.push({
-        field: field.name,
-        error: PackageValidation.MISSING_FIELD,
-        valueExpected: field.type,
-        valueReceived: 'undefined',
-      });
-    } else if (typeof versionField !== field.type) {
-      errors.push({
-        field: field.name,
-        error: PackageValidation.INVALID_TYPE,
-        valueExpected: field.type,
-        valueReceived: typeof versionField,
-      });
-    }
-  });
-  return errors;
 }
