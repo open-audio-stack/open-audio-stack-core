@@ -19,10 +19,12 @@ import { moveSync } from 'fs-extra/esm';
 import os from 'os';
 import path from 'path';
 import yaml from 'js-yaml';
-import { PackageInterface, PackageValidation, PackageValidationError } from '../types/Package.js';
+import { ZodIssueCode, ZodParsedType } from 'zod';
+import { PackageInterface } from '../types/Package.js';
 import { PluginFile } from '../types/Plugin.js';
 import { PresetFile } from '../types/Preset.js';
 import { ProjectFile } from '../types/Project.js';
+import { ZodIssue } from 'zod';
 
 export function dirApp() {
   if (process.platform === 'win32') return process.env.APPDATA || os.homedir();
@@ -206,22 +208,24 @@ export function fileSize(filePath: string) {
 }
 
 export async function fileValidateMetadata(filePath: string, fileMetadata: PluginFile | PresetFile | ProjectFile) {
-  const errors: PackageValidationError[] = [];
+  const errors: ZodIssue[] = [];
   const hash = await fileHash(filePath);
   if (fileMetadata.sha256 !== hash) {
     errors.push({
-      field: 'sha256',
-      error: PackageValidation.INVALID_VALUE,
-      valueExpected: hash,
-      valueReceived: fileMetadata.sha256,
+      code: ZodIssueCode.invalid_type,
+      expected: hash as ZodParsedType,
+      message: 'Required',
+      path: ['sha256'],
+      received: fileMetadata.sha256 as ZodParsedType,
     });
   }
   if (fileMetadata.size !== fileSize(filePath)) {
     errors.push({
-      field: 'size',
-      error: PackageValidation.INVALID_VALUE,
-      valueExpected: String(fileSize(filePath)),
-      valueReceived: String(fileMetadata.size),
+      code: ZodIssueCode.invalid_type,
+      expected: String(fileSize(filePath)) as ZodParsedType,
+      message: 'Required',
+      path: ['size'],
+      received: String(fileMetadata.size) as ZodParsedType,
     });
   }
   return errors;
