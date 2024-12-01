@@ -39,13 +39,6 @@ export interface PackageValidationField {
   type: string;
 }
 
-export interface PackageValidationError {
-  field: string;
-  error: PackageValidation;
-  valueExpected: boolean | number | string;
-  valueReceived: boolean | number | string;
-}
-
 export interface PackageValidationRec {
   field: string;
   rec: string;

@@ -1,7 +1,8 @@
 import chalk from 'chalk';
-import { PackageValidationError, PackageValidationRec } from '../types/Package.js';
+import { PackageValidationRec } from '../types/Package.js';
+import { ZodIssue } from 'zod';
 
-export function logReport(info: string, errors?: PackageValidationError[], recs?: PackageValidationRec[]) {
+export function logReport(info: string, errors?: ZodIssue[], recs?: PackageValidationRec[]) {
   if (errors && errors.length > 0) {
     console.log(chalk.red(`X ${info}`));
     logErrors(errors);
@@ -11,13 +12,19 @@ export function logReport(info: string, errors?: PackageValidationError[], recs?
   if (recs) logRecommendations(recs);
 }
 
-export function logErrors(errors: PackageValidationError[]) {
+export function logErrors(errors: ZodIssue[]) {
   errors.forEach(error => {
-    console.log(
-      chalk.red(
-        `- ${error.field} (${error.error}) received '${error.valueReceived}' expected '${error.valueExpected}'`,
-      ),
-    );
+    // @ts-expect-error need to filter by code.
+    if (error.received) {
+      console.log(
+        chalk.red(
+          // @ts-expect-error need to filter by code.
+          `- ${error.path} (${error.message}) received '${error.received}' expected '${error.expected}'`,
+        ),
+      );
+    } else {
+      console.log(chalk.red(`- ${error.path} (${error.message})`));
+    }
   });
 }
 
