@@ -1,6 +1,7 @@
 export enum FileFormat {
   AppImage = 'appimage',
   AppleDiskImage = 'dmg',
+  ApplePackage = 'pkg',
   DebianPackage = 'deb',
   ExecutableInstaller = 'exe',
   RedHatPackage = 'rpm',
@@ -27,6 +28,11 @@ export const fileFormats: FileFormatOption[] = [
     description: 'Disk image format used on macOS.',
     value: FileFormat.AppleDiskImage,
     name: 'Apple Disk Image',
+  },
+  {
+    description: 'macOS and iOS software package installer.',
+    value: FileFormat.ApplePackage,
+    name: 'Apple package',
   },
   {
     description: 'Package for Debian-based Linux such as Ubuntu.',
