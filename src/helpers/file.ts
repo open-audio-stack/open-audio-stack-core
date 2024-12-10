@@ -213,19 +213,19 @@ export async function fileValidateMetadata(filePath: string, fileMetadata: Plugi
   if (fileMetadata.sha256 !== hash) {
     errors.push({
       code: ZodIssueCode.invalid_type,
-      expected: hash as ZodParsedType,
+      expected: fileMetadata.sha256 as ZodParsedType,
       message: 'Required',
       path: ['sha256'],
-      received: fileMetadata.sha256 as ZodParsedType,
+      received: hash as ZodParsedType,
     });
   }
   if (fileMetadata.size !== fileSize(filePath)) {
     errors.push({
       code: ZodIssueCode.invalid_type,
-      expected: String(fileSize(filePath)) as ZodParsedType,
+      expected: String(fileMetadata.size) as ZodParsedType,
       message: 'Required',
       path: ['size'],
-      received: String(fileMetadata.size) as ZodParsedType,
+      received: String(fileSize(filePath)) as ZodParsedType,
     });
   }
   return errors;
