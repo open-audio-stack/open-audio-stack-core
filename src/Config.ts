@@ -15,7 +15,17 @@ export class Config {
   config: ConfigInterface;
 
   constructor(config?: ConfigInterface) {
-    this.config = Object.assign({}, config);
+    this.config = Object.assign(
+      {
+        registries: [
+          {
+            name: 'Open Audio Registry',
+            url: 'https://openaudio.github.io/registry',
+          },
+        ],
+      },
+      config,
+    );
   }
 
   get() {
