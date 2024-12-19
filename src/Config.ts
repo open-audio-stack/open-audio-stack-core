@@ -20,7 +20,7 @@ export class Config {
         registries: [
           {
             name: 'Open Audio Registry',
-            url: 'https://openaudio.github.io/registry',
+            url: 'https://open-audio-stack.github.io/open-audio-stack-registry',
           },
         ],
       },
@@ -28,8 +28,14 @@ export class Config {
     );
   }
 
-  get() {
+  get(key?: keyof ConfigInterface) {
+    if (key) return this.config[key];
     return this.config;
+  }
+
+  set(key: keyof ConfigInterface, val: any) {
+    this.config[key] = val;
+    return this.get(key);
   }
 
   // Architectures.

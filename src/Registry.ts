@@ -5,8 +5,15 @@ import { RegistryInterface, RegistryPackages, RegistryType } from './types/Regis
 export class Registry {
   registry: RegistryInterface;
 
-  constructor(registry?: RegistryInterface) {
-    this.registry = Object.assign({}, registry);
+  constructor() {
+    this.registry = {
+      name: 'Open Audio Registry',
+      plugins: {},
+      presets: {},
+      projects: {},
+      url: 'https://open-audio-stack.github.io/open-audio-stack-registry',
+      version: '1.0.0',
+    };
   }
 
   packageAdd(slug: string, type: RegistryType) {

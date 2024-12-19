@@ -20,6 +20,14 @@ test('Create new Config', () => {
   expect(config2.get()).toEqual(CONFIG);
 });
 
+test('Set and get value', () => {
+  const config: Config = new Config({});
+  expect(config.set('pluginDir', '/example/plugins')).toEqual('/example/plugins');
+  expect(config.get('pluginDir')).toEqual('/example/plugins');
+  expect(config.set('pluginDir', '/example2/plugins')).toEqual('/example2/plugins');
+  expect(config.get('pluginDir')).toEqual('/example2/plugins');
+});
+
 test('Get architecture', () => {
   const config: Config = new Config();
   expect(config.architecture(Architecture.X32)).toEqual(architectures[2]);
