@@ -16,25 +16,25 @@ export class Registry {
     };
   }
 
-  packageAdd(slug: string, type: RegistryType) {
-    return (this.registry[type][slug] = {
+  packageAdd(type: RegistryType, slug: string, pkg?: PackageInterface) {
+    return (this.registry[type][slug] = pkg || {
       slug,
       version: '',
       versions: {},
     });
   }
 
-  packageVersionAdd(slug: string, type: RegistryType, version: string, pkgVersion: PackageVersionType) {
+  packageVersionAdd(type: RegistryType, slug: string, version: string, pkgVersion: PackageVersionType) {
     if (!semver.valid(version)) throw Error(`${version} is not a valid Semantic version`);
-    let pkg: PackageInterface = this.package(slug, type);
+    let pkg: PackageInterface = this.package(type, slug);
     if (!pkg) {
-      pkg = this.packageAdd(slug, type);
+      pkg = this.packageAdd(type, slug);
     }
     pkg.versions[version] = pkgVersion;
     pkg.version = this.packageVersionLatest(pkg.versions);
   }
 
-  package(slug: string, type: RegistryType) {
+  package(type: RegistryType, slug: string) {
     return this.registry[type][slug];
   }
 
@@ -42,19 +42,27 @@ export class Registry {
     return this.registry[type];
   }
 
-  packagesFilter(type: RegistryType, field: keyof PackageVersion, value: string | number | object) {
-    const registryFiltered: RegistryPackages = {};
+  packagesSearch(type: RegistryType, field: keyof PackageVersion, value: string | number | object) {
+    const results: RegistryPackages = {};
     Object.keys(this.registry[type]).forEach((slug: string) => {
-      if (this.packageLatest(slug, type)[field] === value) {
-        registryFiltered[slug] = this.registry[type][slug];
+      if (this.packageLatest(type, slug)[field] === value) {
+        results[slug] = this.registry[type][slug];
       }
     });
-    return registryFiltered;
+    return results;
   }
 
-  packageLatest(slug: string, type: RegistryType, version?: string) {
+  packagesOrg(type: RegistryType, match: string) {
+    const results: RegistryPackages = {};
+    for (const slug in this.registry[type]) {
+      if (slug.startsWith(match)) results[slug] = this.registry[type][slug];
+    }
+    return results;
+  }
+
+  packageLatest(type: RegistryType, slug: string, version?: string) {
     if (version && !semver.valid(version)) throw Error(`${version} is not a valid Semantic version`);
-    const pkg: PackageInterface = this.package(slug, type);
+    const pkg: PackageInterface = this.package(type, slug);
     const pkgVersion: string = this.packageVersionLatest(pkg.versions);
     return pkg.versions[version || pkgVersion];
   }
@@ -77,6 +85,12 @@ export class Registry {
     return this.registry.name;
   }
 
+  reset() {
+    this.registry.plugins = {};
+    this.registry.presets = {};
+    this.registry.projects = {};
+  }
+
   url() {
     return this.registry.url;
   }
@@ -85,19 +99,19 @@ export class Registry {
     return this.registry.version;
   }
 
-  packageRemove(slug: string, type: RegistryType) {
+  packageRemove(type: RegistryType, slug: string) {
     delete this.registry[type][slug];
   }
 
-  packageVersionRemove(slug: string, type: RegistryType, version: string) {
+  packageVersionRemove(type: RegistryType, slug: string, version: string) {
     if (!semver.valid(version)) throw Error(`${version} is not a valid Semantic version`);
-    const pkg: PackageInterface = this.package(slug, type);
+    const pkg: PackageInterface = this.package(type, slug);
     if (pkg && pkg.versions[version]) {
       delete pkg.versions[version];
       pkg.version = this.packageVersionLatest(pkg.versions);
     }
     if (!Object.keys(pkg.versions).length) {
-      this.packageRemove(slug, type);
+      this.packageRemove(type, slug);
     }
   }
 }

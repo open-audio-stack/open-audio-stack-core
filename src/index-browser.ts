@@ -5,6 +5,7 @@
 
 // Classes
 export * from './Config.js';
+export * from './Manager.js';
 export * from './Registry.js';
 
 // Helpers

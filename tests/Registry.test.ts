@@ -22,14 +22,14 @@ test('Registry add a package', () => {
     },
   };
   const registry: Registry = new Registry();
-  registry.packageAdd('surge-synth/surge', RegistryType.Plugins);
+  registry.packageAdd(RegistryType.Plugins, 'surge-synth/surge');
   expect(registry.get()).toEqual(REGISTRY_PACKAGE);
 });
 
 test('Registry add and remove package', () => {
   const registry: Registry = new Registry();
-  registry.packageAdd('surge-synth/surge', RegistryType.Plugins);
-  registry.packageRemove('surge-synth/surge', RegistryType.Plugins);
+  registry.packageAdd(RegistryType.Plugins, 'surge-synth/surge');
+  registry.packageRemove(RegistryType.Plugins, 'surge-synth/surge');
   expect(registry.get()).toEqual(REGISTRY);
 });
 
@@ -45,14 +45,14 @@ test('Registry add a package version', () => {
     },
   };
   const registry: Registry = new Registry();
-  registry.packageVersionAdd('surge-synth/surge', RegistryType.Plugins, '1.3.1', PLUGIN);
+  registry.packageVersionAdd(RegistryType.Plugins, 'surge-synth/surge', '1.3.1', PLUGIN);
   expect(registry.get()).toEqual(REGISTRY_WITH_PLUGIN);
 });
 
 test('Registry add and remove a package', () => {
   const registry: Registry = new Registry();
-  registry.packageVersionAdd('surge-synth/surge', RegistryType.Plugins, '1.3.1', PLUGIN);
-  registry.packageVersionRemove('surge-synth/surge', RegistryType.Plugins, '1.3.1');
+  registry.packageVersionAdd(RegistryType.Plugins, 'surge-synth/surge', '1.3.1', PLUGIN);
+  registry.packageVersionRemove(RegistryType.Plugins, 'surge-synth/surge', '1.3.1');
   expect(registry.get()).toEqual(REGISTRY);
 });
 
@@ -69,8 +69,8 @@ test('Registry add multiple package versions', () => {
     },
   };
   const registry: Registry = new Registry();
-  registry.packageVersionAdd('surge-synth/surge', RegistryType.Plugins, '1.3.2', PLUGIN);
-  registry.packageVersionAdd('surge-synth/surge', RegistryType.Plugins, '1.3.1', PLUGIN);
+  registry.packageVersionAdd(RegistryType.Plugins, 'surge-synth/surge', '1.3.2', PLUGIN);
+  registry.packageVersionAdd(RegistryType.Plugins, 'surge-synth/surge', '1.3.1', PLUGIN);
   expect(registry.get()).toEqual(REGISTRY_WITH_PLUGIN);
 });
 
@@ -86,9 +86,9 @@ test('Registry add and remove multiple package versions', () => {
     },
   };
   const registry: Registry = new Registry();
-  registry.packageVersionAdd('surge-synth/surge', RegistryType.Plugins, '1.3.2', PLUGIN);
-  registry.packageVersionAdd('surge-synth/surge', RegistryType.Plugins, '1.3.1', PLUGIN);
-  registry.packageVersionRemove('surge-synth/surge', RegistryType.Plugins, '1.3.2');
+  registry.packageVersionAdd(RegistryType.Plugins, 'surge-synth/surge', '1.3.2', PLUGIN);
+  registry.packageVersionAdd(RegistryType.Plugins, 'surge-synth/surge', '1.3.1', PLUGIN);
+  registry.packageVersionRemove(RegistryType.Plugins, 'surge-synth/surge', '1.3.2');
   expect(registry.get()).toEqual(REGISTRY_WITH_PLUGIN);
 });
 
@@ -102,6 +102,8 @@ test('Registry add different package types', () => {
         '1.3.1': PLUGIN,
       },
     },
+  };
+  REGISTRY_WITH_PACKAGES.presets = {
     'jh/floating-rhodes': {
       slug: 'jh/floating-rhodes',
       version: '1.0.0',
@@ -109,6 +111,8 @@ test('Registry add different package types', () => {
         '1.0.0': PRESET,
       },
     },
+  };
+  REGISTRY_WITH_PACKAGES.projects = {
     'kmt/banwer': {
       slug: 'kmt/banwer',
       version: '1.0.1',
@@ -118,9 +122,9 @@ test('Registry add different package types', () => {
     },
   };
   const registry: Registry = new Registry();
-  registry.packageVersionAdd('surge-synth/surge', RegistryType.Plugins, '1.3.1', PLUGIN);
-  registry.packageVersionAdd('jh/floating-rhodes', RegistryType.Plugins, '1.0.0', PRESET);
-  registry.packageVersionAdd('kmt/banwer', RegistryType.Plugins, '1.0.1', PROJECT);
+  registry.packageVersionAdd(RegistryType.Plugins, 'surge-synth/surge', '1.3.1', PLUGIN);
+  registry.packageVersionAdd(RegistryType.Presets, 'jh/floating-rhodes', '1.0.0', PRESET);
+  registry.packageVersionAdd(RegistryType.Projects, 'kmt/banwer', '1.0.1', PROJECT);
   expect(registry.get()).toEqual(REGISTRY_WITH_PACKAGES);
 });
 
@@ -129,7 +133,7 @@ test('Get packages', () => {
   expect(registry.packages(RegistryType.Plugins)).toEqual(REGISTRY.plugins);
 });
 
-test('Get packages filtered', () => {
+test('Search packages', () => {
   const REGISTRY_PACKAGES: RegistryPackages = {
     'surge-synth/surge': {
       slug: 'surge-synth/surge',
@@ -140,16 +144,16 @@ test('Get packages filtered', () => {
     },
   };
   const registry: Registry = new Registry();
-  registry.packageVersionAdd('surge-synth/surge', RegistryType.Plugins, '1.3.1', PLUGIN);
-  expect(registry.packagesFilter(RegistryType.Plugins, 'name', 'Surge XT')).toEqual(REGISTRY_PACKAGES);
+  registry.packageVersionAdd(RegistryType.Plugins, 'surge-synth/surge', '1.3.1', PLUGIN);
+  expect(registry.packagesSearch(RegistryType.Plugins, 'name', 'Surge XT')).toEqual(REGISTRY_PACKAGES);
 });
 
 test('Get packages latest', () => {
   const registry: Registry = new Registry();
-  registry.packageVersionAdd('surge-synth/surge', RegistryType.Plugins, '1.3.1', PRESET);
-  registry.packageVersionAdd('surge-synth/surge', RegistryType.Plugins, '1.4.1', PLUGIN);
-  expect(registry.packageLatest('surge-synth/surge', RegistryType.Plugins)).toEqual(PLUGIN);
-  expect(registry.packageLatest('surge-synth/surge', RegistryType.Plugins, '1.4.1')).toEqual(PLUGIN);
+  registry.packageVersionAdd(RegistryType.Plugins, 'surge-synth/surge', '1.3.1', PRESET);
+  registry.packageVersionAdd(RegistryType.Plugins, 'surge-synth/surge', '1.4.1', PLUGIN);
+  expect(registry.packageLatest(RegistryType.Plugins, 'surge-synth/surge')).toEqual(PLUGIN);
+  expect(registry.packageLatest(RegistryType.Plugins, 'surge-synth/surge', '1.4.1')).toEqual(PLUGIN);
 });
 
 test('Get packages by type', () => {
@@ -164,9 +168,9 @@ test('Get packages by type', () => {
     },
   };
   const registry: Registry = new Registry();
-  registry.packageVersionAdd('surge-synth/surge', RegistryType.Plugins, '1.3.1', PLUGIN);
-  registry.packageVersionAdd('jh/floating-rhodes', RegistryType.Presets, '1.0.0', PRESET);
-  registry.packageVersionAdd('kmt/banwer', RegistryType.Projects, '1.0.1', PROJECT);
+  registry.packageVersionAdd(RegistryType.Plugins, 'surge-synth/surge', '1.3.1', PLUGIN);
+  registry.packageVersionAdd(RegistryType.Presets, 'jh/floating-rhodes', '1.0.0', PRESET);
+  registry.packageVersionAdd(RegistryType.Projects, 'kmt/banwer', '1.0.1', PROJECT);
   expect(registry.packages(RegistryType.Plugins)).toEqual(REGISTRY_WITH_PLUGIN.plugins);
 });
 
