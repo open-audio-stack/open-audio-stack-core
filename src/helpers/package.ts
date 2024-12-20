@@ -70,9 +70,10 @@ export function packageRecommendations(pkgVersion: PackageVersionType) {
     });
   }
 
-  // Architectures/systems
   const supportedArchitectures: any = {};
   const supportedSystems: any = {};
+  const supportedFileFormats: any = {};
+
   pkgVersion.files.forEach(file => {
     file.architectures.forEach(architecture => {
       supportedArchitectures[architecture] = true;
@@ -80,13 +81,30 @@ export function packageRecommendations(pkgVersion: PackageVersionType) {
     file.systems.forEach(system => {
       supportedSystems[system.type] = true;
     });
+    supportedFileFormats[file.format] = true;
     packageRecommendationsUrl(file, recs, 'url');
   });
+
+  // Architectures
   if (!supportedArchitectures.arm64) recs.push({ field: 'architectures', rec: 'should support arm64' });
   if (!supportedArchitectures.x64) recs.push({ field: 'architectures', rec: 'should support x64' });
+
+  // Systems
   if (!supportedSystems.linux) recs.push({ field: 'systems', rec: 'should support Linux' });
   if (!supportedSystems.mac) recs.push({ field: 'systems', rec: 'should support Mac' });
   if (!supportedSystems.win) recs.push({ field: 'systems', rec: 'should support Windows' });
+
+  // Formats
+  if (supportedFileFormats.deb)
+    recs.push({
+      field: 'format',
+      rec: 'should support all Linux distributions, consider using AppImage or Tarball instead',
+    });
+  if (supportedFileFormats.rpm)
+    recs.push({
+      field: 'format',
+      rec: 'should support all Linux distributions, consider using AppImage or Tarball instead',
+    });
 
   // Tags
   const pluginTags: string[] = pkgVersion.tags.map(tag => tag.toLowerCase());
