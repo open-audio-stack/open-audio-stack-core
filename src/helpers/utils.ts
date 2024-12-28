@@ -2,6 +2,32 @@ import chalk from 'chalk';
 import { PackageValidationRec } from '../types/Package.js';
 import { ZodIssue } from 'zod';
 
+let LOGGING_ENABLED: boolean = false;
+
+export function inputGetParts(input: string): string[] {
+  return input.split('@');
+}
+
+export function isTests() {
+  const jest: boolean = process.env.JEST_WORKER_ID !== undefined;
+  const vitest: boolean = process.env.VITEST_WORKER_ID !== undefined;
+  return jest || vitest;
+}
+
+export function log(...args: any) {
+  if (LOGGING_ENABLED) {
+    console.log(...args);
+  }
+}
+
+export function logEnable() {
+  LOGGING_ENABLED = true;
+}
+
+export function logDisable() {
+  LOGGING_ENABLED = false;
+}
+
 export function logReport(info: string, errors?: ZodIssue[], recs?: PackageValidationRec[]) {
   if (errors && errors.length > 0) {
     console.log(chalk.red(`X ${info}`));

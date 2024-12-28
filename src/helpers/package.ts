@@ -12,6 +12,18 @@ import { ProjectType } from '../types/ProjectType.js';
 import { SystemType } from '../types/SystemType.js';
 import { PackageValidationRec, PackageVersionType } from '../types/Package.js';
 
+// export function packageInstall(type: RegistryType, slug: string, version?: string) {
+//   const pkg: PackageVersionType = this.registry.packageLatest(type, slug, version);
+//   if (pkg.installed) return 'Package already installed';
+//   if (!isAdmin() && !isTests()) {
+//     let command: string = `--operation install`;
+//     if (slug) command += ` --slug ${slug}`;
+//     if (version) command += ` --ver ${version}`;
+//     await runCliAsAdmin(command);
+//     return await pluginGetLocal(plugin.id || '', plugin.version);
+//   }
+// }
+
 // This is a first version using zod library for validation.
 // If it works well, consider updating all types to infer from Zod objects.
 // This will remove duplicatation of code between types and validators.

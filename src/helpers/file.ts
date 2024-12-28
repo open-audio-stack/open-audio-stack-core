@@ -1,5 +1,5 @@
 import AdmZip from 'adm-zip';
-import { execSync } from 'child_process';
+import { execFileSync, execSync } from 'child_process';
 import {
   createReadStream,
   chmodSync,
@@ -30,6 +30,11 @@ export function dirApp() {
   if (process.platform === 'win32') return process.env.APPDATA || os.homedir();
   else if (process.platform === 'darwin') return path.join(os.homedir(), 'Library', 'Preferences');
   return path.join(os.homedir(), '.local', 'share');
+}
+
+export function dirContains(dir: string, child: string): boolean {
+  const relative = path.relative(dir, child);
+  return relative && !relative.startsWith('..') && !path.isAbsolute(relative) ? true : false;
 }
 
 export function dirCreate(dir: string) {
@@ -205,6 +210,19 @@ export function fileReadYaml(filePath: string) {
 
 export function fileSize(filePath: string) {
   return statSync(filePath).size;
+}
+
+export function isAdmin(): boolean {
+  if (process.platform === 'win32') {
+    try {
+      execFileSync('net', ['session'], { stdio: 'ignore' });
+      return true;
+    } catch {
+      return false;
+    }
+  } else {
+    return process && process.getuid ? process.getuid() === 0 : false;
+  }
 }
 
 export async function fileValidateMetadata(filePath: string, fileMetadata: PluginFile | PresetFile | ProjectFile) {

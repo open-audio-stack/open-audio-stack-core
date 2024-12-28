@@ -37,14 +37,25 @@ export class Manager {
     }
   }
 
-  search(field: keyof PackageVersion, value: string | number | object, type?: RegistryType) {
+  filter(query: string | number | object, field: keyof PackageVersion, type?: RegistryType) {
     if (type) {
-      return this.registry.packagesSearch(type, field, value);
+      return this.registry.packagesFilter(type, query, field);
     }
     return {
-      plugins: this.registry.packagesSearch(RegistryType.Plugins, field, value),
-      presets: this.registry.packagesSearch(RegistryType.Presets, field, value),
-      projects: this.registry.packagesSearch(RegistryType.Projects, field, value),
+      plugins: this.registry.packagesFilter(RegistryType.Plugins, query, field),
+      presets: this.registry.packagesFilter(RegistryType.Presets, query, field),
+      projects: this.registry.packagesFilter(RegistryType.Projects, query, field),
+    };
+  }
+
+  search(query: string, type?: RegistryType) {
+    if (type) {
+      return this.registry.packagesSearch(type, query);
+    }
+    return {
+      plugins: this.registry.packagesSearch(RegistryType.Plugins, query),
+      presets: this.registry.packagesSearch(RegistryType.Presets, query),
+      projects: this.registry.packagesSearch(RegistryType.Projects, query),
     };
   }
 
@@ -67,6 +78,17 @@ export class Manager {
       plugins: this.registry.packageLatest(RegistryType.Plugins, slug, version),
       presets: this.registry.packageLatest(RegistryType.Presets, slug, version),
       projects: this.registry.packageLatest(RegistryType.Projects, slug, version),
+    };
+  }
+
+  getByType(type?: RegistryType) {
+    if (type) {
+      return this.registry.packages(type);
+    }
+    return {
+      plugins: this.registry.packages(RegistryType.Plugins),
+      presets: this.registry.packages(RegistryType.Presets),
+      projects: this.registry.packages(RegistryType.Projects),
     };
   }
 }

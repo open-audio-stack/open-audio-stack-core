@@ -20,6 +20,7 @@ export interface PackageVersion {
   date: string;
   description: string;
   image: string;
+  installed?: boolean;
   license: License;
   name: string;
   tags: string[];

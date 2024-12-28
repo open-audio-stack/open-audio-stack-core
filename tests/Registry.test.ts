@@ -133,7 +133,7 @@ test('Get packages', () => {
   expect(registry.packages(RegistryType.Plugins)).toEqual(REGISTRY.plugins);
 });
 
-test('Search packages', () => {
+test('Filter packages', () => {
   const REGISTRY_PACKAGES: RegistryPackages = {
     'surge-synth/surge': {
       slug: 'surge-synth/surge',
@@ -145,7 +145,7 @@ test('Search packages', () => {
   };
   const registry: Registry = new Registry();
   registry.packageVersionAdd(RegistryType.Plugins, 'surge-synth/surge', '1.3.1', PLUGIN);
-  expect(registry.packagesSearch(RegistryType.Plugins, 'name', 'Surge XT')).toEqual(REGISTRY_PACKAGES);
+  expect(registry.packagesFilter(RegistryType.Plugins, 'Surge XT', 'name')).toEqual(REGISTRY_PACKAGES);
 });
 
 test('Get packages latest', () => {

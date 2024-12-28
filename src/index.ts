@@ -9,7 +9,10 @@ export * from './Manager.js';
 export * from './Registry.js';
 
 // Helpers
+export * from './helpers/admin.js';
 export * from './helpers/api.js';
+export * from './helpers/config-defaults.js';
+export * from './helpers/config.js';
 export * from './helpers/file.js';
 export * from './helpers/package.js';
 export * from './helpers/utils.js';

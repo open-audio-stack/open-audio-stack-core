@@ -42,10 +42,27 @@ export class Registry {
     return this.registry[type];
   }
 
-  packagesSearch(type: RegistryType, field: keyof PackageVersion, value: string | number | object) {
+  packagesFilter(type: RegistryType, query: string | number | object, field: keyof PackageVersion) {
     const results: RegistryPackages = {};
     Object.keys(this.registry[type]).forEach((slug: string) => {
-      if (this.packageLatest(type, slug)[field] === value) {
+      if (this.packageLatest(type, slug)[field] === query) {
+        results[slug] = this.registry[type][slug];
+      }
+    });
+    return results;
+  }
+
+  packagesSearch(type: RegistryType, query: string) {
+    const results: RegistryPackages = {};
+    const queryLower: string = query.toLowerCase();
+    Object.keys(this.registry[type]).forEach((slug: string) => {
+      const pkg: PackageVersion = this.packageLatest(type, slug);
+      const pkgTags: string[] = pkg.tags.map((str: string) => str.toLowerCase());
+      if (
+        pkg.name.toLowerCase().indexOf(queryLower) !== -1 ||
+        pkg.description.toLowerCase().indexOf(queryLower) !== -1 ||
+        pkgTags.includes(queryLower)
+      ) {
         results[slug] = this.registry[type][slug];
       }
     });
