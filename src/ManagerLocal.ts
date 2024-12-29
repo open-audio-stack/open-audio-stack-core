@@ -5,7 +5,7 @@ import { Manager } from './Manager.js';
 import { isTests, pathGetSlug, pathGetVersion } from './helpers/utils.js';
 import { ProjectInterface } from './types/Project.js';
 import { RegistryType } from './types/Registry.js';
-import { PackageVersionType } from './index-browser.js';
+import { PackageVersionType } from '../src/types/Package.js';
 
 export class ManagerLocal extends Manager {
   dir: string = '';
@@ -29,15 +29,15 @@ export class ManagerLocal extends Manager {
     });
   }
 
-  packageInstall(type: RegistryType, slug: string, version?: string) {
-    const pkg: PackageVersionType = this.registry.packageLatest(type, slug, version);
-    if (pkg.installed) return 'Package already installed';
-    if (!isAdmin() && !isTests()) {
-      let command: string = `--operation install`;
-      if (slug) command += ` --slug ${slug}`;
-      if (version) command += ` --ver ${version}`;
-      await runCliAsAdmin(command);
-      return await pluginGetLocal(plugin.id || '', plugin.version);
-    }
-  }
+  // packageInstall(type: RegistryType, slug: string, version?: string) {
+  //   const pkg: PackageVersionType = this.registry.packageLatest(type, slug, version);
+  //   if (pkg.installed) return 'Package already installed';
+  //   if (!isAdmin() && !isTests()) {
+  //     let command: string = `--operation install`;
+  //     if (slug) command += ` --slug ${slug}`;
+  //     if (version) command += ` --ver ${version}`;
+  //     await runCliAsAdmin(command);
+  //     return await pluginGetLocal(plugin.id || '', plugin.version);
+  //   }
+  // }
 }

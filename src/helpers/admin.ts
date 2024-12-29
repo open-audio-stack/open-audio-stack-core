@@ -2,7 +2,7 @@
 // npm run build && node ./build/helpers/admin.js --operation install --slug surge-synthesizer/surge
 // npm run build && node ./build/helpers/admin.js --operation uninstall --slug surge-synthesizer/surge
 
-import { packageInstall, packageUninstall } from './package.js';
+// import { packageInstall, packageUninstall } from './package.js';
 
 export interface Arguments {
   operation: string;
@@ -20,11 +20,11 @@ export function getArguments(): Arguments {
 
 export async function init() {
   const argv: Arguments = getArguments();
-  if (argv.operation === 'install') {
-    await packageInstall(argv.slug, argv.ver);
-  } else if (argv.operation === 'uninstall') {
-    await packageUninstall(argv.slug, argv.ver);
-  }
+  // if (argv.operation === 'install') {
+  //   await packageInstall(argv.slug, argv.ver);
+  // } else if (argv.operation === 'uninstall') {
+  //   await packageUninstall(argv.slug, argv.ver);
+  // }
 }
 
 init();

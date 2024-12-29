@@ -17,15 +17,17 @@ export function isTests() {
 export function log(...args: any) {
   if (LOGGING_ENABLED) {
     console.log(...args);
+    return true;
   }
+  return false;
 }
 
 export function logEnable() {
-  LOGGING_ENABLED = true;
+  return (LOGGING_ENABLED = true);
 }
 
 export function logDisable() {
-  LOGGING_ENABLED = false;
+  return (LOGGING_ENABLED = false);
 }
 
 export function logReport(info: string, errors?: ZodIssue[], recs?: PackageValidationRec[]) {
@@ -60,12 +62,12 @@ export function logRecommendations(recs: PackageValidationRec[]) {
   });
 }
 
-export function pathGetExt(path: string, sep: string = '.') {
-  return path.substring(path.lastIndexOf(sep) + 1);
-}
-
 export function pathGetDirectory(path: string, sep: string = '/') {
   return path.substring(0, path.lastIndexOf(sep));
+}
+
+export function pathGetExt(path: string, sep: string = '.') {
+  return path.substring(path.lastIndexOf(sep) + 1);
 }
 
 export function pathGetFilename(path: string, sep: string = '/') {

@@ -4,6 +4,7 @@ import { expect, test } from 'vitest';
 import {
   dirApp,
   dirCreate,
+  dirContains,
   dirDelete,
   dirEmpty,
   dirExists,
@@ -30,10 +31,13 @@ import {
   // fileReadString,
   // fileReadYaml,
   // fileSize,
+  isAdmin,
+  getPlatform,
 } from '../../src/helpers/file.js';
 import { PackageInterface } from '../../src/types/Package.js';
 import { apiText } from '../../src/helpers/api.js';
 
+const DIR_APP_DATA: string = path.join(dirApp(), 'open-audio-stack');
 const DIR_PATH: string = path.join('test', 'new-directory');
 const DIR_PATH_GLOB: string = path.join('test', 'new-directory', '**', '*.txt');
 const DIR_RENAME: string = path.join('test', 'new-directory-renamed');
@@ -47,6 +51,11 @@ test('Get directory app', () => {
   } else {
     expect(dirApp()).toEqual(`${os.homedir()}/.local/share`);
   }
+});
+
+test('Directory contains', () => {
+  expect(dirContains(dirApp(), DIR_APP_DATA)).toEqual(true);
+  expect(dirContains(dirApp(), DIR_PATH)).toEqual(false);
 });
 
 test('Create new directory', () => {
@@ -80,7 +89,7 @@ test('Directory open', () => {
   expect(dirOpen(DIR_PATH)).toEqual(new Buffer(''));
 });
 
-test('Get directory package', () => {
+test('Directory package', () => {
   const PACKAGE: PackageInterface = {
     slug: 'surge-synth/surge',
     version: '1.3.1',
@@ -93,7 +102,7 @@ test('Get directory package', () => {
   }
 });
 
-test('Get directory plugins', () => {
+test('Directory plugins', () => {
   if (process.platform === 'win32') {
     expect(dirPlugins()).toEqual('Program Files\\Common Files');
   } else if (process.platform === 'darwin') {
@@ -103,7 +112,7 @@ test('Get directory plugins', () => {
   }
 });
 
-test('Get directory presets', () => {
+test('Directory presets', () => {
   if (process.platform === 'win32') {
     expect(dirPresets()).toEqual(`${os.homedir()}\\Documents\\VST3 Presets`);
   } else if (process.platform === 'darwin') {
@@ -113,7 +122,7 @@ test('Get directory presets', () => {
   }
 });
 
-test('Get directory projects', () => {
+test('Directory projects', () => {
   if (process.platform === 'win32') {
     expect(dirProjects()).toEqual(`${os.homedir()}\\Documents\\Audio`);
   } else if (process.platform === 'darwin') {
@@ -156,4 +165,18 @@ test('File hash', async () => {
   );
   fileCreate('./test/fileHash', fileData);
   expect(await fileHash('./test/fileHash')).toEqual('a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499');
+});
+
+test('Get platform', () => {
+  let currentPlatform: string = 'linux';
+  if (process.platform === 'win32') {
+    currentPlatform = 'win';
+  } else if (process.platform === 'darwin') {
+    currentPlatform = 'mac';
+  }
+  expect(getPlatform()).toEqual(currentPlatform);
+});
+
+test('Is Admin', () => {
+  expect(isAdmin()).toEqual(process.env.CI && process.platform === 'win32' ? true : false);
 });

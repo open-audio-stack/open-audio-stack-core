@@ -25,6 +25,7 @@ import { PluginFile } from '../types/Plugin.js';
 import { PresetFile } from '../types/Preset.js';
 import { ProjectFile } from '../types/Project.js';
 import { ZodIssue } from 'zod';
+import { SystemType } from '../types/SystemType.js';
 
 export function dirApp() {
   if (process.platform === 'win32') return process.env.APPDATA || os.homedir();
@@ -247,6 +248,12 @@ export async function fileValidateMetadata(filePath: string, fileMetadata: Plugi
     });
   }
   return errors;
+}
+
+export function getPlatform() {
+  if (process.platform === 'win32') return SystemType.Windows;
+  else if (process.platform === 'darwin') return SystemType.Macintosh;
+  return SystemType.Linux;
 }
 
 export function zipCreate(filesPath: string, zipPath: string): void {

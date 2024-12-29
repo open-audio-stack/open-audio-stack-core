@@ -1,7 +1,7 @@
 import { Config } from './Config.js';
 import { Registry } from './Registry.js';
 import { apiJson } from './helpers/api.js';
-import { PackageVersion } from './index-browser.js';
+import { PackageVersion } from '../src/types/Package.js';
 import { ConfigRegistry } from './types/Config.js';
 import { RegistryInterface, RegistryType } from './types/Registry.js';
 
