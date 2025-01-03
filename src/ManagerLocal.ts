@@ -8,13 +8,14 @@ import { RegistryInterface, RegistryType } from './types/Registry.js';
 import { PackageVersionType } from '../src/types/Package.js';
 import { ConfigLocal } from './ConfigLocal.js';
 import { ConfigInterface } from './types/Config.js';
+import path from 'path';
 
 export class ManagerLocal extends Manager {
   override config: ConfigLocal;
 
   constructor(config: ConfigInterface, registry?: RegistryInterface) {
     super(config, registry);
-    const configPath: string = `${config.appDir}/config.json`;
+    const configPath: string = path.join(config.appDir || '', 'config.json');
     this.config = new ConfigLocal(configPath, config);
     this.scanLocal(RegistryType.Plugins);
     this.scanLocal(RegistryType.Presets);
