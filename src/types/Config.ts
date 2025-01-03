@@ -4,7 +4,7 @@ export interface ConfigInterface {
   presetsDir?: string;
   projectsDir?: string;
   registries?: ConfigRegistry[];
-  version: string;
+  version?: string;
 }
 
 export interface ConfigRegistry {

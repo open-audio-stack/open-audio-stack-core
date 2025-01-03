@@ -17,7 +17,7 @@ import stream from 'stream/promises';
 import { globSync } from 'glob';
 import { moveSync } from 'fs-extra/esm';
 import os from 'os';
-import path from 'path';
+import path, { dirname } from 'path';
 import yaml from 'js-yaml';
 import { ZodIssueCode, ZodParsedType } from 'zod';
 import { PackageInterface } from '../types/Package.js';
@@ -26,6 +26,9 @@ import { PresetFile } from '../types/Preset.js';
 import { ProjectFile } from '../types/Project.js';
 import { ZodIssue } from 'zod';
 import { SystemType } from '../types/SystemType.js';
+import { fileURLToPath } from 'url';
+import sudoPrompt from '@vscode/sudo-prompt';
+import { log } from './utils.js';
 
 export function dirApp() {
   if (process.platform === 'win32') return process.env.APPDATA || os.homedir();
@@ -254,6 +257,31 @@ export function getPlatform() {
   if (process.platform === 'win32') return SystemType.Windows;
   else if (process.platform === 'darwin') return SystemType.Macintosh;
   return SystemType.Linux;
+}
+
+export function runCliAsAdmin(args: string): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const filename: string = fileURLToPath(import.meta.url).replace('src/', 'build/');
+    const dirPathClean: string = dirname(filename).replace('app.asar', 'app.asar.unpacked');
+    log(`node "${dirPathClean}${path.sep}helpers${path.sep}admin.js" ${args}`);
+    sudoPrompt.exec(
+      `node "${dirPathClean}${path.sep}helpers${path.sep}admin.js" ${args}`,
+      { name: 'Open Audio Stack' },
+      (error, stdout, stderr) => {
+        if (stdout) {
+          log('runCliAsAdmin', stdout);
+        }
+        if (stderr) {
+          log('runCliAsAdmin', stderr);
+        }
+        if (error) {
+          reject(error);
+        } else {
+          resolve(stdout?.toString() || '');
+        }
+      },
+    );
+  });
 }
 
 export function zipCreate(filesPath: string, zipPath: string): void {

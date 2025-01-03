@@ -1,4 +1,4 @@
-import { dirRead, fileReadJson } from './helpers/file.js';
+import { dirRead, fileReadJson, isAdmin, runCliAsAdmin } from './helpers/file.js';
 import { PluginInterface } from '../src/types/Plugin.js';
 import { PresetInterface } from '../src/types/Preset.js';
 import { Manager } from './Manager.js';
@@ -33,15 +33,21 @@ export class ManagerLocal extends Manager {
     });
   }
 
-  // async packageInstall(type: RegistryType, slug: string, version?: string) {
-  //   const pkg: PackageVersionType = this.registry.packageLatest(type, slug, version);
-  //   if (pkg.installed) return 'Package already installed';
-  //   if (!isAdmin() && !isTests()) {
-  //     let command: string = `--operation install`;
-  //     if (slug) command += ` --slug ${slug}`;
-  //     if (version) command += ` --ver ${version}`;
-  //     await runCliAsAdmin(command);
-  //     return await this.getBySlug(slug, type, version);
-  //   }
-  // }
+  async packageInstall(type: RegistryType, slug: string, version?: string) {
+    const pkg: PackageVersionType = this.registry.packageLatest(type, slug, version);
+    if (pkg.installed) return 'Package already installed';
+    if (!isAdmin() && !isTests()) {
+      let command: string = `--operation install`;
+      if (type) command += ` --type ${type}`;
+      if (slug) command += ` --slug ${slug}`;
+      if (version) command += ` --ver ${version}`;
+      await runCliAsAdmin(command);
+      return await this.getBySlug(slug, type, version);
+    }
+  }
+
+  async packageUninstall(type: RegistryType, slug: string, version?: string) {
+    // TODO
+    console.log(type, slug, version);
+  }
 }
