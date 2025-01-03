@@ -3,13 +3,26 @@
 ![Test](https://github.com/open-audio-stack/open-audio-stack-core/workflows/Test/badge.svg)
 ![Release](https://github.com/open-audio-stack/open-audio-stack-core/workflows/Release/badge.svg)
 
-Common methods package shared across Open Audio Stack compatible registries, command-line tools, apps and websites for handling installing DAW VST plugin dependencies.
+Common package shared across Open Audio Stack compatible registries, command-line tools, apps and websites for handling installing DAW VST plugin dependencies.
 
 ## Features
 
-- Config - Get types, formats, values, paths and urls.
-- FileSystem - Perform operations on directories and files.
-- Registry - Create an audio registry with packages and files.
+High-level classes enable use without writing business-logic:
+
+- Config - Set and get common configuration types, formats, values, paths and urls.
+- ConfigLocal - All the Config functionality including ability to load and save configuration to a json file.
+- Manager - Search, filter and get packages from a registry.
+- ManagerLocal - All the Manager functionality, including ability to install packages locally and scan directories.
+- Registry - Create an audio package registry with packages and files.
+
+Low-level methods/utilities for more custom/advanced implementations:
+
+- api - get different types of data using web requests
+- config - default config options
+- file - directory and file helper functions
+- package - validation and recommendation functions
+- registry - default registry config
+- utils - various other utilities
 
 ## Installation
 
