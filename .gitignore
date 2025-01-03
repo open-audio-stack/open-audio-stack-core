@@ -28,4 +28,4 @@ out/
 
 # Misc
 .DS_Store
-test/
+test/*

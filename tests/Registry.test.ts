@@ -6,10 +6,13 @@ import { REGISTRY } from './data/Registry.js';
 import { PLUGIN } from './data/Plugin.js';
 import { PRESET } from './data/Preset.js';
 import { PROJECT } from './data/Project.js';
+import { registryDefaults } from '../src/helpers/registry.js';
 
 test('Create new Registry', () => {
-  const registry: Registry = new Registry();
+  const registry: Registry = new Registry(registryDefaults());
+  const registry2: Registry = new Registry();
   expect(registry.get()).toEqual(REGISTRY);
+  expect(registry2.get()).toEqual(REGISTRY);
 });
 
 test('Registry add a package', () => {

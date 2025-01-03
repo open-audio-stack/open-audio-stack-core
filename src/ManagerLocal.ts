@@ -1,27 +1,32 @@
-import { dirRead, fileReadJson, isAdmin } from './helpers/file.js';
+import { dirRead, fileReadJson, isAdmin, runCliAsAdmin } from './helpers/file.js';
 import { PluginInterface } from '../src/types/Plugin.js';
 import { PresetInterface } from '../src/types/Preset.js';
 import { Manager } from './Manager.js';
 import { isTests, pathGetSlug, pathGetVersion } from './helpers/utils.js';
 import { ProjectInterface } from './types/Project.js';
-import { RegistryType } from './types/Registry.js';
-import { PackageVersionType } from './index-browser.js';
+import { RegistryInterface, RegistryType } from './types/Registry.js';
+import { PackageVersionType } from '../src/types/Package.js';
+import { ConfigLocal } from './ConfigLocal.js';
+import { ConfigInterface } from './types/Config.js';
+import path from 'path';
 
 export class ManagerLocal extends Manager {
-  dir: string = '';
+  override config: ConfigLocal;
 
-  constructor(dir: string) {
-    super();
-    this.dir = dir;
+  constructor(config: ConfigInterface, registry?: RegistryInterface) {
+    super(config, registry);
+    const configPath: string = path.join(config.appDir || '', 'config.json');
+    this.config = new ConfigLocal(configPath, config);
     this.scanLocal(RegistryType.Plugins);
     this.scanLocal(RegistryType.Presets);
     this.scanLocal(RegistryType.Projects);
   }
 
   scanLocal(type: RegistryType) {
-    const filePaths: string[] = dirRead(`${this.dir}/${type}/**/*.json`);
+    const rootDir: string = this.config.get(`${type}Dir`) as string;
+    const filePaths: string[] = dirRead(`${rootDir}/**/*.json`);
     filePaths.forEach((filePath: string) => {
-      const subPath: string = filePath.replace(`${this.dir}/${type}/`, '');
+      const subPath: string = filePath.replace(`${rootDir}/`, '');
       const pkgSlug: string = pathGetSlug(subPath);
       const pkgVersion: string = pathGetVersion(subPath);
       const pkgFile = fileReadJson(filePath) as PluginInterface | PresetInterface | ProjectInterface;
@@ -29,15 +34,21 @@ export class ManagerLocal extends Manager {
     });
   }
 
-  packageInstall(type: RegistryType, slug: string, version?: string) {
+  async packageInstall(type: RegistryType, slug: string, version?: string) {
     const pkg: PackageVersionType = this.registry.packageLatest(type, slug, version);
     if (pkg.installed) return 'Package already installed';
     if (!isAdmin() && !isTests()) {
       let command: string = `--operation install`;
+      if (type) command += ` --type ${type}`;
       if (slug) command += ` --slug ${slug}`;
       if (version) command += ` --ver ${version}`;
       await runCliAsAdmin(command);
-      return await pluginGetLocal(plugin.id || '', plugin.version);
+      return await this.getBySlug(slug, type, version);
     }
+  }
+
+  async packageUninstall(type: RegistryType, slug: string, version?: string) {
+    // TODO
+    console.log(type, slug, version);
   }
 }

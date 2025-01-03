@@ -1,4 +1,5 @@
 import { architectures, Architecture } from './types/Architecture.js';
+import { configDefaults } from './helpers/config.js';
 import { ConfigInterface } from './types/Config.js';
 import { FileFormat, fileFormats } from './types/FileFormat.js';
 import { FileType, fileTypes } from './types/FileType.js';
@@ -15,27 +16,19 @@ export class Config {
   config: ConfigInterface;
 
   constructor(config?: ConfigInterface) {
-    this.config = Object.assign(
-      {
-        registries: [
-          {
-            name: 'Open Audio Registry',
-            url: 'https://open-audio-stack.github.io/open-audio-stack-registry',
-          },
-        ],
-      },
-      config,
-    );
+    this.config = { ...configDefaults(), ...config };
   }
 
-  get(key?: keyof ConfigInterface) {
-    if (key) return this.config[key];
+  get(key: keyof ConfigInterface) {
+    return this.config[key];
+  }
+
+  getAll() {
     return this.config;
   }
 
   set(key: keyof ConfigInterface, val: any) {
     this.config[key] = val;
-    return this.get(key);
   }
 
   // Architectures.

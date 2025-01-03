@@ -1,19 +1,13 @@
 import * as semver from 'semver';
 import { PackageInterface, PackageVersion, PackageVersions, PackageVersionType } from './types/Package.js';
 import { RegistryInterface, RegistryPackages, RegistryType } from './types/Registry.js';
+import { registryDefaults } from './helpers/registry.js';
 
 export class Registry {
   registry: RegistryInterface;
 
-  constructor() {
-    this.registry = {
-      name: 'Open Audio Registry',
-      plugins: {},
-      presets: {},
-      projects: {},
-      url: 'https://open-audio-stack.github.io/open-audio-stack-registry',
-      version: '1.0.0',
-    };
+  constructor(registry?: RegistryInterface) {
+    this.registry = { ...registryDefaults(), ...registry };
   }
 
   packageAdd(type: RegistryType, slug: string, pkg?: PackageInterface) {

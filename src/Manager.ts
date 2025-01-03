@@ -1,17 +1,17 @@
 import { Config } from './Config.js';
 import { Registry } from './Registry.js';
 import { apiJson } from './helpers/api.js';
-import { PackageVersion } from './index-browser.js';
-import { ConfigRegistry } from './types/Config.js';
+import { PackageVersion } from '../src/types/Package.js';
+import { ConfigInterface, ConfigRegistry } from './types/Config.js';
 import { RegistryInterface, RegistryType } from './types/Registry.js';
 
 export class Manager {
   registry: Registry;
   config: Config;
 
-  constructor() {
-    this.config = new Config();
-    this.registry = new Registry();
+  constructor(config?: ConfigInterface, registry?: RegistryInterface) {
+    this.config = new Config(config);
+    this.registry = new Registry(registry);
     this.scan();
   }
 

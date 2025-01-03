@@ -1,29 +1,35 @@
 // Run when Electron needs elevated privileges
-// npm run build && node ./build/helpers/admin.js --operation install --slug surge-synthesizer/surge
-// npm run build && node ./build/helpers/admin.js --operation uninstall --slug surge-synthesizer/surge
+// npm run build && node ./build/helpers/admin.js --operation install --type plugins --id surge-synthesizer/surge
+// npm run build && node ./build/helpers/admin.js --operation uninstall --type plugins --id surge-synthesizer/surge
 
-import { packageInstall, packageUninstall } from './package.js';
+import { RegistryType } from '../types/Registry.js';
+import { ManagerLocal } from '../ManagerLocal.js';
+import { dirApp } from './file.js';
+
+const manager: ManagerLocal = new ManagerLocal({ appDir: dirApp() });
 
 export interface Arguments {
   operation: string;
-  slug: string;
+  type: RegistryType;
+  id: string;
   ver: string;
 }
 
 export function getArguments(): Arguments {
   return {
     operation: process.argv[3],
-    slug: process.argv[5],
-    ver: process.argv[7],
+    type: process.argv[5] as RegistryType,
+    id: process.argv[7],
+    ver: process.argv[9],
   };
 }
 
 export async function init() {
   const argv: Arguments = getArguments();
   if (argv.operation === 'install') {
-    await packageInstall(argv.slug, argv.ver);
+    await manager.packageInstall(argv.type, argv.id, argv.ver);
   } else if (argv.operation === 'uninstall') {
-    await packageUninstall(argv.slug, argv.ver);
+    await manager.packageUninstall(argv.type, argv.id, argv.ver);
   }
 }
 

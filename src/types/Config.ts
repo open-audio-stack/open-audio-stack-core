@@ -1,10 +1,10 @@
 export interface ConfigInterface {
   appDir?: string;
-  pluginDir?: string;
-  presetDir?: string;
-  projectDir?: string;
+  pluginsDir?: string;
+  presetsDir?: string;
+  projectsDir?: string;
   registries?: ConfigRegistry[];
-  version: string;
+  version?: string;
 }
 
 export interface ConfigRegistry {
