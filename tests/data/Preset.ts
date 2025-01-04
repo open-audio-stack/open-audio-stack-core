@@ -10,7 +10,7 @@ import { SystemType } from '../../src/types/SystemType';
 export const PRESET: PresetInterface = {
   audio: 'https://open-audio-stack.github.io/open-audio-stack-registry/presets/jh/floating-rhodes/floating-rhodes.flac',
   author: 'JH',
-  changes: '- First version',
+  changes: '- First version\n',
   date: '2024-03-02T00:00:00.000Z',
   description: 'Floating Rhodes sounds.',
   files: [
@@ -18,7 +18,7 @@ export const PRESET: PresetInterface = {
       architectures: [Architecture.Arm32, Architecture.Arm64, Architecture.X32, Architecture.X64],
       contains: [PresetFormat.VSTPreset],
       format: FileFormat.Zip,
-      sha256: '111e43b5e603a3849e390961381880f509c835bd',
+      sha256: 'ddc328295ca5a25303a42c45b184f99b7e923bbcbb92b8061e33191f79f19ad9',
       systems: [{ type: SystemType.Linux }, { type: SystemType.Macintosh }, { type: SystemType.Windows }],
       size: 3773,
       type: FileType.Archive,
