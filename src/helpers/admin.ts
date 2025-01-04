@@ -2,11 +2,14 @@
 // npm run build && node ./build/helpers/admin.js --operation install --type plugins --id surge-synthesizer/surge
 // npm run build && node ./build/helpers/admin.js --operation uninstall --type plugins --id surge-synthesizer/surge
 
+import path from 'path';
 import { RegistryType } from '../types/Registry.js';
 import { ManagerLocal } from '../ManagerLocal.js';
 import { dirApp } from './file.js';
 
-const manager: ManagerLocal = new ManagerLocal({ appDir: dirApp() });
+const manager: ManagerLocal = new ManagerLocal({
+  appDir: path.join(dirApp(), 'open-audio-stack'),
+});
 
 export interface Arguments {
   operation: string;
@@ -15,7 +18,7 @@ export interface Arguments {
   ver: string;
 }
 
-export function getArguments(): Arguments {
+export function adminArguments(): Arguments {
   return {
     operation: process.argv[3],
     type: process.argv[5] as RegistryType,
@@ -24,13 +27,15 @@ export function getArguments(): Arguments {
   };
 }
 
-export async function init() {
-  const argv: Arguments = getArguments();
+export async function adminInit() {
+  const argv: Arguments = adminArguments();
   if (argv.operation === 'install') {
     await manager.packageInstall(argv.type, argv.id, argv.ver);
   } else if (argv.operation === 'uninstall') {
     await manager.packageUninstall(argv.type, argv.id, argv.ver);
+  } else {
+    console.log('Missing --operation argument');
   }
 }
 
-init();
+adminInit();

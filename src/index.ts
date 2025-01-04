@@ -5,7 +5,9 @@
 
 // Classes
 export * from './Config.js';
+export * from './ConfigLocal.js';
 export * from './Manager.js';
+export * from './ManagerLocal.js';
 export * from './Registry.js';
 
 // Helpers
@@ -13,6 +15,7 @@ export * from './helpers/api.js';
 export * from './helpers/config.js';
 export * from './helpers/file.js';
 export * from './helpers/package.js';
+export * from './helpers/registry.js';
 export * from './helpers/utils.js';
 
 // Types

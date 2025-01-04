@@ -36,14 +36,12 @@ export class ManagerLocal extends Manager {
 
   async packageInstall(type: RegistryType, slug: string, version?: string) {
     const pkg: PackageVersionType = this.registry.packageLatest(type, slug, version);
-    if (pkg.installed) return 'Package already installed';
+    if (pkg.installed) return pkg;
     if (!isAdmin() && !isTests()) {
-      let command: string = `--operation install`;
-      if (type) command += ` --type ${type}`;
-      if (slug) command += ` --slug ${slug}`;
+      let command: string = `--operation install --type ${type} --slug ${slug}`;
       if (version) command += ` --ver ${version}`;
       await runCliAsAdmin(command);
-      return await this.getBySlug(slug, type, version);
+      return this.get(slug, type, version);
     }
   }
 

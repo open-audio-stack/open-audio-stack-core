@@ -151,6 +151,21 @@ test('Filter packages', () => {
   expect(registry.packagesFilter(RegistryType.Plugins, 'Surge XT', 'name')).toEqual(REGISTRY_PACKAGES);
 });
 
+test('Search packages', () => {
+  const REGISTRY_PACKAGES: RegistryPackages = {
+    'surge-synth/surge': {
+      slug: 'surge-synth/surge',
+      version: '1.3.1',
+      versions: {
+        '1.3.1': PLUGIN,
+      },
+    },
+  };
+  const registry: Registry = new Registry();
+  registry.packageVersionAdd(RegistryType.Plugins, 'surge-synth/surge', '1.3.1', PLUGIN);
+  expect(registry.packagesSearch(RegistryType.Plugins, 'XT')).toEqual(REGISTRY_PACKAGES);
+});
+
 test('Get packages latest', () => {
   const registry: Registry = new Registry();
   registry.packageVersionAdd(RegistryType.Plugins, 'surge-synth/surge', '1.3.1', PRESET);

@@ -12,14 +12,13 @@ export class Manager {
   constructor(config?: ConfigInterface, registry?: RegistryInterface) {
     this.config = new Config(config);
     this.registry = new Registry(registry);
-    this.scan();
   }
 
   addPackages(json: RegistryInterface, type: RegistryType) {
     for (const slug in json[type]) {
-      this.registry.packageAdd(type, slug, json.plugins[slug]);
+      this.registry.packageAdd(type, slug, json[type][slug]);
     }
-    console.log(`${type}: ${this.registry.packages(type).length}`);
+    console.log(`${type}: ${Object.keys(this.registry.packages(type)).length}`);
   }
 
   async scan(type?: RegistryType) {
@@ -59,7 +58,18 @@ export class Manager {
     };
   }
 
-  getByOrg(org: string, type?: RegistryType) {
+  list(type?: RegistryType) {
+    if (type) {
+      return this.registry.packages(type);
+    }
+    return {
+      plugins: this.registry.packages(RegistryType.Plugins),
+      presets: this.registry.packages(RegistryType.Presets),
+      projects: this.registry.packages(RegistryType.Projects),
+    };
+  }
+
+  listOrg(org: string, type?: RegistryType) {
     if (type) {
       return this.registry.packagesOrg(type, org);
     }
@@ -70,7 +80,7 @@ export class Manager {
     };
   }
 
-  getBySlug(slug: string, type?: RegistryType, version?: string) {
+  get(slug: string, type?: RegistryType, version?: string) {
     if (type) {
       return this.registry.packageLatest(type, slug, version);
     }
@@ -78,17 +88,6 @@ export class Manager {
       plugins: this.registry.packageLatest(RegistryType.Plugins, slug, version),
       presets: this.registry.packageLatest(RegistryType.Presets, slug, version),
       projects: this.registry.packageLatest(RegistryType.Projects, slug, version),
-    };
-  }
-
-  getByType(type?: RegistryType) {
-    if (type) {
-      return this.registry.packages(type);
-    }
-    return {
-      plugins: this.registry.packages(RegistryType.Plugins),
-      presets: this.registry.packages(RegistryType.Presets),
-      projects: this.registry.packages(RegistryType.Projects),
     };
   }
 }
