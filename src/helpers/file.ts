@@ -28,11 +28,11 @@ import { ZodIssue } from 'zod';
 import { SystemType } from '../types/SystemType.js';
 import { fileURLToPath } from 'url';
 import sudoPrompt from '@vscode/sudo-prompt';
-import { log } from './utils.js';
+import { getSystem, log } from './utils.js';
 
 export function dirApp() {
-  if (process.platform === 'win32') return process.env.APPDATA || os.homedir();
-  else if (process.platform === 'darwin') return path.join(os.homedir(), 'Library', 'Preferences');
+  if (getSystem() === SystemType.Windows) return process.env.APPDATA || os.homedir();
+  else if (getSystem() === SystemType.Macintosh) return path.join(os.homedir(), 'Library', 'Preferences');
   return path.join(os.homedir(), '.local', 'share');
 }
 
@@ -83,8 +83,8 @@ export function dirMove(dir: string, dirNew: string): void | boolean {
 export function dirOpen(dir: string) {
   let command: string = '';
   if (process.env.CI) return new Buffer('');
-  if (process.platform === 'win32') command = 'start ""';
-  else if (process.platform === 'darwin') command = 'open';
+  if (getSystem() === SystemType.Windows) command = 'start ""';
+  else if (getSystem() === SystemType.Macintosh) command = 'open';
   else command = 'xdg-open';
   console.log('⎋', `${command} "${dir}"`);
   return execSync(`${command} "${dir}"`);
@@ -97,22 +97,22 @@ export function dirPackage(pkg: PackageInterface) {
 }
 
 export function dirPlugins() {
-  if (process.platform === 'win32') return path.join('Program Files', 'Common Files');
-  else if (process.platform === 'darwin') return path.join(os.homedir(), 'Library', 'Audio', 'Plug-ins');
+  if (getSystem() === SystemType.Windows) return path.join('Program Files', 'Common Files');
+  else if (getSystem() === SystemType.Macintosh) return path.join(os.homedir(), 'Library', 'Audio', 'Plug-ins');
   return path.join('usr', 'local', 'lib');
 }
 
 export function dirPresets() {
-  if (process.platform === 'win32') return path.join(os.homedir(), 'Documents', 'VST3 Presets');
-  else if (process.platform === 'darwin') return path.join(os.homedir(), 'Library', 'Audio', 'Presets');
+  if (getSystem() === SystemType.Windows) return path.join(os.homedir(), 'Documents', 'VST3 Presets');
+  else if (getSystem() === SystemType.Macintosh) return path.join(os.homedir(), 'Library', 'Audio', 'Presets');
   return path.join(os.homedir(), '.vst3', 'presets');
 }
 
 export function dirProjects() {
   // Windows throws permissions errors if you scan hidden folders
   // Therefore set to a more specific path than Documents
-  if (process.platform === 'win32') return path.join(os.homedir(), 'Documents', 'Audio');
-  else if (process.platform === 'darwin') return path.join(os.homedir(), 'Documents', 'Audio');
+  if (getSystem() === SystemType.Windows) return path.join(os.homedir(), 'Documents', 'Audio');
+  else if (getSystem() === SystemType.Macintosh) return path.join(os.homedir(), 'Documents', 'Audio');
   return path.join(os.homedir(), 'Documents', 'Audio');
 }
 
@@ -120,7 +120,7 @@ export function dirRead(dir: string, options?: any): string[] {
   console.log('⌕', dir);
   // Glob now expects forward slashes on Windows
   // Convert backslashes from path.join() to forwardslashes
-  if (process.platform === 'win32') {
+  if (getSystem() === SystemType.Windows) {
     dir = dir.replace(/\\/g, '/');
   }
   return globSync(dir, options);
@@ -182,8 +182,8 @@ export function fileMove(filePath: string, newPath: string): void | boolean {
 export function fileOpen(filePath: string) {
   let command: string = '';
   if (process.env.CI) return new Buffer('');
-  if (process.platform === 'win32') command = 'open';
-  else if (process.platform === 'darwin') command = 'start ""';
+  if (getSystem() === SystemType.Windows) command = 'open';
+  else if (getSystem() === SystemType.Macintosh) command = 'start ""';
   else command = 'xdg-open';
   console.log('⎋', `${command} "${filePath}"`);
   return execSync(`${command} "${filePath}"`);
@@ -254,8 +254,8 @@ export async function fileValidateMetadata(filePath: string, fileMetadata: Plugi
 }
 
 export function getPlatform() {
-  if (process.platform === 'win32') return SystemType.Windows;
-  else if (process.platform === 'darwin') return SystemType.Macintosh;
+  if (getSystem() === SystemType.Windows) return SystemType.Windows;
+  else if (getSystem() === SystemType.Macintosh) return SystemType.Macintosh;
   return SystemType.Linux;
 }
 
