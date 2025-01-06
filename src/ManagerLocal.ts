@@ -1,14 +1,28 @@
-import { dirRead, fileReadJson, isAdmin, runCliAsAdmin } from './helpers/file.js';
+import {
+  dirCreate,
+  dirRead,
+  fileCreate,
+  fileHash,
+  fileOpen,
+  fileReadJson,
+  isAdmin,
+  runCliAsAdmin,
+  zipExtract,
+} from './helpers/file.js';
 import { PluginInterface } from '../src/types/Plugin.js';
 import { PresetInterface } from '../src/types/Preset.js';
 import { Manager } from './Manager.js';
-import { isTests, pathGetSlug, pathGetVersion } from './helpers/utils.js';
+import { getSystem, isTests, pathGetSlug, pathGetVersion } from './helpers/utils.js';
 import { ProjectInterface } from './types/Project.js';
 import { RegistryInterface, RegistryType } from './types/Registry.js';
 import { PackageVersionType } from '../src/types/Package.js';
 import { ConfigLocal } from './ConfigLocal.js';
 import { ConfigInterface } from './types/Config.js';
 import path from 'path';
+import { apiBuffer } from './helpers/api.js';
+import { getArchitecture } from './helpers/utils.js';
+import { FileInterface } from './types/File.js';
+import { FileType } from './index-browser.js';
 
 export class ManagerLocal extends Manager {
   override config: ConfigLocal;
@@ -24,7 +38,7 @@ export class ManagerLocal extends Manager {
 
   scanLocal(type: RegistryType) {
     const rootDir: string = this.config.get(`${type}Dir`) as string;
-    const filePaths: string[] = dirRead(`${rootDir}/**/*.json`);
+    const filePaths: string[] = dirRead(`${rootDir}/**/index.json`);
     filePaths.forEach((filePath: string) => {
       const subPath: string = filePath.replace(`${rootDir}/`, '');
       const pkgSlug: string = pathGetSlug(subPath);
@@ -35,14 +49,71 @@ export class ManagerLocal extends Manager {
   }
 
   async packageInstall(type: RegistryType, slug: string, version?: string) {
+    // Get package information from registry.
     const pkg: PackageVersionType = this.registry.packageLatest(type, slug, version);
     if (pkg.installed) return pkg;
+
+    // Elevate permissions if not running as admin.
     if (!isAdmin() && !isTests()) {
       let command: string = `--operation install --type ${type} --slug ${slug}`;
       if (version) command += ` --ver ${version}`;
       await runCliAsAdmin(command);
       return this.get(slug, type, version);
     }
+
+    // Install the extracted files based on the package type.
+    if (type === RegistryType.Plugins) await this.pluginInstall(slug, pkg);
+    if (type === RegistryType.Presets) await this.presetInstall();
+    if (type === RegistryType.Projects) await this.projectInstall();
+  }
+
+  async pluginInstall(slug: string, pkg: PackageVersionType) {
+    // Create temporary directory to store downloaded files.
+    const dirTemp: string = path.join(this.config.get('appDir') as string, 'downloads', RegistryType.Plugins, slug);
+    dirCreate(dirTemp);
+
+    // Filter for compatible files and download.
+    const files: FileInterface[] = this.getCompatibleFiles(pkg);
+    files.forEach(async (file: FileInterface) => {
+      // Download file to temporary directory.
+      const fileBuffer: ArrayBuffer = await apiBuffer(file.url);
+      const filePath: string = path.join(dirTemp, path.basename(file.url));
+      fileCreate(filePath, Buffer.from(fileBuffer));
+
+      // Check file hash matches expected hash.
+      const hash: string = await fileHash(filePath);
+      if (hash !== file.sha256) return console.error(`Error: ${filePath} hash mismatch`);
+
+      // If installer, run the installer.
+      if (file.type === FileType.Installer) {
+        fileOpen(filePath);
+      }
+
+      // If archive, extract the archive to temporary directory.
+      if (file.type === FileType.Archive) {
+        zipExtract(Buffer.from(fileBuffer), dirTemp);
+      }
+    });
+  }
+
+  async presetInstall() {
+    // TODO
+  }
+
+  async projectInstall() {
+    // TODO
+  }
+
+  getCompatibleFiles(pkg: PackageVersionType) {
+    return pkg.files.filter((file: FileInterface) => {
+      const archMatches = file.architectures.filter(architecture => {
+        return architecture === getArchitecture();
+      });
+      const sysMatches = file.systems.filter(system => {
+        return system.type === getSystem();
+      });
+      return archMatches.length && sysMatches.length;
+    });
   }
 
   async packageUninstall(type: RegistryType, slug: string, version?: string) {
