@@ -6,6 +6,7 @@ import { PresetFormat } from '../../src/types/PresetFormat';
 import { PresetInterface } from '../../src/types/Preset';
 import { PresetType } from '../../src/types/PresetType';
 import { SystemType } from '../../src/types/SystemType';
+import { PackageInterface } from '../../src/types/Package';
 
 export const PRESET: PresetInterface = {
   audio: 'https://open-audio-stack.github.io/open-audio-stack-registry/presets/jh/floating-rhodes/floating-rhodes.flac',
@@ -34,4 +35,12 @@ export const PRESET: PresetInterface = {
   tags: ['Preset', 'Synth', 'Rhodes'],
   type: PresetType.Patch,
   url: 'https://presetshare.com/p763',
+};
+
+export const PRESET_PACKAGE: PackageInterface = {
+  slug: 'jh/floating-rhodes',
+  version: '1.0.0',
+  versions: {
+    '1.0.0': PRESET,
+  },
 };

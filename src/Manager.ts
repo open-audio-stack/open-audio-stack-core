@@ -82,12 +82,16 @@ export class Manager {
 
   get(slug: string, type?: RegistryType, version?: string) {
     if (type) {
-      return this.registry.packageLatest(type, slug, version);
+      const pkg = this.registry.package(type, slug);
+      return pkg ? this.registry.packageLatest(type, slug, version) : {};
     }
+    const pluginsPkg = this.registry.package(RegistryType.Plugins, slug);
+    const presetsPkg = this.registry.package(RegistryType.Presets, slug);
+    const projectsPkg = this.registry.package(RegistryType.Projects, slug);
     return {
-      plugins: this.registry.packageLatest(RegistryType.Plugins, slug, version),
-      presets: this.registry.packageLatest(RegistryType.Presets, slug, version),
-      projects: this.registry.packageLatest(RegistryType.Projects, slug, version),
+      plugins: pluginsPkg ? this.registry.packageLatest(RegistryType.Plugins, slug, version) : {},
+      presets: presetsPkg ? this.registry.packageLatest(RegistryType.Presets, slug, version) : {},
+      projects: projectsPkg ? this.registry.packageLatest(RegistryType.Projects, slug, version) : {},
     };
   }
 }

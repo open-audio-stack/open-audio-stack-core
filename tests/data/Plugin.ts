@@ -1,3 +1,4 @@
+import { PackageInterface } from '../../src/types/Package';
 import { Architecture } from '../../src/types/Architecture';
 import { FileFormat } from '../../src/types/FileFormat';
 import { FileType } from '../../src/types/FileType';
@@ -62,4 +63,12 @@ export const PLUGIN: PluginInterface = {
   tags: ['Instrument', 'Synth', 'Modulation'],
   type: PluginType.Instrument,
   url: 'https://github.com/surge-synthesizer/surge',
+};
+
+export const PLUGIN_PACKAGE: PackageInterface = {
+  slug: 'surge-synthesizer/surge',
+  version: '1.3.1',
+  versions: {
+    '1.3.1': PLUGIN,
+  },
 };

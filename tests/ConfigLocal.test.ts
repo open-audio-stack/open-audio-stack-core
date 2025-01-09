@@ -31,10 +31,12 @@ test('Create new Config', () => {
 
 test('Set and get value', () => {
   const config: ConfigLocal = new ConfigLocal(CONFIG_FILE_PATH);
-  config.set('pluginsDir', '/example/plugins');
-  expect(config.get('pluginsDir')).toEqual('/example/plugins');
-  config.set('pluginsDir', '/example2/plugins');
-  expect(config.get('pluginsDir')).toEqual('/example2/plugins');
+  config.set('pluginsDir', 'test/plugins1');
+  expect(config.get('pluginsDir')).toEqual('test/plugins1');
+  config.set('pluginsDir', 'test/plugins');
+  expect(config.get('pluginsDir')).toEqual('test/plugins');
+  config.set('presetsDir', 'test/presets');
+  config.set('projectsDir', 'test/projects');
 });
 
 test('Get architecture', () => {

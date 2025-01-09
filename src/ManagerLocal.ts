@@ -31,12 +31,20 @@ export class ManagerLocal extends Manager {
     super(config, registry);
     const configPath: string = path.join(config.appDir || '', 'config.json');
     this.config = new ConfigLocal(configPath, config);
-    this.scanLocal(RegistryType.Plugins);
-    this.scanLocal(RegistryType.Presets);
-    this.scanLocal(RegistryType.Projects);
   }
 
-  scanLocal(type: RegistryType) {
+  scanLocal(type?: RegistryType) {
+    if (type) {
+      this.scanDir(type);
+    } else {
+      this.scanDir(RegistryType.Plugins);
+      this.scanDir(RegistryType.Presets);
+      this.scanDir(RegistryType.Projects);
+    }
+  }
+
+  scanDir(type: RegistryType) {
+    console.log('scanDir', type);
     const rootDir: string = this.config.get(`${type}Dir`) as string;
     const filePaths: string[] = dirRead(`${rootDir}/**/index.json`);
     filePaths.forEach((filePath: string) => {
@@ -51,6 +59,7 @@ export class ManagerLocal extends Manager {
   async packageInstall(type: RegistryType, slug: string, version?: string) {
     // Get package information from registry.
     const pkg: PackageVersionType = this.registry.packageLatest(type, slug, version);
+    if (!pkg) return console.error(`Package ${slug} not found in registry ${type} cache`);
     if (pkg.installed) return pkg;
 
     // Elevate permissions if not running as admin.
@@ -69,15 +78,22 @@ export class ManagerLocal extends Manager {
 
   async pluginInstall(slug: string, pkg: PackageVersionType) {
     // Create temporary directory to store downloaded files.
-    const dirTemp: string = path.join(this.config.get('appDir') as string, 'downloads', RegistryType.Plugins, slug);
-    dirCreate(dirTemp);
+    const dirDownloads: string = path.join(
+      this.config.get('appDir') as string,
+      'downloads',
+      RegistryType.Plugins,
+      slug,
+    );
+    dirCreate(dirDownloads);
 
     // Filter for compatible files and download.
     const files: FileInterface[] = this.getCompatibleFiles(pkg);
-    files.forEach(async (file: FileInterface) => {
+    if (!files.length) return console.error(`Error: No compatible files found for ${slug}`);
+    for (const key in files) {
       // Download file to temporary directory.
+      const file: FileInterface = files[key];
       const fileBuffer: ArrayBuffer = await apiBuffer(file.url);
-      const filePath: string = path.join(dirTemp, path.basename(file.url));
+      const filePath: string = path.join(dirDownloads, path.basename(file.url));
       fileCreate(filePath, Buffer.from(fileBuffer));
 
       // Check file hash matches expected hash.
@@ -91,9 +107,10 @@ export class ManagerLocal extends Manager {
 
       // If archive, extract the archive to temporary directory.
       if (file.type === FileType.Archive) {
-        zipExtract(Buffer.from(fileBuffer), dirTemp);
+        const dirPlugins: string = path.join(this.config.get('pluginsDir') as string, file.type, slug);
+        zipExtract(Buffer.from(fileBuffer), dirPlugins);
       }
-    });
+    }
   }
 
   async presetInstall() {

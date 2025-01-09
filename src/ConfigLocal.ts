@@ -10,7 +10,8 @@ export class ConfigLocal extends Config {
     super(config);
     this.path = configPath;
     if (fileExists(this.path)) {
-      this.config = this.load();
+      // Merge local config over config defaults.
+      this.config = { ...this.config, ...this.load() };
     } else {
       this.save();
     }
