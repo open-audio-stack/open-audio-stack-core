@@ -1,6 +1,6 @@
 import path from 'path';
 import { Config } from './Config.js';
-import { dirCreate, fileDelete, fileExists, fileJsonCreate, fileReadJson } from './helpers/file.js';
+import { dirCreate, fileCreateJson, fileDelete, fileExists, fileReadJson } from './helpers/file.js';
 import { ConfigInterface } from './types/Config.js';
 
 export class ConfigLocal extends Config {
@@ -27,7 +27,7 @@ export class ConfigLocal extends Config {
 
   save() {
     dirCreate(path.dirname(this.path));
-    return fileJsonCreate(this.path, this.getAll());
+    return fileCreateJson(this.path, this.getAll());
   }
 
   override set(key: keyof ConfigInterface, val: any) {

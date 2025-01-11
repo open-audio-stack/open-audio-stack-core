@@ -18,7 +18,7 @@
     "format": "prettier . --write",
     "lint": "eslint .",
     "start": "node build/index.js",
-    "test": "vitest run --config vitest.config.ts",
+    "test": "vitest run ./tests --hook-timeout=60000 --test-timeout=60000 --no-file-parallelism",
     "test:watch": "vitest ./tests"
   },
   "author": "kmturley",

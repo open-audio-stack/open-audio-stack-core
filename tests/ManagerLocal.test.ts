@@ -15,6 +15,6 @@ test('Package install', async () => {
     appDir: 'test',
   });
   await manager.scan();
-  await manager.packageInstall(RegistryType.Plugins, 'wolf-plugins/wolf-shaper');
+  await manager.packageInstall(RegistryType.Plugins, 'surge-synthesizer/surge');
   expect(manager.list(RegistryType.Plugins)).toBeDefined();
 });

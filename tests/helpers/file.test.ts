@@ -19,11 +19,11 @@ import {
   dirRename,
   fileCreate,
   fileHash,
+  // fileCreateJson,
   // fileDate,
   // fileDelete,
   // fileExec,
   // fileExists,
-  // fileJsonCreate,
   // fileMove,
   // fileOpen,
   // fileRead,
@@ -86,7 +86,7 @@ test('Directory move', () => {
 });
 
 test('Directory open', () => {
-  expect(dirOpen(DIR_PATH)).toEqual(new Buffer(''));
+  expect(dirOpen(DIR_PATH)).toEqual(Buffer.from(''));
 });
 
 test('Directory package', () => {
