@@ -1,4 +1,5 @@
 import {
+  archiveExtract,
   dirCreate,
   dirRead,
   fileCreate,
@@ -10,7 +11,6 @@ import {
   fileReadJson,
   isAdmin,
   runCliAsAdmin,
-  zipExtract,
 } from './helpers/file.js';
 import { PluginInterface } from '../src/types/Plugin.js';
 import { PresetInterface } from '../src/types/Preset.js';
@@ -124,7 +124,7 @@ export class ManagerLocal extends Manager {
           versionNum,
         );
         const dirSub: string = path.join(slug, versionNum);
-        zipExtract(filePath, dirSource);
+        archiveExtract(filePath, dirSource);
         const filesMoved: string[] = this.filesMove(dirSource, this.config.get('pluginsDir') as string, dirSub);
 
         // Output json metadata into every directory a file was added to.
@@ -149,7 +149,7 @@ export class ManagerLocal extends Manager {
     // For each file, move to correct folder based on type
     files.forEach((fileSource: string) => {
       if (fileSource.includes('__MACOSX')) return;
-      const fileExt: string = path.extname(fileSource).slice(1);
+      const fileExt: string = path.extname(fileSource).slice(1).toLowerCase();
       const fileTarget: string = path.join(
         dirTarget,
         pluginFormatDir[fileExt as PluginFormat],

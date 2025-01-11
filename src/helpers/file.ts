@@ -13,10 +13,12 @@ import {
   writeFileSync,
 } from 'fs';
 import { createHash } from 'crypto';
+import { unpack } from '7zip-min';
 import stream from 'stream/promises';
 import { globSync } from 'glob';
 import { moveSync } from 'fs-extra/esm';
 import os from 'os';
+import * as tar from 'tar';
 import path, { dirname } from 'path';
 import yaml from 'js-yaml';
 import { ZodIssueCode, ZodParsedType } from 'zod';
@@ -29,6 +31,24 @@ import { SystemType } from '../types/SystemType.js';
 import { fileURLToPath } from 'url';
 import sudoPrompt from '@vscode/sudo-prompt';
 import { getSystem, log } from './utils.js';
+
+export async function archiveExtract(filePath: string, dirPath: string) {
+  console.log('⎋', dirPath);
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === '.zip') {
+    const zip: AdmZip = new AdmZip(filePath);
+    return zip.extractAllTo(dirPath);
+  } else if (ext === '.tar' || ext === '.tar.gz' || ext === '.tgz') {
+    return await tar.x({
+      file: filePath,
+      cwd: dirPath,
+    });
+  } else if (ext === '.7z') {
+    return unpack(filePath, dirPath, err => {
+      if (err) throw new Error(`7z extraction failed: ${err.message}`);
+    });
+  }
+}
 
 export function dirApp() {
   if (getSystem() === SystemType.Windows) return process.env.APPDATA || os.homedir();
@@ -304,10 +324,4 @@ export function zipCreate(filesPath: string, zipPath: string): void {
   });
   console.log('+', zipPath);
   return zip.writeZip(zipPath);
-}
-
-export function zipExtract(filePath: string, dirPath: string): void {
-  console.log('⎋', dirPath);
-  const zip: AdmZip = new AdmZip(filePath);
-  return zip.extractAllTo(dirPath);
 }
