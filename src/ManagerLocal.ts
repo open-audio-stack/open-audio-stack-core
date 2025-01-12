@@ -148,14 +148,11 @@ export class ManagerLocal extends Manager {
 
     // For each file, move to correct folder based on type
     files.forEach((fileSource: string) => {
-      if (fileSource.includes('__MACOSX')) return;
       const fileExt: string = path.extname(fileSource).slice(1).toLowerCase();
-      const fileTarget: string = path.join(
-        dirTarget,
-        pluginFormatDir[fileExt as PluginFormat],
-        dirSub,
-        path.basename(fileSource),
-      );
+      const fileExtTarget = pluginFormatDir[fileExt as PluginFormat];
+      // If this is not a supported file format, then ignore.
+      if (!fileExtTarget) return;
+      const fileTarget: string = path.join(dirTarget, fileExtTarget, dirSub, path.basename(fileSource));
       if (fileExists(fileTarget)) return;
       dirCreate(path.dirname(fileTarget));
       fileMove(fileSource, fileTarget);
