@@ -6,6 +6,7 @@ import { ProjectInterface } from '../../src/types/Project';
 import { ProjectFormat } from '../../src/types/ProjectFormat';
 import { ProjectType } from '../../src/types/ProjectType';
 import { SystemType } from '../../src/types/SystemType';
+import { PackageInterface } from '../../src/types/Package';
 
 export const PROJECT: ProjectInterface = {
   audio: 'https://myproject.com/audio.flac',
@@ -34,4 +35,12 @@ export const PROJECT: ProjectInterface = {
   tags: ['Idea', 'Synth', 'Rock'],
   type: ProjectType.Song,
   url: 'https://myproject.com',
+};
+
+export const PROJECT_PACKAGE: PackageInterface = {
+  slug: 'kmt/banwer',
+  version: '1.0.1',
+  versions: {
+    '1.0.1': PROJECT,
+  },
 };

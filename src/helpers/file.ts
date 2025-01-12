@@ -13,10 +13,12 @@ import {
   writeFileSync,
 } from 'fs';
 import { createHash } from 'crypto';
+import { unpack } from '7zip-min';
 import stream from 'stream/promises';
 import { globSync } from 'glob';
 import { moveSync } from 'fs-extra/esm';
 import os from 'os';
+import * as tar from 'tar';
 import path, { dirname } from 'path';
 import yaml from 'js-yaml';
 import { ZodIssueCode, ZodParsedType } from 'zod';
@@ -29,6 +31,24 @@ import { SystemType } from '../types/SystemType.js';
 import { fileURLToPath } from 'url';
 import sudoPrompt from '@vscode/sudo-prompt';
 import { getSystem, log } from './utils.js';
+
+export async function archiveExtract(filePath: string, dirPath: string) {
+  console.log('⎋', dirPath);
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === '.zip') {
+    const zip: AdmZip = new AdmZip(filePath);
+    return zip.extractAllTo(dirPath);
+  } else if (ext === '.tar' || ext === '.tar.gz' || ext === '.tgz') {
+    return await tar.x({
+      file: filePath,
+      cwd: dirPath,
+    });
+  } else if (ext === '.7z') {
+    return unpack(filePath, dirPath, err => {
+      if (err) throw new Error(`7z extraction failed: ${err.message}`);
+    });
+  }
+}
 
 export function dirApp() {
   if (getSystem() === SystemType.Windows) return process.env.APPDATA || os.homedir();
@@ -82,7 +102,7 @@ export function dirMove(dir: string, dirNew: string): void | boolean {
 
 export function dirOpen(dir: string) {
   let command: string = '';
-  if (process.env.CI) return new Buffer('');
+  if (process.env.CI) return Buffer.from('');
   if (getSystem() === SystemType.Windows) command = 'start ""';
   else if (getSystem() === SystemType.Macintosh) command = 'open';
   else command = 'xdg-open';
@@ -138,6 +158,10 @@ export function fileCreate(filePath: string, data: string | Buffer): void {
   return writeFileSync(filePath, data);
 }
 
+export function fileCreateJson(filePath: string, data: object): void {
+  return fileCreate(filePath, JSON.stringify(data, null, 2));
+}
+
 export function fileDate(filePath: string): Date {
   return statSync(filePath).mtime;
 }
@@ -156,10 +180,6 @@ export function fileExec(filePath: string): void {
 
 export function fileExists(filePath: string): boolean {
   return existsSync(filePath);
-}
-
-export function fileJsonCreate(filePath: string, data: object): void {
-  return fileCreate(filePath, JSON.stringify(data, null, 2));
 }
 
 export async function fileHash(filePath: string, algorithm = 'sha256'): Promise<string> {
@@ -181,7 +201,7 @@ export function fileMove(filePath: string, newPath: string): void | boolean {
 
 export function fileOpen(filePath: string) {
   let command: string = '';
-  if (process.env.CI) return new Buffer('');
+  if (process.env.CI) return Buffer.from('');
   if (getSystem() === SystemType.Windows) command = 'open';
   else if (getSystem() === SystemType.Macintosh) command = 'start ""';
   else command = 'xdg-open';
@@ -304,10 +324,4 @@ export function zipCreate(filesPath: string, zipPath: string): void {
   });
   console.log('+', zipPath);
   return zip.writeZip(zipPath);
-}
-
-export function zipExtract(content: any, dirPath: string): void {
-  console.log('⎋', dirPath);
-  const zip: AdmZip = new AdmZip(content);
-  return zip.extractAllTo(dirPath);
 }

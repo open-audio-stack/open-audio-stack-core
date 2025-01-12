@@ -19,11 +19,11 @@ import {
   dirRename,
   fileCreate,
   fileHash,
+  // fileCreateJson,
   // fileDate,
   // fileDelete,
   // fileExec,
   // fileExists,
-  // fileJsonCreate,
   // fileMove,
   // fileOpen,
   // fileRead,
@@ -86,19 +86,19 @@ test('Directory move', () => {
 });
 
 test('Directory open', () => {
-  expect(dirOpen(DIR_PATH)).toEqual(new Buffer(''));
+  expect(dirOpen(DIR_PATH)).toEqual(Buffer.from(''));
 });
 
 test('Directory package', () => {
   const PACKAGE: PackageInterface = {
-    slug: 'surge-synth/surge',
+    slug: 'surge-synthesizer/surge',
     version: '1.3.1',
     versions: {},
   };
   if (process.platform === 'win32') {
-    expect(dirPackage(PACKAGE)).toEqual('surge-synth\\surge\\1.3.1');
+    expect(dirPackage(PACKAGE)).toEqual('surge-synthesizer\\surge\\1.3.1');
   } else {
-    expect(dirPackage(PACKAGE)).toEqual('surge-synth/surge/1.3.1');
+    expect(dirPackage(PACKAGE)).toEqual('surge-synthesizer/surge/1.3.1');
   }
 });
 
@@ -163,8 +163,8 @@ test('File hash', async () => {
   const fileData: string = await apiText(
     'https://github.com/open-audio-stack/open-audio-stack-core/raw/refs/heads/main/LICENSE',
   );
-  fileCreate('./test/fileHash', fileData);
-  expect(await fileHash('./test/fileHash')).toEqual('a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499');
+  fileCreate('test/fileHash', fileData);
+  expect(await fileHash('test/fileHash')).toEqual('a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499');
 });
 
 test('Get platform', () => {

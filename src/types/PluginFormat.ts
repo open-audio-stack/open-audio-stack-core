@@ -6,8 +6,8 @@ export enum PluginFormat {
   LinuxStandalone = 'elf',
   MacStandalone = 'app',
   RealTimeAudioSuite = 'rta',
-  SoundFont2 = 'sf2',
   SFZ = 'sfz',
+  SoundFont2 = 'sf2',
   TimeDivisionMultiplexing = 'tdm',
   VSTLinux = 'so',
   VSTMac = 'vst',
@@ -15,6 +15,28 @@ export enum PluginFormat {
   VST3 = 'vst3',
   WinStandalone = 'exe',
 }
+
+export type PluginFormatDir = {
+  [format in PluginFormat]: string;
+};
+
+export const pluginFormatDir: PluginFormatDir = {
+  [PluginFormat.AudioUnits]: 'Components',
+  [PluginFormat.AvidAudioExtension]: 'Avid',
+  [PluginFormat.CleverAudioPlugin]: 'Clap',
+  [PluginFormat.LADSPAVersion2]: 'Lv2',
+  [PluginFormat.LinuxStandalone]: 'Elf',
+  [PluginFormat.MacStandalone]: 'App',
+  [PluginFormat.RealTimeAudioSuite]: 'Rta',
+  [PluginFormat.SFZ]: 'Sfz',
+  [PluginFormat.SoundFont2]: 'Sf2',
+  [PluginFormat.TimeDivisionMultiplexing]: 'Tdm',
+  [PluginFormat.VST3]: 'VST3',
+  [PluginFormat.VSTLinux]: 'VST',
+  [PluginFormat.VSTMac]: 'VST',
+  [PluginFormat.VSTWin]: 'VST',
+  [PluginFormat.WinStandalone]: 'Exe',
+};
 
 export interface PluginFormatOption {
   description: string;
@@ -59,14 +81,14 @@ export const pluginFormats: PluginFormatOption[] = [
     name: 'MacOS Standalone',
   },
   {
-    description: 'Widely used format for sound samples in musical instruments.',
-    value: PluginFormat.SoundFont2,
-    name: 'SoundFont 2',
-  },
-  {
     description: 'An open standard for defining instrument patches and sound samples.',
     value: PluginFormat.SFZ,
     name: 'SFZ',
+  },
+  {
+    description: 'Widely used format for sound samples in musical instruments.',
+    value: PluginFormat.SoundFont2,
+    name: 'SoundFont 2',
   },
   {
     description: 'Legacy plugin format used in early Pro Tools systems.',
