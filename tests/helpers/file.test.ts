@@ -37,11 +37,12 @@ import {
 import { PackageInterface } from '../../src/types/Package.js';
 import { apiText } from '../../src/helpers/api.js';
 
+const APP_DIR: string = 'test';
 const DIR_APP_DATA: string = path.join(dirApp(), 'open-audio-stack');
-const DIR_PATH: string = path.join('test', 'new-directory');
-const DIR_PATH_GLOB: string = path.join('test', 'new-directory', '**', '*.txt');
-const DIR_RENAME: string = path.join('test', 'new-directory-renamed');
-const FILE_PATH: string = path.join('test', 'new-directory', 'file.txt');
+const DIR_PATH: string = path.join(APP_DIR, 'new-directory');
+const DIR_PATH_GLOB: string = path.join(APP_DIR, 'new-directory', '**', '*.txt');
+const DIR_RENAME: string = path.join(APP_DIR, 'new-directory-renamed');
+const FILE_PATH: string = path.join(APP_DIR, 'new-directory', 'file.txt');
 
 test('Get directory app', () => {
   if (process.platform === 'win32') {

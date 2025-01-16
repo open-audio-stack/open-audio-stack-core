@@ -56,6 +56,7 @@ export class ManagerLocal extends Manager {
       const pkgSlug: string = pathGetSlug(subPath);
       const pkgVersion: string = pathGetVersion(subPath);
       const pkgFile = fileReadJson(filePath) as PluginInterface | PresetInterface | ProjectInterface;
+      pkgFile.installed = true;
       this.registry.packageVersionAdd(type, pkgSlug, pkgVersion, pkgFile);
     });
   }
@@ -77,9 +78,9 @@ export class ManagerLocal extends Manager {
     }
 
     // Install the extracted files based on the package type.
-    if (type === RegistryType.Plugins) await this.pluginInstall(slug, versionNum, pkgVersion);
-    if (type === RegistryType.Presets) await this.presetInstall();
-    if (type === RegistryType.Projects) await this.projectInstall();
+    if (type === RegistryType.Plugins) return await this.pluginInstall(slug, versionNum, pkgVersion);
+    if (type === RegistryType.Presets) return await this.presetInstall();
+    if (type === RegistryType.Projects) return await this.projectInstall();
   }
 
   async pluginInstall(slug: string, versionNum: string, pkgVersion: PackageVersionType) {
@@ -124,7 +125,7 @@ export class ManagerLocal extends Manager {
           versionNum,
         );
         const dirSub: string = path.join(slug, versionNum);
-        archiveExtract(filePath, dirSource);
+        await archiveExtract(filePath, dirSource);
         const filesMoved: string[] = this.filesMove(dirSource, this.config.get('pluginsDir') as string, dirSub);
 
         // Output json metadata into every directory a file was added to.

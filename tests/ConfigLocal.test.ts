@@ -14,12 +14,13 @@ import { ProjectType, projectTypes } from '../src/types/ProjectType.js';
 import { ProjectFormat, projectFormats } from '../src/types/ProjectFormat.js';
 import { SystemType, systemTypes } from '../src/types/SystemType.js';
 import { configDefaults } from '../src/helpers/config.js';
+import { fileDelete } from '../src/helpers/file.js';
 
-const CONFIG_FILE_PATH = path.join('test', 'config.json');
+const APP_DIR: string = 'test';
+const CONFIG_FILE_PATH = path.join(APP_DIR, 'config.json');
 
 beforeAll(() => {
-  const config: ConfigLocal = new ConfigLocal(CONFIG_FILE_PATH);
-  config.delete();
+  fileDelete(CONFIG_FILE_PATH);
 });
 
 test('Create new Config', () => {
