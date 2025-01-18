@@ -1,16 +1,16 @@
-import { architectures, Architecture } from './types/Architecture.js';
-import { configDefaults } from './helpers/config.js';
-import { ConfigInterface } from './types/Config.js';
-import { FileFormat, fileFormats } from './types/FileFormat.js';
-import { FileType, fileTypes } from './types/FileType.js';
-import { License, licenses } from './types/License.js';
-import { PluginFormat, pluginFormats } from './types/PluginFormat.js';
-import { PluginType, pluginTypes } from './types/PluginType.js';
-import { PresetFormat, presetFormats } from './types/PresetFormat.js';
-import { PresetType, presetTypes } from './types/PresetType.js';
-import { ProjectFormat, projectFormats } from './types/ProjectFormat.js';
-import { ProjectType, projectTypes } from './types/ProjectType.js';
-import { SystemType, systemTypes } from './types/SystemType.js';
+import { architectures, Architecture } from '../types/Architecture.js';
+import { configDefaults } from '../helpers/config.js';
+import { ConfigInterface } from '../types/Config.js';
+import { FileFormat, fileFormats } from '../types/FileFormat.js';
+import { FileType, fileTypes } from '../types/FileType.js';
+import { License, licenses } from '../types/License.js';
+import { PluginFormat, pluginFormats } from '../types/PluginFormat.js';
+import { PluginType, pluginTypes } from '../types/PluginType.js';
+import { PresetFormat, presetFormats } from '../types/PresetFormat.js';
+import { PresetType, presetTypes } from '../types/PresetType.js';
+import { ProjectFormat, projectFormats } from '../types/ProjectFormat.js';
+import { ProjectType, projectTypes } from '../types/ProjectType.js';
+import { SystemType, systemTypes } from '../types/SystemType.js';
 
 export class Config {
   config: ConfigInterface;

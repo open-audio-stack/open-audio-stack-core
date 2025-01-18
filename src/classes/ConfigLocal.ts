@@ -1,7 +1,7 @@
 import path from 'path';
 import { Config } from './Config.js';
-import { dirCreate, fileCreateJson, fileDelete, fileExists, fileReadJson } from './helpers/file.js';
-import { ConfigInterface } from './types/Config.js';
+import { dirCreate, fileCreateJson, fileDelete, fileExists, fileReadJson } from '../helpers/file.js';
+import { ConfigInterface } from '../types/Config.js';
 
 export class ConfigLocal extends Config {
   path: string;

@@ -4,11 +4,14 @@
 // Comment out any files which are not NodeJS compatible.
 
 // Classes
-export * from './Config.js';
-export * from './ConfigLocal.js';
-export * from './Manager.js';
-export * from './ManagerLocal.js';
-export * from './Registry.js';
+export * from './classes/Config.js';
+export * from './classes/ConfigLocal.js';
+export * from './classes/Package.js';
+export * from './classes/PackageManager.js';
+export * from './classes/PluginManager.js';
+export * from './classes/PresetManager.js';
+export * from './classes/ProjectManager.js';
+export * from './classes/Registry.js';
 
 // Helpers
 export * from './helpers/api.js';

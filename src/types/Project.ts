@@ -1,9 +1,9 @@
 import { FileInterface } from './File.js';
-import { PackageVersion } from './Package.js';
+import { PackageBase } from './Package.js';
 import { ProjectFormat } from './ProjectFormat.js';
 import { ProjectType } from './ProjectType.js';
 
-export interface ProjectInterface extends PackageVersion {
+export interface ProjectInterface extends PackageBase {
   files: ProjectFile[];
   plugins: ProjectPlugins;
   type: ProjectType;

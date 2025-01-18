@@ -1,19 +1,19 @@
 import path from 'path';
 import { beforeAll, expect, test } from 'vitest';
-import { CONFIG } from './data/Config.js';
-import { ConfigLocal } from '../src/ConfigLocal.js';
-import { architectures, Architecture } from '../src/types/Architecture.js';
-import { PluginFormat, pluginFormats } from '../src/types/PluginFormat.js';
-import { FileFormat, fileFormats } from '../src/types/FileFormat.js';
-import { FileType, fileTypes } from '../src/types/FileType.js';
-import { License, licenses } from '../src/types/License.js';
-import { PluginType, pluginTypes } from '../src/types/PluginType.js';
-import { PresetFormat, presetFormats } from '../src/types/PresetFormat.js';
-import { PresetType, presetTypes } from '../src/types/PresetType.js';
-import { ProjectType, projectTypes } from '../src/types/ProjectType.js';
-import { ProjectFormat, projectFormats } from '../src/types/ProjectFormat.js';
-import { SystemType, systemTypes } from '../src/types/SystemType.js';
-import { configDefaults } from '../src/helpers/config.js';
+import { CONFIG } from '../data/Config.js';
+import { ConfigLocal } from '../../src/classes/ConfigLocal.js';
+import { architectures, Architecture } from '../../src/types/Architecture.js';
+import { PluginFormat, pluginFormats } from '../../src/types/PluginFormat.js';
+import { FileFormat, fileFormats } from '../../src/types/FileFormat.js';
+import { FileType, fileTypes } from '../../src/types/FileType.js';
+import { License, licenses } from '../../src/types/License.js';
+import { PluginType, pluginTypes } from '../../src/types/PluginType.js';
+import { PresetFormat, presetFormats } from '../../src/types/PresetFormat.js';
+import { PresetType, presetTypes } from '../../src/types/PresetType.js';
+import { ProjectType, projectTypes } from '../../src/types/ProjectType.js';
+import { ProjectFormat, projectFormats } from '../../src/types/ProjectFormat.js';
+import { SystemType, systemTypes } from '../../src/types/SystemType.js';
+import { configDefaults } from '../../src/helpers/config.js';
 
 const CONFIG_FILE_PATH = path.join('test', 'config.json');
 
