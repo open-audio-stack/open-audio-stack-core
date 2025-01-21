@@ -1,23 +1,25 @@
 import * as semver from 'semver';
-import { PackageInterface, PackageVersion } from '../types/Package.js';
+import { PackageInterface, PackageVersion, PackageVersions } from '../types/Package.js';
 
 export class Package {
   slug: string;
   version: string;
   versions: Map<string, PackageVersion>;
 
-  constructor(slug: string) {
+  constructor(slug: string, versions?: PackageVersions) {
     this.slug = slug;
-    this.versions = new Map();
+    this.versions = versions ? new Map(Object.entries(versions)) : new Map();
     this.version = this.latestVersion();
   }
 
   addVersion(version: string, details: PackageVersion) {
+    if (this.versions.has(version)) return;
     this.versions.set(version, details);
     this.version = this.latestVersion();
   }
 
   removeVersion(version: string) {
+    if (!this.versions.has(version)) return;
     this.versions.delete(version);
     this.version = this.latestVersion();
   }

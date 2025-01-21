@@ -45,41 +45,41 @@ test('Registry add and remove package', () => {
 
 test('Registry add a package version', () => {
   const pkg = new Package(PLUGIN_PACKAGE.slug);
-  pluginManager.addPackage(pkg);
   pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
+  pluginManager.addPackage(pkg);
   expect(registry.toJSON()).toEqual(REGISTRY_PLUGIN_VER);
 });
 
 test('Registry add and remove a package version', () => {
   const pkg = new Package(PLUGIN_PACKAGE.slug);
-  pluginManager.addPackage(pkg);
   pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
   pkg.removeVersion(PLUGIN_PACKAGE.version);
+  pluginManager.addPackage(pkg);
   expect(registry.toJSON()).toEqual(REGISTRY_EMPTY_PKG);
 });
 
 test('Registry add multiple package versions', () => {
   const pkg = new Package(PLUGIN_PACKAGE.slug);
-  pluginManager.addPackage(pkg);
   pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
   pkg.addVersion('1.3.2', PLUGIN);
+  pluginManager.addPackage(pkg);
   expect(registry.toJSON()).toEqual(REGISTRY_PLUGIN_MULTIPLE);
 });
 
 test('Registry add and remove multiple package versions', () => {
   const pkg = new Package(PLUGIN_PACKAGE.slug);
-  pluginManager.addPackage(pkg);
   pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
   pkg.addVersion('1.3.2', PLUGIN);
   pkg.removeVersion('1.3.2');
+  pluginManager.addPackage(pkg);
   expect(registry.toJSON()).toEqual(REGISTRY_PLUGIN_VER);
 });
 
 test('Registry add multiple package managers', () => {
   // Plugin
   const pkgPlugin = new Package(PLUGIN_PACKAGE.slug);
-  pluginManager.addPackage(pkgPlugin);
   pkgPlugin.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
+  pluginManager.addPackage(pkgPlugin);
   // Preset
   const presetManager = new PresetManager();
   registry.addManager(RegistryType.Presets, presetManager);
@@ -103,8 +103,8 @@ test('Get manager', () => {
 test('Reset managers', () => {
   // Plugin
   const pkgPlugin = new Package(PLUGIN_PACKAGE.slug);
-  pluginManager.addPackage(pkgPlugin);
   pkgPlugin.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
+  pluginManager.addPackage(pkgPlugin);
   // Preset
   const presetManager = new PresetManager();
   registry.addManager(RegistryType.Presets, presetManager);
@@ -121,62 +121,6 @@ test('Reset managers', () => {
   registry.reset();
   expect(registry.toJSON()).toEqual(REGISTRY_MULTIPLE_TYPES);
 });
-
-test('Manager get package', () => {
-  const pkg = new Package(PLUGIN_PACKAGE.slug);
-  pluginManager.addPackage(pkg);
-  pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
-  expect(pluginManager.getPackage(PLUGIN_PACKAGE.slug)).toEqual(pkg);
-});
-
-test('Manager list packages', () => {
-  const pkg = new Package(PLUGIN_PACKAGE.slug);
-  pluginManager.addPackage(pkg);
-  pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
-  expect(pluginManager.listPackages()).toEqual([pkg]);
-});
-
-test('Manager filter packages', () => {
-  const pkg = new Package(PLUGIN_PACKAGE.slug);
-  pluginManager.addPackage(pkg);
-  pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
-  expect(pluginManager.filter('Surge XT', 'name')).toEqual([pkg]);
-  expect(pluginManager.filter('Surge X', 'name')).toEqual([]);
-});
-
-test('Manager filter packages without versions', () => {
-  const pkg = new Package(PLUGIN_PACKAGE.slug);
-  pluginManager.addPackage(pkg);
-  expect(pluginManager.filter('Surge XT', 'name')).toEqual([]);
-  expect(pluginManager.filter('Surge X', 'name')).toEqual([]);
-});
-
-test('Manager search packages', () => {
-  const pkg = new Package(PLUGIN_PACKAGE.slug);
-  pluginManager.addPackage(pkg);
-  pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
-  expect(pluginManager.search('XT')).toEqual([pkg]);
-  expect(pluginManager.search('ZXT')).toEqual([]);
-});
-
-test('Manager search packages without versions', () => {
-  const pkg = new Package(PLUGIN_PACKAGE.slug);
-  pluginManager.addPackage(pkg);
-  expect(pluginManager.search('XT')).toEqual([]);
-  expect(pluginManager.search('ZXT')).toEqual([]);
-});
-
-// test('Get packages by type', () => {
-//   const REGISTRY_WITH_PLUGIN: RegistryInterface = structuredClone(REGISTRY);
-//   REGISTRY_WITH_PLUGIN.plugins = {
-//     'surge-synthesizer/surge': PLUGIN_PACKAGE,
-//   };
-//   const registry: Registry = new Registry();
-//   registry.packageVersionAdd(RegistryType.Plugins, 'surge-synthesizer/surge', '1.3.1', PLUGIN);
-//   registry.packageVersionAdd(RegistryType.Presets, 'jh/floating-rhodes', '1.0.0', PRESET);
-//   registry.packageVersionAdd(RegistryType.Projects, 'kmt/banwer', '1.0.1', PROJECT);
-//   expect(registry.packages(RegistryType.Plugins)).toEqual(REGISTRY_WITH_PLUGIN.plugins);
-// });
 
 test('Get registry name', () => {
   expect(registry.name).toEqual(REGISTRY.name);

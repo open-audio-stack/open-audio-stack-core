@@ -1,5 +1,5 @@
 import { RegistryInterface } from '../../src/types/Registry';
-import { PLUGIN, PLUGIN_PACKAGE, PLUGIN_PACKAGE_EMPTY } from './Plugin';
+import { PLUGIN_PACKAGE_MULTIPLE, PLUGIN_PACKAGE, PLUGIN_PACKAGE_EMPTY } from './Plugin';
 import { PRESET_PACKAGE } from './Preset';
 import { PROJECT_PACKAGE } from './Project';
 
@@ -44,14 +44,7 @@ export const REGISTRY_PLUGIN_VER: RegistryInterface = {
 export const REGISTRY_PLUGIN_MULTIPLE: RegistryInterface = {
   name,
   plugins: {
-    [PLUGIN_PACKAGE.slug]: {
-      slug: PLUGIN_PACKAGE.slug,
-      version: '1.3.2',
-      versions: {
-        '1.3.1': PLUGIN,
-        '1.3.2': PLUGIN,
-      },
-    },
+    [PLUGIN_PACKAGE.slug]: PLUGIN_PACKAGE_MULTIPLE,
   },
   url,
   version,

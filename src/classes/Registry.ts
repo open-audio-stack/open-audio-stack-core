@@ -23,6 +23,16 @@ export class Registry {
     return this.managers[type];
   }
 
+  reset() {
+    Object.values(this.managers).forEach(manager => manager.reset());
+  }
+
+  async sync() {
+    for (const [type, manager] of Object.entries(this.managers)) {
+      await manager.sync(type as RegistryType);
+    }
+  }
+
   toJSON(): RegistryInterface {
     const data: RegistryInterface = {
       name: this.name,
@@ -33,9 +43,5 @@ export class Registry {
       data[type as RegistryType] = manager.toJSON();
     }
     return data;
-  }
-
-  reset() {
-    Object.values(this.managers).forEach(manager => manager.reset());
   }
 }
