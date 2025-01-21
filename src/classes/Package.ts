@@ -26,6 +26,10 @@ export class Package {
     return this.versions.get(version);
   }
 
+  getVersionLatest() {
+    return this.versions.get(this.latestVersion());
+  }
+
   latestVersion() {
     return Array.from(this.versions.keys()).sort(semver.rcompare)[0] || '0.0.0';
   }

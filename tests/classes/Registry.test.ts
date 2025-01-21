@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from 'vitest';
 import { Registry } from '../../src/classes/Registry.js';
-import { RegistryPackages, RegistryType } from '../../src/types/Registry.js';
+import { RegistryType } from '../../src/types/Registry.js';
 import {
   REGISTRY,
   REGISTRY_EMPTY_PKG,
@@ -14,7 +14,8 @@ import { PRESET, PRESET_PACKAGE } from '../data/Preset.js';
 import { PROJECT, PROJECT_PACKAGE } from '../data/Project.js';
 import { PluginManager } from '../../src/classes/PluginManager.js';
 import { Package } from '../../src/classes/Package.js';
-import { PresetManager, ProjectManager } from '../../src/index-browser.js';
+import { PresetManager } from '../../src/classes/PresetManager.js';
+import { ProjectManager } from '../../src/classes/ProjectManager.js';
 
 let registry: Registry;
 let pluginManager: PluginManager;
@@ -135,24 +136,35 @@ test('Manager list packages', () => {
   expect(pluginManager.listPackages()).toEqual([pkg]);
 });
 
-test('Filter packages', () => {
-  const REGISTRY_PACKAGES: RegistryPackages = {
-    'surge-synthesizer/surge': PLUGIN_PACKAGE,
-  };
+test('Manager filter packages', () => {
   const pkg = new Package(PLUGIN_PACKAGE.slug);
   pluginManager.addPackage(pkg);
   pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
-  expect(pluginManager.filterPackages('Surge XT', 'name')).toEqual(REGISTRY_PACKAGES);
+  expect(pluginManager.filter('Surge XT', 'name')).toEqual([pkg]);
+  expect(pluginManager.filter('Surge X', 'name')).toEqual([]);
 });
 
-// test('Search packages', () => {
-//   const REGISTRY_PACKAGES: RegistryPackages = {
-//     'surge-synthesizer/surge': PLUGIN_PACKAGE,
-//   };
-//   const registry: Registry = new Registry();
-//   registry.packageVersionAdd(RegistryType.Plugins, 'surge-synthesizer/surge', '1.3.1', PLUGIN);
-//   expect(registry.packagesSearch(RegistryType.Plugins, 'XT')).toEqual(REGISTRY_PACKAGES);
-// });
+test('Manager filter packages without versions', () => {
+  const pkg = new Package(PLUGIN_PACKAGE.slug);
+  pluginManager.addPackage(pkg);
+  expect(pluginManager.filter('Surge XT', 'name')).toEqual([]);
+  expect(pluginManager.filter('Surge X', 'name')).toEqual([]);
+});
+
+test('Manager search packages', () => {
+  const pkg = new Package(PLUGIN_PACKAGE.slug);
+  pluginManager.addPackage(pkg);
+  pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
+  expect(pluginManager.search('XT')).toEqual([pkg]);
+  expect(pluginManager.search('ZXT')).toEqual([]);
+});
+
+test('Manager search packages without versions', () => {
+  const pkg = new Package(PLUGIN_PACKAGE.slug);
+  pluginManager.addPackage(pkg);
+  expect(pluginManager.search('XT')).toEqual([]);
+  expect(pluginManager.search('ZXT')).toEqual([]);
+});
 
 // test('Get packages by type', () => {
 //   const REGISTRY_WITH_PLUGIN: RegistryInterface = structuredClone(REGISTRY);

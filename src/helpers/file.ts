@@ -34,7 +34,7 @@ import { getSystem, log } from './utils.js';
 
 export async function archiveExtract(filePath: string, dirPath: string) {
   console.log('⎋', dirPath);
-  const ext = path.extname(filePath).toLowerCase();
+  const ext = path.extname(filePath).trim().toLowerCase();
   if (ext === '.zip') {
     const zip: AdmZip = new AdmZip(filePath);
     return zip.extractAllTo(dirPath);

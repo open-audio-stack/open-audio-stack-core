@@ -20,6 +20,14 @@ test('Package remove version', () => {
   expect(pkg.toJSON()).toEqual(PLUGIN_PACKAGE_EMPTY);
 });
 
+test('Package get version latest', () => {
+  const pkg = new Package(PLUGIN_PACKAGE.slug);
+  pkg.addVersion('3.2.1', { ...PLUGIN, name: '3.2.1' });
+  pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
+  pkg.addVersion('2.1.0', { ...PLUGIN, name: '2.1.0' });
+  expect(pkg.getVersionLatest()?.name).toEqual('3.2.1');
+});
+
 test('Package get version', () => {
   const pkg = new Package(PLUGIN_PACKAGE.slug);
   pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);

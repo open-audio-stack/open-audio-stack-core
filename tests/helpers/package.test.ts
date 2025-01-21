@@ -1,14 +1,18 @@
 import { expect, test } from 'vitest';
-import { packageRecommendations, PackageVersionValidator } from '../../src/helpers/package.js';
-import { PLUGIN } from '../data/Plugin';
-import { PackageVersionType } from '../../src/types/Package';
+import { packageRecommendations, packageVersionLatest, PackageVersionValidator } from '../../src/helpers/package.js';
+import { PLUGIN, PLUGIN_PACKAGE_MULTIPLE } from '../data/Plugin';
+import { PackageVersion } from '../../src/types/Package';
+
+test('Package recommendations pass', () => {
+  expect(packageVersionLatest(PLUGIN_PACKAGE_MULTIPLE)).toEqual('1.3.2');
+});
 
 test('Package recommendations pass', () => {
   expect(packageRecommendations(PLUGIN)).toEqual([]);
 });
 
 test('Package recommendations fail', () => {
-  const PLUGIN_BAD: PackageVersionType = structuredClone(PLUGIN);
+  const PLUGIN_BAD: PackageVersion = structuredClone(PLUGIN);
   PLUGIN_BAD.url = 'http://www.github.com';
   expect(packageRecommendations(PLUGIN_BAD)).toEqual([
     {
@@ -23,7 +27,7 @@ test('Package validate pass', () => {
 });
 
 test('Package validate missing field', () => {
-  const PLUGIN_BAD: PackageVersionType = structuredClone(PLUGIN);
+  const PLUGIN_BAD: PackageVersion = structuredClone(PLUGIN);
   // @ts-expect-error this is intentionally bad data.
   delete PLUGIN_BAD['audio'];
   expect(PackageVersionValidator.safeParse(PLUGIN_BAD).error?.issues).toEqual([
@@ -38,7 +42,7 @@ test('Package validate missing field', () => {
 });
 
 test('Package validate invalid type', () => {
-  const PLUGIN_BAD: PackageVersionType = structuredClone(PLUGIN);
+  const PLUGIN_BAD: PackageVersion = structuredClone(PLUGIN);
   // @ts-expect-error this is intentionally bad data.
   PLUGIN_BAD['audio'] = 123;
   expect(PackageVersionValidator.safeParse(PLUGIN_BAD).error?.issues).toEqual([
