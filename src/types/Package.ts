@@ -10,10 +10,10 @@ export interface PackageInterface {
 }
 
 export interface PackageVersions {
-  [version: string]: PackageVersionType;
+  [version: string]: PackageVersion;
 }
 
-export interface PackageVersion {
+export interface PackageBase {
   audio: string;
   author: string;
   changes: string;
@@ -27,7 +27,7 @@ export interface PackageVersion {
   url: string;
 }
 
-export type PackageVersionType = PluginInterface | PresetInterface | ProjectInterface;
+export type PackageVersion = PluginInterface | PresetInterface | ProjectInterface;
 
 export enum PackageValidation {
   MISSING_FIELD = 'missing-field',

@@ -34,7 +34,7 @@ import { getSystem, log } from './utils.js';
 
 export async function archiveExtract(filePath: string, dirPath: string) {
   console.log('⎋', dirPath);
-  const ext = path.extname(filePath).toLowerCase();
+  const ext = path.extname(filePath).trim().toLowerCase();
   if (ext === '.zip') {
     const zip: AdmZip = new AdmZip(filePath);
     return zip.extractAllTo(dirPath);
@@ -197,6 +197,29 @@ export function fileMove(filePath: string, newPath: string): void | boolean {
     return moveSync(filePath, newPath, { overwrite: true });
   }
   return false;
+}
+
+export function filesMove(dirSource: string, dirTarget: string, dirSub: string, formatDir: Record<string, string>) {
+  // Read files from source directory, ignoring Mac Contents files.
+  const files: string[] = dirRead(`${dirSource}/**/*.*`, {
+    ignore: [`${dirSource}/**/Contents/**/*`],
+  });
+  console.log('files', files);
+  const filesMoved: string[] = [];
+
+  // For each file, move to correct folder based on type
+  files.forEach((fileSource: string) => {
+    const fileExt: string = path.extname(fileSource).slice(1).toLowerCase();
+    const fileExtTarget = formatDir[fileExt];
+    // If this is not a supported file format, then ignore.
+    if (!fileExtTarget) return;
+    const fileTarget: string = path.join(dirTarget, fileExtTarget, dirSub, path.basename(fileSource));
+    if (fileExists(fileTarget)) return;
+    dirCreate(path.dirname(fileTarget));
+    fileMove(fileSource, fileTarget);
+    filesMoved.push(fileTarget);
+  });
+  return filesMoved;
 }
 
 export function fileOpen(filePath: string) {

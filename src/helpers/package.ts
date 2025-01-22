@@ -1,3 +1,4 @@
+import * as semver from 'semver';
 import { z } from 'zod';
 import { Architecture } from '../types/Architecture.js';
 import { FileFormat } from '../types/FileFormat.js';
@@ -10,7 +11,11 @@ import { PresetType } from '../types/PresetType.js';
 import { ProjectFile } from '../types/Project.js';
 import { ProjectType } from '../types/ProjectType.js';
 import { SystemType } from '../types/SystemType.js';
-import { PackageValidationRec, PackageVersionType } from '../types/Package.js';
+import { PackageInterface, PackageValidationRec, PackageVersion } from '../types/Package.js';
+
+export function packageVersionLatest(pkg: PackageInterface) {
+  return Array.from(Object.keys(pkg.versions)).sort(semver.rcompare)[0] || '0.0.0';
+}
 
 // This is a first version using zod library for validation.
 // If it works well, consider updating all types to infer from Zod objects.
@@ -49,7 +54,7 @@ export const PackageVersionValidator = z.object({
 });
 
 // TODO refactor all this using a proper validation library.
-export function packageRecommendations(pkgVersion: PackageVersionType) {
+export function packageRecommendations(pkgVersion: PackageVersion) {
   const recs: PackageValidationRec[] = [];
 
   packageRecommendationsUrl(pkgVersion, recs, 'audio');
@@ -107,7 +112,7 @@ export function packageRecommendations(pkgVersion: PackageVersionType) {
     });
 
   // Tags
-  const pluginTags: string[] = pkgVersion.tags.map(tag => tag.toLowerCase());
+  const pluginTags: string[] = pkgVersion.tags.map(tag => tag.trim().toLowerCase());
   if (pluginTags.length < 2) recs.push({ field: 'tags', rec: 'should have more items' });
 
   // Licence
@@ -120,7 +125,7 @@ export function packageRecommendations(pkgVersion: PackageVersionType) {
 }
 
 export function packageRecommendationsUrl(
-  obj: PackageVersionType | PluginFile | PresetFile | ProjectFile,
+  obj: PackageVersion | PluginFile | PresetFile | ProjectFile,
   recs: PackageValidationRec[],
   field: string,
 ) {

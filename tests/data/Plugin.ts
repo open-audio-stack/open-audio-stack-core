@@ -8,6 +8,9 @@ import { PluginFormat } from '../../src/types/PluginFormat';
 import { PluginType } from '../../src/types/PluginType';
 import { SystemType } from '../../src/types/SystemType';
 
+const slug: string = 'surge-synthesizer/surge';
+const version: string = '1.3.1';
+
 export const PLUGIN: PluginInterface = {
   audio: 'https://open-audio-stack.github.io/open-audio-stack-registry/plugins/surge-synthesizer/surge/surge.flac',
   author: 'Surge Synth Team',
@@ -65,10 +68,28 @@ export const PLUGIN: PluginInterface = {
   url: 'https://github.com/surge-synthesizer/surge',
 };
 
+export const PLUGIN_INSTALLED: PluginInterface = structuredClone(PLUGIN);
+PLUGIN_INSTALLED.installed = true;
+
 export const PLUGIN_PACKAGE: PackageInterface = {
-  slug: 'surge-synthesizer/surge',
-  version: '1.3.1',
+  slug,
+  version,
   versions: {
-    '1.3.1': PLUGIN,
+    [version]: PLUGIN,
+  },
+};
+
+export const PLUGIN_PACKAGE_EMPTY: PackageInterface = {
+  slug,
+  version: '0.0.0',
+  versions: {},
+};
+
+export const PLUGIN_PACKAGE_MULTIPLE: PackageInterface = {
+  slug,
+  version: '1.3.2',
+  versions: {
+    [version]: PLUGIN,
+    '1.3.2': PLUGIN,
   },
 };

@@ -4,12 +4,10 @@
 
 import path from 'path';
 import { RegistryType } from '../types/Registry.js';
-import { ManagerLocal } from '../ManagerLocal.js';
+import { PluginManagerLocal } from '../classes/PluginManagerLocal.js';
 import { dirApp } from './file.js';
 
-const manager: ManagerLocal = new ManagerLocal({
-  appDir: path.join(dirApp(), 'open-audio-stack'),
-});
+const appDir: string = path.join(dirApp(), 'open-audio-stack');
 
 export interface Arguments {
   operation: string;
@@ -27,12 +25,20 @@ export function adminArguments(): Arguments {
   };
 }
 
+// TODO support Preset and Project Managers.
+export function adminManager(type: RegistryType) {
+  if (type === RegistryType.Plugins) return new PluginManagerLocal({ appDir });
+  else if (type === RegistryType.Presets) return new PluginManagerLocal({ appDir });
+  else return new PluginManagerLocal({ appDir });
+}
+
 export async function adminInit() {
   const argv: Arguments = adminArguments();
+  const manager = adminManager(argv.type);
   if (argv.operation === 'install') {
-    await manager.packageInstall(argv.type, argv.id, argv.ver);
+    await manager.install(argv.id, argv.ver);
   } else if (argv.operation === 'uninstall') {
-    await manager.packageUninstall(argv.type, argv.id, argv.ver);
+    await manager.uninstall(argv.id, argv.ver);
   } else {
     console.log('Missing --operation argument');
   }

@@ -1,9 +1,9 @@
 import { FileInterface } from './File.js';
-import { PackageVersion } from './Package.js';
+import { PackageBase } from './Package.js';
 import { PresetFormat } from './PresetFormat.js';
 import { PresetType } from './PresetType.js';
 
-export interface PresetInterface extends PackageVersion {
+export interface PresetInterface extends PackageBase {
   files: PresetFile[];
   plugins: PresetPlugins;
   type: PresetType;
