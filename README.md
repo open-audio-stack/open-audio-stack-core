@@ -11,8 +11,12 @@ High-level classes enable use without writing business-logic:
 
 - Config - Set and get common configuration types, formats, values, paths and urls.
 - ConfigLocal - All the Config functionality including ability to load and save configuration to a json file.
-- Manager - Search, filter and get packages from a registry.
-- ManagerLocal - All the Manager functionality, including ability to install packages locally and scan directories.
+- Package - Create a new package to add to a registry.
+- PackageManager - Search, filter and get packages from a registry.
+- PluginManager - Plugin-specific version of PackageManager.
+- PluginManagerLocal - Plugin-specific install/uninstall locally and scan directories for existing plugins.
+- PresetManager - Preset-specific version of PackageManager.
+- ProjectManager - Project-specific version of PackageManager.
 - Registry - Create an audio package registry with packages and files.
 
 Low-level methods/utilities for more custom/advanced implementations:

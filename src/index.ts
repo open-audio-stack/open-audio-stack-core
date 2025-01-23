@@ -9,11 +9,13 @@ export * from './classes/ConfigLocal.js';
 export * from './classes/Package.js';
 export * from './classes/PackageManager.js';
 export * from './classes/PluginManager.js';
+export * from './classes/PluginManagerLocal.js';
 export * from './classes/PresetManager.js';
 export * from './classes/ProjectManager.js';
 export * from './classes/Registry.js';
 
 // Helpers
+// export * from './helpers/admin.js'; // Admin is an independent script which should not be imported here.
 export * from './helpers/api.js';
 export * from './helpers/config.js';
 export * from './helpers/file.js';

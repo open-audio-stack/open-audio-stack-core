@@ -98,3 +98,12 @@ export function pathGetVersion(path: string, sep: string = '/') {
   const parts: string[] = path.split(sep);
   return parts[parts.length - 2];
 }
+
+export function isValidSlug(slug: string): boolean {
+  let valid = true;
+  // Must have exactly one slash.
+  if (slug.split('/').length !== 2) valid = false;
+  // Must be lowercase.
+  if (slug !== slug.toLowerCase()) valid = false;
+  return valid;
+}

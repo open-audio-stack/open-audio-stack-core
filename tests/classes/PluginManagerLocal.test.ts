@@ -1,6 +1,6 @@
 import path from 'path';
 import { beforeAll, expect, test } from 'vitest';
-import { PLUGIN_INSTALLED, PLUGIN_PACKAGE } from '../data/Plugin';
+import { PLUGIN, PLUGIN_INSTALLED, PLUGIN_PACKAGE } from '../data/Plugin';
 import { PluginManagerLocal } from '../../src/classes/PluginManagerLocal';
 import { dirDelete } from '../../src/helpers/file';
 import { RegistryType } from '../../src/types/Registry';
@@ -25,7 +25,7 @@ test('Manager Local scan local directory', () => {
   expect(pluginManager.toJSON()).toEqual({});
 });
 
-test('Package install', async () => {
+test('Package sync and install', async () => {
   const pluginManager = new PluginManagerLocal(CONFIG);
   await pluginManager.sync(RegistryType.Plugins);
   const pkgReturned: PackageVersion | void = await pluginManager.install(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
@@ -34,11 +34,19 @@ test('Package install', async () => {
   expect(pkgGet?.getVersion(PLUGIN_PACKAGE.version)).toEqual(PLUGIN_INSTALLED);
 });
 
-test('Package install and rescan', async () => {
+test('Package sync, install and rescan', async () => {
   const pluginManager = new PluginManagerLocal(CONFIG);
   await pluginManager.sync(RegistryType.Plugins);
   await pluginManager.install(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
-  await pluginManager.sync(RegistryType.Plugins);
+  pluginManager.scan();
   const pkgGet = pluginManager.getPackage(PLUGIN_PACKAGE.slug);
   expect(pkgGet?.getVersion(PLUGIN_PACKAGE.version)).toEqual(PLUGIN_INSTALLED);
+});
+
+test('Package sync, install and uninstall', async () => {
+  const pluginManager = new PluginManagerLocal(CONFIG);
+  await pluginManager.sync(RegistryType.Plugins);
+  await pluginManager.install(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
+  const pkgReturned: PackageVersion | void = await pluginManager.uninstall(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
+  expect(pkgReturned).toEqual(PLUGIN);
 });

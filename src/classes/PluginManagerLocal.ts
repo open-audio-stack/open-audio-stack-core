@@ -5,6 +5,8 @@ import { PluginManager } from './PluginManager.js';
 import {
   archiveExtract,
   dirCreate,
+  dirDelete,
+  dirEmpty,
   dirRead,
   fileCreate,
   fileCreateJson,
@@ -138,7 +140,43 @@ export class PluginManagerLocal extends PluginManager {
   }
 
   async uninstall(slug: string, version?: string) {
-    // TODO
-    console.log(slug, version);
+    // Get package information from registry.
+    const pkg: Package | undefined = this.getPackage(slug);
+    if (!pkg) return console.error(`Package ${slug} not found in registry`);
+    const versionNum: string = version || pkg.latestVersion();
+    const pkgVersion: PackageVersion | undefined = pkg?.getVersion(versionNum);
+    if (!pkgVersion) return console.error(`Package ${slug} version ${versionNum} not found in registry`);
+    if (!pkgVersion.installed) return console.error(`Package ${slug} version ${versionNum} not installed`);
+
+    // Elevate permissions if not running as admin.
+    if (!isAdmin() && !isTests()) {
+      let command: string = `--operation uninstall --type ${RegistryType.Plugins} --slug ${slug}`;
+      if (version) command += ` --ver ${version}`;
+      await runCliAsAdmin(command);
+      return this.getPackage(slug)?.getVersion(versionNum);
+    }
+
+    const pluginsDir: string = this.config.get('pluginsDir') as string;
+
+    // Delete all directories for this package version.
+    const versionDirs: string[] = dirRead(`${pluginsDir}/**/${slug}/${versionNum}`);
+    versionDirs.forEach((versionDir: string) => {
+      dirDelete(versionDir);
+    });
+
+    // Delete all empty directories for this package.
+    const pkgDirs: string[] = dirRead(`${pluginsDir}/**/${slug}`);
+    pkgDirs.forEach((pkgDir: string) => {
+      if (dirEmpty(pkgDir)) dirDelete(pkgDir);
+    });
+
+    // Delete all empty directories for the org.
+    const orgDirs: string[] = dirRead(`${pluginsDir}/**/${slug.split('/')[0]}`);
+    orgDirs.forEach((orgDir: string) => {
+      if (dirEmpty(orgDir)) dirDelete(orgDir);
+    });
+
+    delete pkgVersion.installed;
+    return this.getPackage(slug)?.getVersion(versionNum);
   }
 }

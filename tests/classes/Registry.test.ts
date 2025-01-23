@@ -122,6 +122,28 @@ test('Reset managers', () => {
   expect(registry.toJSON()).toEqual(REGISTRY_MULTIPLE_TYPES);
 });
 
+test('Sync managers', async () => {
+  // Plugin
+  const pkgPlugin = new Package(PLUGIN_PACKAGE.slug);
+  pkgPlugin.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
+  pluginManager.addPackage(pkgPlugin);
+  // Preset
+  const presetManager = new PresetManager();
+  registry.addManager(RegistryType.Presets, presetManager);
+  const pkgPreset = new Package(PRESET_PACKAGE.slug);
+  pkgPreset.addVersion(PRESET_PACKAGE.version, PRESET);
+  presetManager.addPackage(pkgPreset);
+  // Project
+  const projectManager = new ProjectManager();
+  registry.addManager(RegistryType.Projects, projectManager);
+  const pkgProject = new Package(PROJECT_PACKAGE.slug);
+  pkgProject.addVersion(PROJECT_PACKAGE.version, PROJECT);
+  projectManager.addPackage(pkgProject);
+  // Sync managers
+  await registry.sync();
+  expect(registry.toJSON()).toBeDefined();
+});
+
 test('Get registry name', () => {
   expect(registry.name).toEqual(REGISTRY.name);
 });

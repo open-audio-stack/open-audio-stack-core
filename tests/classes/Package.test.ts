@@ -1,16 +1,33 @@
 import { expect, test } from 'vitest';
 import { Package } from '../../src/classes/Package';
 import { PLUGIN, PLUGIN_PACKAGE, PLUGIN_PACKAGE_EMPTY } from '../data/Plugin';
+import { PackageInterface, PackageVersion } from '../../src/types/Package';
 
 test('Package new', () => {
   const pkg = new Package(PLUGIN_PACKAGE.slug);
   expect(pkg.toJSON()).toEqual(PLUGIN_PACKAGE_EMPTY);
 });
 
+test('Package with invalid slug', () => {
+  const PLUGIN_INVALID_SLUG: PackageInterface = structuredClone(PLUGIN_PACKAGE_EMPTY);
+  PLUGIN_INVALID_SLUG.slug = 'Invalid Slug';
+  const pkg = new Package(PLUGIN_INVALID_SLUG.slug);
+  expect(pkg.toJSON()).toEqual(PLUGIN_INVALID_SLUG);
+});
+
 test('Package add version', () => {
   const pkg = new Package(PLUGIN_PACKAGE.slug);
   pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
   expect(pkg.toJSON()).toEqual(PLUGIN_PACKAGE);
+});
+
+test('Package add invalid version', () => {
+  const PLUGIN_INVALID: PackageVersion = structuredClone(PLUGIN);
+  // @ts-expect-error this is intentionally bad data.
+  delete PLUGIN_INVALID['audio'];
+  const pkg = new Package(PLUGIN_PACKAGE.slug);
+  pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN_INVALID);
+  expect(pkg.toJSON()).toEqual(PLUGIN_PACKAGE_EMPTY);
 });
 
 test('Package remove version', () => {
