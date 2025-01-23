@@ -29,12 +29,6 @@ export interface PackageBase {
 
 export type PackageVersion = PluginInterface | PresetInterface | ProjectInterface;
 
-export enum PackageValidation {
-  MISSING_FIELD = 'missing-field',
-  INVALID_TYPE = 'invalid-type',
-  INVALID_VALUE = 'invalid-value',
-}
-
 export interface PackageValidationField {
   name: string;
   type: string;

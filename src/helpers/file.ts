@@ -204,7 +204,6 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
   const files: string[] = dirRead(`${dirSource}/**/*.*`, {
     ignore: [`${dirSource}/**/Contents/**/*`],
   });
-  console.log('files', files);
   const filesMoved: string[] = [];
 
   // For each file, move to correct folder based on type

@@ -1,5 +1,7 @@
 import * as semver from 'semver';
 import { PackageInterface, PackageVersion, PackageVersions } from '../types/Package.js';
+import { PackageVersionValidator } from '../helpers/package.js';
+import { isValidSlug } from '../helpers/utils.js';
 
 export class Package {
   slug: string;
@@ -7,6 +9,7 @@ export class Package {
   versions: Map<string, PackageVersion>;
 
   constructor(slug: string, versions?: PackageVersions) {
+    if (!isValidSlug(slug)) console.error('Invalid package slug', slug);
     this.slug = slug;
     this.versions = versions ? new Map(Object.entries(versions)) : new Map();
     this.version = this.latestVersion();
@@ -14,6 +17,8 @@ export class Package {
 
   addVersion(version: string, details: PackageVersion) {
     if (this.versions.has(version)) return;
+    const validationError = PackageVersionValidator.safeParse(details).error;
+    if (validationError) return console.error('Invalid package version', validationError.issues);
     this.versions.set(version, details);
     this.version = this.latestVersion();
   }
