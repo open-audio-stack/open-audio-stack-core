@@ -7,11 +7,8 @@
 export * from './classes/Config.js';
 // export * from './classes/ConfigLocal.js';
 export * from './classes/Package.js';
-export * from './classes/PackageManager.js';
-export * from './classes/PluginManager.js';
-// export * from './classes/PluginManagerLocal.js';
-export * from './classes/PresetManager.js';
-export * from './classes/ProjectManager.js';
+export * from './classes/Manager.js';
+// export * from './classes/ManagerLocal.js';
 export * from './classes/Registry.js';
 
 // Helpers

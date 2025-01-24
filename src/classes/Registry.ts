@@ -1,4 +1,4 @@
-import { PackageManager } from './PackageManager.js';
+import { Manager } from './Manager.js';
 import { RegistryInterface, RegistryType } from '../types/Registry.js';
 
 export class Registry {
@@ -6,7 +6,7 @@ export class Registry {
   url: string;
   version: string;
 
-  private managers: Record<string, PackageManager>;
+  private managers: Record<string, Manager>;
 
   constructor(name: string, url: string, version: string) {
     this.name = name;
@@ -15,8 +15,8 @@ export class Registry {
     this.managers = {};
   }
 
-  addManager(type: RegistryType, manager: PackageManager) {
-    this.managers[type] = manager;
+  addManager(manager: Manager) {
+    this.managers[manager.type] = manager;
   }
 
   getManager(type: RegistryType) {
@@ -28,8 +28,8 @@ export class Registry {
   }
 
   async sync() {
-    for (const [type, manager] of Object.entries(this.managers)) {
-      await manager.sync(type as RegistryType);
+    for (const [, manager] of Object.entries(this.managers)) {
+      await manager.sync();
     }
   }
 

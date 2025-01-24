@@ -5,13 +5,32 @@ export enum PresetFormat {
   LADSPAVersion2 = 'lv2',
   NativeInstruments = 'nksf',
   RealTimeAudioSuite = 'rtas',
-  SoundFont2 = 'preset.sf2',
   SFZ = 'preset.sfz',
+  SoundFont2 = 'preset.sf2',
   TimeDivisionMultiplexing = 'tdm',
   VSTBank = 'fxb',
   VSTPreset = 'fxp',
   VST3 = 'vstpreset',
 }
+
+export type PresetFormatDir = {
+  [format in PresetFormat]: string;
+};
+
+export const presetFormatDir: PresetFormatDir = {
+  [PresetFormat.AudioUnits]: 'Components',
+  [PresetFormat.AvidAudioExtension]: 'Avid',
+  [PresetFormat.CleverAudioPlugin]: 'Clap',
+  [PresetFormat.LADSPAVersion2]: 'Lv2',
+  [PresetFormat.NativeInstruments]: 'Elf',
+  [PresetFormat.RealTimeAudioSuite]: 'Rta',
+  [PresetFormat.SFZ]: 'Sfz',
+  [PresetFormat.SoundFont2]: 'Sf2',
+  [PresetFormat.TimeDivisionMultiplexing]: 'Tdm',
+  [PresetFormat.VSTBank]: 'VSTBank',
+  [PresetFormat.VSTPreset]: 'VSTPreset',
+  [PresetFormat.VST3]: 'VST3',
+};
 
 export interface PresetFormatOption {
   description: string;

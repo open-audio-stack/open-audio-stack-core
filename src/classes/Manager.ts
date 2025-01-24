@@ -5,13 +5,15 @@ import { Package } from './Package.js';
 import { PackageVersion } from '../types/Package.js';
 import { RegistryInterface, RegistryPackages, RegistryType } from '../types/Registry.js';
 
-export abstract class PackageManager {
+export class Manager {
   protected config: Config;
   protected packages: Map<string, Package>;
+  type: RegistryType;
 
-  constructor(config?: ConfigInterface) {
+  constructor(type: RegistryType, config?: ConfigInterface) {
     this.config = new Config(config);
     this.packages = new Map();
+    this.type = type;
   }
 
   addPackage(pkg: Package) {
@@ -73,10 +75,11 @@ export abstract class PackageManager {
     return results;
   }
 
-  async sync(type: RegistryType) {
+  async sync() {
     const registries: ConfigRegistry[] = this.config.get('registries') as ConfigRegistry[];
     for (const index in registries) {
       const json: RegistryInterface = await apiJson(registries[index].url);
+      const type: RegistryType = this.type;
       for (const slug in json[type]) {
         const pkg = new Package(slug, json[type][slug].versions);
         this.addPackage(pkg);

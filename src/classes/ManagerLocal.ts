@@ -1,7 +1,7 @@
 import path from 'path';
 import { Package } from './Package.js';
 import { PackageVersion } from '../types/Package.js';
-import { PluginManager } from './PluginManager.js';
+import { Manager } from './Manager.js';
 import {
   archiveExtract,
   dirCreate,
@@ -18,10 +18,8 @@ import {
   isAdmin,
   runCliAsAdmin,
 } from '../helpers/file.js';
-import { getArchitecture, getSystem, isTests, pathGetSlug, pathGetVersion } from '../helpers/utils.js';
+import { isTests, pathGetSlug, pathGetVersion } from '../helpers/utils.js';
 import { PluginInterface } from '../types/Plugin.js';
-import { PresetInterface } from '../types/Preset.js';
-import { ProjectInterface } from '../types/Project.js';
 import { apiBuffer } from '../helpers/api.js';
 import { FileInterface } from '../types/File.js';
 import { FileType } from '../types/FileType.js';
@@ -29,31 +27,26 @@ import { RegistryType } from '../types/Registry.js';
 import { pluginFormatDir } from '../types/PluginFormat.js';
 import { ConfigInterface } from '../types/Config.js';
 import { ConfigLocal } from './ConfigLocal.js';
+import { packageCompatibleFiles } from '../helpers/package.js';
+import { PresetInterface } from '../types/Preset.js';
+import { ProjectInterface } from '../types/Project.js';
+import { presetFormatDir } from '../types/PresetFormat.js';
+import { projectFormatDir } from '../types/ProjectFormat.js';
 
-export class PluginManagerLocal extends PluginManager {
-  constructor(config: ConfigInterface) {
-    super(config);
+export class ManagerLocal extends Manager {
+  protected typeDir: string;
+
+  constructor(type: RegistryType, config: ConfigInterface) {
+    super(type, config);
     const configPath: string = path.join(config.appDir || '', 'config.json');
     this.config = new ConfigLocal(configPath, config);
-  }
-
-  getCompatibleFiles(pkg: PackageVersion) {
-    return pkg.files.filter((file: FileInterface) => {
-      const archMatches = file.architectures.filter(architecture => {
-        return architecture === getArchitecture();
-      });
-      const sysMatches = file.systems.filter(system => {
-        return system.type === getSystem();
-      });
-      return archMatches.length && sysMatches.length;
-    });
+    this.typeDir = this.config.get(`${type}Dir`) as string;
   }
 
   scan() {
-    const rootDir: string = this.config.get('pluginsDir') as string;
-    const filePaths: string[] = dirRead(`${rootDir}/**/index.json`);
+    const filePaths: string[] = dirRead(`${this.typeDir}/**/index.json`);
     filePaths.forEach((filePath: string) => {
-      const subPath: string = filePath.replace(`${rootDir}/`, '');
+      const subPath: string = filePath.replace(`${this.typeDir}/`, '');
       const pkgJson = fileReadJson(filePath) as PluginInterface | PresetInterface | ProjectInterface;
       pkgJson.installed = true;
       const pkg = new Package(pathGetSlug(subPath));
@@ -73,7 +66,7 @@ export class PluginManagerLocal extends PluginManager {
 
     // Elevate permissions if not running as admin.
     if (!isAdmin() && !isTests()) {
-      let command: string = `--operation install --type ${RegistryType.Plugins} --slug ${slug}`;
+      let command: string = `--operation install --type ${this.type} --slug ${slug}`;
       if (version) command += ` --ver ${version}`;
       await runCliAsAdmin(command);
       return this.getPackage(slug)?.getVersion(versionNum);
@@ -83,14 +76,14 @@ export class PluginManagerLocal extends PluginManager {
     const dirDownloads: string = path.join(
       this.config.get('appDir') as string,
       'downloads',
-      RegistryType.Plugins,
+      this.type,
       slug,
       versionNum,
     );
     dirCreate(dirDownloads);
 
     // Filter for compatible files and download.
-    const files: FileInterface[] = this.getCompatibleFiles(pkgVersion);
+    const files: FileInterface[] = packageCompatibleFiles(pkgVersion);
     if (!files.length) return console.error(`Error: No compatible files found for ${slug}`);
     for (const key in files) {
       // Download file to temporary directory if not already downloaded.
@@ -115,18 +108,16 @@ export class PluginManagerLocal extends PluginManager {
         const dirSource: string = path.join(
           this.config.get('appDir') as string,
           file.type,
-          RegistryType.Plugins,
+          this.type,
           slug,
           versionNum,
         );
         const dirSub: string = path.join(slug, versionNum);
+        let formatDir: Record<string, string> = pluginFormatDir;
+        if (this.type === RegistryType.Presets) formatDir = presetFormatDir;
+        if (this.type === RegistryType.Projects) formatDir = projectFormatDir;
         archiveExtract(filePath, dirSource);
-        const filesMoved: string[] = filesMove(
-          dirSource,
-          this.config.get('pluginsDir') as string,
-          dirSub,
-          pluginFormatDir,
-        );
+        const filesMoved: string[] = filesMove(dirSource, this.typeDir, dirSub, formatDir);
 
         // Output json metadata into every directory a file was added to.
         filesMoved.forEach((fileMoved: string) => {
@@ -150,28 +141,26 @@ export class PluginManagerLocal extends PluginManager {
 
     // Elevate permissions if not running as admin.
     if (!isAdmin() && !isTests()) {
-      let command: string = `--operation uninstall --type ${RegistryType.Plugins} --slug ${slug}`;
+      let command: string = `--operation uninstall --type ${this.type} --slug ${slug}`;
       if (version) command += ` --ver ${version}`;
       await runCliAsAdmin(command);
       return this.getPackage(slug)?.getVersion(versionNum);
     }
 
-    const pluginsDir: string = this.config.get('pluginsDir') as string;
-
     // Delete all directories for this package version.
-    const versionDirs: string[] = dirRead(`${pluginsDir}/**/${slug}/${versionNum}`);
+    const versionDirs: string[] = dirRead(`${this.typeDir}/**/${slug}/${versionNum}`);
     versionDirs.forEach((versionDir: string) => {
       dirDelete(versionDir);
     });
 
     // Delete all empty directories for this package.
-    const pkgDirs: string[] = dirRead(`${pluginsDir}/**/${slug}`);
+    const pkgDirs: string[] = dirRead(`${this.typeDir}/**/${slug}`);
     pkgDirs.forEach((pkgDir: string) => {
       if (dirEmpty(pkgDir)) dirDelete(pkgDir);
     });
 
     // Delete all empty directories for the org.
-    const orgDirs: string[] = dirRead(`${pluginsDir}/**/${slug.split('/')[0]}`);
+    const orgDirs: string[] = dirRead(`${this.typeDir}/**/${slug.split('/')[0]}`);
     orgDirs.forEach((orgDir: string) => {
       if (dirEmpty(orgDir)) dirDelete(orgDir);
     });
