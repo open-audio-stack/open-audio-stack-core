@@ -37,6 +37,9 @@ export const PRESET: PresetInterface = {
   url: 'https://presetshare.com/p763',
 };
 
+export const PRESET_INSTALLED: PresetInterface = structuredClone(PRESET);
+PRESET_INSTALLED.installed = true;
+
 export const PRESET_PACKAGE: PackageInterface = {
   slug: 'jh/floating-rhodes',
   version: '1.0.0',

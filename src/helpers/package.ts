@@ -1,6 +1,7 @@
 import * as semver from 'semver';
 import { z } from 'zod';
 import { Architecture } from '../types/Architecture.js';
+import { FileInterface } from '../types/File.js';
 import { FileFormat } from '../types/FileFormat.js';
 import { FileType } from '../types/FileType.js';
 import { License } from '../types/License.js';
@@ -12,6 +13,19 @@ import { ProjectFile } from '../types/Project.js';
 import { ProjectType } from '../types/ProjectType.js';
 import { SystemType } from '../types/SystemType.js';
 import { PackageInterface, PackageValidationRec, PackageVersion } from '../types/Package.js';
+import { getArchitecture, getSystem } from './utils.js';
+
+export function packageCompatibleFiles(pkg: PackageVersion) {
+  return pkg.files.filter((file: FileInterface) => {
+    const archMatches = file.architectures.filter(architecture => {
+      return architecture === getArchitecture();
+    });
+    const sysMatches = file.systems.filter(system => {
+      return system.type === getSystem();
+    });
+    return archMatches.length && sysMatches.length;
+  });
+}
 
 export function packageVersionLatest(pkg: PackageInterface) {
   return Array.from(Object.keys(pkg.versions)).sort(semver.rcompare)[0] || '0.0.0';

@@ -37,6 +37,9 @@ export const PROJECT: ProjectInterface = {
   url: 'https://soundcloud.com/kmt-london',
 };
 
+export const PROJECT_INSTALLED: ProjectInterface = structuredClone(PROJECT);
+PROJECT_INSTALLED.installed = true;
+
 export const PROJECT_PACKAGE: PackageInterface = {
   slug: 'kmt/banwer',
   version: '1.0.1',

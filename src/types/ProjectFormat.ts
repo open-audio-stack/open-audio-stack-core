@@ -13,6 +13,25 @@ export enum ProjectFormat {
   Sonar = 'cwp',
 }
 
+export type ProjectFormatDir = {
+  [format in ProjectFormat]: string;
+};
+
+export const projectFormatDir: ProjectFormatDir = {
+  [ProjectFormat.AbletonLive]: 'Ableton',
+  [ProjectFormat.Bitwig]: 'Bitwig',
+  [ProjectFormat.Cubase]: 'Cubase',
+  [ProjectFormat.DAWproject]: 'DAWproject',
+  [ProjectFormat.FLStudio]: 'FLStudio',
+  [ProjectFormat.Garageband]: 'Garageband',
+  [ProjectFormat.Lmms]: 'Lmms',
+  [ProjectFormat.Logic]: 'Logic',
+  [ProjectFormat.Musescore]: 'Musescore',
+  [ProjectFormat.ProTools]: 'ProTools',
+  [ProjectFormat.Reaper]: 'Reaper',
+  [ProjectFormat.Sonar]: 'Sonar',
+};
+
 export interface ProjectFormatOption {
   description: string;
   value: ProjectFormat;
