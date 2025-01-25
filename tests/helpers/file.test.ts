@@ -37,7 +37,7 @@ import {
 import { PackageInterface } from '../../src/types/Package.js';
 import { apiText } from '../../src/helpers/api.js';
 
-const DIR_APP_DATA: string = path.join(dirApp(), 'open-audio-stack');
+const DIR_APP: string = 'open-audio-stack';
 const DIR_PATH: string = path.join('test', 'new-directory');
 const DIR_PATH_GLOB: string = path.join('test', 'new-directory', '**', '*.txt');
 const DIR_RENAME: string = path.join('test', 'new-directory-renamed');
@@ -45,17 +45,12 @@ const FILE_PATH: string = path.join('test', 'new-directory', 'file.txt');
 
 test('Get directory app', () => {
   if (process.platform === 'win32') {
-    expect(dirApp()).toEqual(process.env.APPDATA || os.homedir());
+    expect(dirApp()).toEqual(process.env.APPDATA || path.join(os.homedir(), DIR_APP));
   } else if (process.platform === 'darwin') {
-    expect(dirApp()).toEqual(`${os.homedir()}/Library/Preferences`);
+    expect(dirApp()).toEqual(`${os.homedir()}/Library/Preferences/${DIR_APP}`);
   } else {
-    expect(dirApp()).toEqual(`${os.homedir()}/.local/share`);
+    expect(dirApp()).toEqual(`${os.homedir()}/.local/share/${DIR_APP}`);
   }
-});
-
-test('Directory contains', () => {
-  expect(dirContains(dirApp(), DIR_APP_DATA)).toEqual(true);
-  expect(dirContains(dirApp(), DIR_PATH)).toEqual(false);
 });
 
 test('Create new directory', () => {
@@ -64,6 +59,11 @@ test('Create new directory', () => {
 
 test('Create existing directory', () => {
   expect(dirCreate(DIR_PATH)).toEqual(false);
+});
+
+test('Directory contains', () => {
+  expect(dirContains('test', DIR_PATH)).toEqual(true);
+  expect(dirContains(dirApp(), DIR_PATH)).toEqual(false);
 });
 
 test('Directory is empty', () => {

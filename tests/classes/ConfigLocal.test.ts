@@ -1,6 +1,6 @@
 import path from 'path';
 import { beforeAll, expect, test } from 'vitest';
-import { CONFIG } from '../data/Config.js';
+import { CONFIG_LOCAL } from '../data/Config.js';
 import { ConfigLocal } from '../../src/classes/ConfigLocal.js';
 import { architectures, Architecture } from '../../src/types/Architecture.js';
 import { PluginFormat, pluginFormats } from '../../src/types/PluginFormat.js';
@@ -13,7 +13,7 @@ import { PresetType, presetTypes } from '../../src/types/PresetType.js';
 import { ProjectType, projectTypes } from '../../src/types/ProjectType.js';
 import { ProjectFormat, projectFormats } from '../../src/types/ProjectFormat.js';
 import { SystemType, systemTypes } from '../../src/types/SystemType.js';
-import { configDefaults } from '../../src/helpers/config.js';
+import { configDefaultsLocal } from '../../src/helpers/configLocal.js';
 
 const CONFIG_FILE_PATH = path.join('test', 'config.json');
 
@@ -23,14 +23,16 @@ beforeAll(() => {
 });
 
 test('Create new Config', () => {
-  const config: ConfigLocal = new ConfigLocal(CONFIG_FILE_PATH, configDefaults());
+  const config: ConfigLocal = new ConfigLocal(CONFIG_FILE_PATH, configDefaultsLocal());
   const config2: ConfigLocal = new ConfigLocal(CONFIG_FILE_PATH);
-  expect(config.getAll()).toEqual(CONFIG);
-  expect(config2.getAll()).toEqual(CONFIG);
+  expect(config.getAll()).toEqual(CONFIG_LOCAL);
+  expect(config2.getAll()).toEqual(CONFIG_LOCAL);
 });
 
 test('Set and get value', () => {
   const config: ConfigLocal = new ConfigLocal(CONFIG_FILE_PATH);
+  config.set('appDir', 'test');
+  expect(config.get('appDir')).toEqual('test');
   config.set('pluginsDir', 'test/plugins1');
   expect(config.get('pluginsDir')).toEqual('test/plugins1');
   config.set('pluginsDir', 'test/plugins');

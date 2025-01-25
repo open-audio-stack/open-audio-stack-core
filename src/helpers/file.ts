@@ -50,15 +50,14 @@ export async function archiveExtract(filePath: string, dirPath: string) {
   }
 }
 
-export function dirApp() {
-  if (getSystem() === SystemType.Windows) return process.env.APPDATA || os.homedir();
-  else if (getSystem() === SystemType.Macintosh) return path.join(os.homedir(), 'Library', 'Preferences');
-  return path.join(os.homedir(), '.local', 'share');
+export function dirApp(dirName = 'open-audio-stack') {
+  if (getSystem() === SystemType.Windows) return process.env.APPDATA || path.join(os.homedir(), dirName);
+  else if (getSystem() === SystemType.Macintosh) return path.join(os.homedir(), 'Library', 'Preferences', dirName);
+  return path.join(os.homedir(), '.local', 'share', dirName);
 }
 
-export function dirContains(dir: string, child: string): boolean {
-  const relative = path.relative(dir, child);
-  return relative && !relative.startsWith('..') && !path.isAbsolute(relative) ? true : false;
+export function dirContains(parentDir: string, childDir: string): boolean {
+  return path.normalize(childDir).startsWith(path.normalize(parentDir));
 }
 
 export function dirCreate(dir: string) {

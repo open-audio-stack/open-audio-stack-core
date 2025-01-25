@@ -2,12 +2,9 @@
 // npm run build && node ./build/helpers/admin.js --operation install --type plugins --id surge-synthesizer/surge
 // npm run build && node ./build/helpers/admin.js --operation uninstall --type plugins --id surge-synthesizer/surge
 
-import path from 'path';
 import { RegistryType } from '../types/Registry.js';
 import { ManagerLocal } from '../classes/ManagerLocal.js';
 import { dirApp } from './file.js';
-
-const appDir: string = path.join(dirApp(), 'open-audio-stack');
 
 export interface Arguments {
   operation: string;
@@ -27,7 +24,7 @@ export function adminArguments(): Arguments {
 
 export async function adminInit() {
   const argv: Arguments = adminArguments();
-  const manager = new ManagerLocal(argv.type, { appDir });
+  const manager = new ManagerLocal(argv.type, { appDir: dirApp() });
   manager.sync();
   if (argv.operation === 'install') {
     await manager.install(argv.id, argv.ver);

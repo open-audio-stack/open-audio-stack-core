@@ -15,6 +15,7 @@ export * from './classes/Registry.js';
 // export * from './helpers/admin.js'; // Admin is an independent script which should not be imported here.
 export * from './helpers/api.js';
 export * from './helpers/config.js';
+export * from './helpers/configLocal.js';
 export * from './helpers/file.js';
 export * from './helpers/package.js';
 export * from './helpers/registry.js';
