@@ -1,3 +1,26 @@
+<div align="center">
+<h1>
+  <img src="https://raw.githubusercontent.com/open-audio-stack/open-audio-stack-registry/refs/heads/main/src/assets/open-audio-stack-logo.svg" alt="Open Audio Stack Logo"><br />
+  Open Audio Stack
+</h1>
+<p>Audio registry specification and API with searchable list of packages</p>
+  <p>
+    <a href="https://github.com/open-audio-stack/open-audio-stack-core/wiki/Open-Audio-Stack-%E2%80%90-Registry-%E2%80%90-Specification-1.0.0">Registry Specification</a>
+    ⦁︎
+    <a href="https://open-audio-stack.github.io/open-audio-stack-registry">Registry API</a>
+    ⦁︎
+    <a href="https://github.com/orgs/open-audio-stack/projects">Roadmap</a>
+  </p>
+<p>
+
+![Test](https://github.com/open-audio-stack/open-audio-stack-core/workflows/Test/badge.svg)
+![Release](https://github.com/open-audio-stack/open-audio-stack-core/workflows/Release/badge.svg)
+<a href="https://discord.com/invite/9D94f98PxP" target="_blank"><img src="https://img.shields.io/badge/chat-on%20discord-7289DA.svg" alt="Join the chat at Discord"></a>
+
+![Open Audio Stack - Registry - Specification 1.0.0](https://raw.githubusercontent.com/open-audio-stack/open-audio-stack-registry/refs/heads/main/src/assets/open-audio-stack-diagram.svg)
+
+</div>
+
 # open-audio-stack-core
 
 ![Test](https://github.com/open-audio-stack/open-audio-stack-core/workflows/Test/badge.svg)
