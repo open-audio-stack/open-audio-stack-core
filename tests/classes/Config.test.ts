@@ -23,6 +23,8 @@ test('Create new Config', () => {
 
 test('Set and get value', () => {
   const config: Config = new Config();
+  config.set('appDir', 'test');
+  expect(config.get('appDir')).toEqual('test');
   config.set('pluginsDir', 'test/plugins1');
   expect(config.get('pluginsDir')).toEqual('test/plugins1');
   config.set('pluginsDir', 'test/plugins');
