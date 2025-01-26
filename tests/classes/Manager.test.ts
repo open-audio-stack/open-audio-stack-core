@@ -3,6 +3,9 @@ import { PLUGIN, PLUGIN_PACKAGE, PLUGIN_PACKAGE_EMPTY, PLUGIN_PACKAGE_MULTIPLE }
 import { Manager } from '../../src/classes/Manager';
 import { RegistryType } from '../../src/types/Registry';
 import { Package } from '../../src/classes/Package';
+import { License } from '../../src/types/License';
+import { SystemType } from '../../src/types/SystemType';
+import { Architecture } from '../../src/types/Architecture';
 
 test('Manager add multiple package versions', () => {
   const manager = new Manager(RegistryType.Plugins);
@@ -80,16 +83,57 @@ test('Manager filter packages', () => {
   const pkg = new Package(PLUGIN_PACKAGE.slug);
   pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
   manager.addPackage(pkg);
-  expect(manager.filter('Surge XT', 'name')).toEqual([pkg]);
-  expect(manager.filter('Surge X', 'name')).toEqual([]);
+
+  expect(manager.filter(pkgVersion => pkgVersion.name === 'Surge XT')).toEqual([pkg]);
+  expect(manager.filter(pkgVersion => pkgVersion.name === 'Surge X')).toEqual([]);
+
+  expect(manager.filter(pkgVersion => pkgVersion.license === License.GNUGeneralPublicLicensev3)).toEqual([pkg]);
+  expect(
+    manager.filter(pkgVersion => {
+      return (
+        pkgVersion.license === License.GNUGeneralPublicLicensev3 || pkgVersion.license === License.AcademicFreeLicensev3
+      );
+    }),
+  ).toEqual([pkg]);
+  expect(manager.filter(pkgVersion => pkgVersion.license === License.AcademicFreeLicensev3)).toEqual([]);
+
+  expect(
+    manager.filter(pkgVersion => {
+      const fileMatches = pkgVersion.files.filter(file => {
+        const archMatches = file.architectures.filter(architecture => {
+          return architecture === Architecture.X64;
+        });
+        const sysMatches = file.systems.filter(system => {
+          return system.type === SystemType.Linux;
+        });
+        return archMatches.length && sysMatches.length;
+      });
+      return fileMatches.length > 0;
+    }),
+  ).toEqual([pkg]);
+
+  expect(
+    manager.filter(pkgVersion => {
+      const fileMatches = pkgVersion.files.filter(file => {
+        const archMatches = file.architectures.filter(architecture => {
+          return architecture === Architecture.Arm32;
+        });
+        const sysMatches = file.systems.filter(system => {
+          return system.type === SystemType.Linux;
+        });
+        return archMatches.length && sysMatches.length;
+      });
+      return fileMatches.length > 0;
+    }),
+  ).toEqual([]);
 });
 
 test('Manager filter packages without versions', () => {
   const manager = new Manager(RegistryType.Plugins);
   const pkg = new Package(PLUGIN_PACKAGE.slug);
   manager.addPackage(pkg);
-  expect(manager.filter('Surge XT', 'name')).toEqual([]);
-  expect(manager.filter('Surge X', 'name')).toEqual([]);
+  expect(manager.filter({ name: ['Surge XT'] })).toEqual([]);
+  expect(manager.filter({ name: ['Surge X'] })).toEqual([]);
 });
 
 test('Manager search packages', () => {

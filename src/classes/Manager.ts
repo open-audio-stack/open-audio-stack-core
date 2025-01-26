@@ -27,12 +27,11 @@ export class Manager {
     }
   }
 
-  filter(query: string | number | object, field: keyof PackageVersion): Package[] {
+  filter(method: (pkgVersion: PackageVersion, pkg: Package) => boolean): Package[] {
     const results: Package[] = [];
     for (const [, pkg] of this.packages) {
       const pkgVersion: PackageVersion | undefined = pkg.getVersionLatest();
-      if (!pkgVersion) continue;
-      if (pkgVersion[field] === query) {
+      if (pkgVersion && method(pkgVersion, pkg)) {
         results.push(pkg);
       }
     }
