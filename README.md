@@ -32,9 +32,10 @@ High-level classes enable use without writing business-logic:
 - Config - Set and get common configuration types, formats, values, paths and urls.
 - ConfigLocal - All the Config functionality including ability to load and save configuration to a json file.
 - Manager - Search, filter and get packages from a registry.
-- ManagerLocal - Install/uninstall packages locally and scan directories for existing packages.
+- ManagerLocal - Scan directories for existing packages locally and install/uninstall packages.
 - Package - Create a new package to add to a registry.
 - Registry - Create an audio package registry with packages and files.
+- RegistryLocal - Scan directories for existing packages locally.
 
 Low-level methods/utilities for more custom/advanced implementations:
 

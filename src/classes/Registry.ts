@@ -6,7 +6,7 @@ export class Registry {
   url: string;
   version: string;
 
-  private managers: Record<string, Manager>;
+  protected managers: Record<string, Manager>;
 
   constructor(name: string, url: string, version: string) {
     this.name = name;

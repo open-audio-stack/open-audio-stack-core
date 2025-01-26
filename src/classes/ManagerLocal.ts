@@ -43,8 +43,8 @@ export class ManagerLocal extends Manager {
     this.typeDir = this.config.get(`${type}Dir`) as string;
   }
 
-  scan() {
-    const filePaths: string[] = dirRead(`${this.typeDir}/**/index.json`);
+  scan(ext = 'json') {
+    const filePaths: string[] = dirRead(`${this.typeDir}/**/index.${ext}`);
     filePaths.forEach((filePath: string) => {
       const subPath: string = filePath.replace(`${this.typeDir}/`, '');
       const pkgJson = fileReadJson(filePath) as PluginInterface | PresetInterface | ProjectInterface;
