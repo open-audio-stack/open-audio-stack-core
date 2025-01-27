@@ -6,6 +6,7 @@ import { Package } from '../../src/classes/Package';
 import { License } from '../../src/types/License';
 import { SystemType } from '../../src/types/SystemType';
 import { Architecture } from '../../src/types/Architecture';
+import { packageCompatibleFiles } from '../../src/helpers/package';
 
 test('Manager add multiple package versions', () => {
   const manager = new Manager(RegistryType.Plugins);
@@ -99,31 +100,13 @@ test('Manager filter packages', () => {
 
   expect(
     manager.filter(pkgVersion => {
-      const fileMatches = pkgVersion.files.filter(file => {
-        const archMatches = file.architectures.filter(architecture => {
-          return architecture === Architecture.X64;
-        });
-        const sysMatches = file.systems.filter(system => {
-          return system.type === SystemType.Linux;
-        });
-        return archMatches.length && sysMatches.length;
-      });
-      return fileMatches.length > 0;
+      return packageCompatibleFiles(pkgVersion, [Architecture.X64], [SystemType.Linux]).length > 0;
     }),
   ).toEqual([pkg]);
 
   expect(
     manager.filter(pkgVersion => {
-      const fileMatches = pkgVersion.files.filter(file => {
-        const archMatches = file.architectures.filter(architecture => {
-          return architecture === Architecture.Arm32;
-        });
-        const sysMatches = file.systems.filter(system => {
-          return system.type === SystemType.Linux;
-        });
-        return archMatches.length && sysMatches.length;
-      });
-      return fileMatches.length > 0;
+      return packageCompatibleFiles(pkgVersion, [Architecture.Arm32], [SystemType.Linux]).length > 0;
     }),
   ).toEqual([]);
 });
@@ -132,8 +115,8 @@ test('Manager filter packages without versions', () => {
   const manager = new Manager(RegistryType.Plugins);
   const pkg = new Package(PLUGIN_PACKAGE.slug);
   manager.addPackage(pkg);
-  expect(manager.filter({ name: ['Surge XT'] })).toEqual([]);
-  expect(manager.filter({ name: ['Surge X'] })).toEqual([]);
+  expect(manager.filter(pkgVersion => pkgVersion.name === 'Surge XT')).toEqual([]);
+  expect(manager.filter(pkgVersion => pkgVersion.name === 'Surge X')).toEqual([]);
 });
 
 test('Manager search packages', () => {

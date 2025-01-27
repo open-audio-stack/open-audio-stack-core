@@ -18,7 +18,8 @@ import {
   isAdmin,
   runCliAsAdmin,
 } from '../helpers/file.js';
-import { isTests, pathGetSlug, pathGetVersion } from '../helpers/utils.js';
+import { pathGetSlug, pathGetVersion } from '../helpers/utils.js';
+import { getArchitecture, getSystem, isTests } from '../helpers/utilsLocal.js';
 import { PluginInterface } from '../types/Plugin.js';
 import { apiBuffer } from '../helpers/api.js';
 import { FileInterface } from '../types/File.js';
@@ -83,7 +84,7 @@ export class ManagerLocal extends Manager {
     dirCreate(dirDownloads);
 
     // Filter for compatible files and download.
-    const files: FileInterface[] = packageCompatibleFiles(pkgVersion);
+    const files: FileInterface[] = packageCompatibleFiles(pkgVersion, [getArchitecture()], [getSystem()]);
     if (!files.length) return console.error(`Error: No compatible files found for ${slug}`);
     for (const key in files) {
       // Download file to temporary directory if not already downloaded.

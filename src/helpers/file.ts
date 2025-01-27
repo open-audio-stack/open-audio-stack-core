@@ -30,7 +30,8 @@ import { ZodIssue } from 'zod';
 import { SystemType } from '../types/SystemType.js';
 import { fileURLToPath } from 'url';
 import sudoPrompt from '@vscode/sudo-prompt';
-import { getSystem, log } from './utils.js';
+import { log } from './utils.js';
+import { getSystem } from './utilsLocal.js';
 
 export async function archiveExtract(filePath: string, dirPath: string) {
   console.log('⎋', dirPath);

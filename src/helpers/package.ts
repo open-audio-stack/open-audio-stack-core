@@ -13,15 +13,14 @@ import { ProjectFile } from '../types/Project.js';
 import { ProjectType } from '../types/ProjectType.js';
 import { SystemType } from '../types/SystemType.js';
 import { PackageInterface, PackageValidationRec, PackageVersion } from '../types/Package.js';
-import { getArchitecture, getSystem } from './utils.js';
 
-export function packageCompatibleFiles(pkg: PackageVersion) {
+export function packageCompatibleFiles(pkg: PackageVersion, arch: Architecture[], sys: SystemType[]) {
   return pkg.files.filter((file: FileInterface) => {
     const archMatches = file.architectures.filter(architecture => {
-      return architecture === getArchitecture();
+      return arch.includes(architecture);
     });
     const sysMatches = file.systems.filter(system => {
-      return system.type === getSystem();
+      return sys.includes(system.type);
     });
     return archMatches.length && sysMatches.length;
   });

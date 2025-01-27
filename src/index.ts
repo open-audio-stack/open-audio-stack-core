@@ -20,6 +20,7 @@ export * from './helpers/file.js';
 export * from './helpers/package.js';
 export * from './helpers/registry.js';
 export * from './helpers/utils.js';
+export * from './helpers/utilsLocal.js';
 
 // Types
 export * from './types/Architecture.js';

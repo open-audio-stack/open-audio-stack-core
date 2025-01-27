@@ -1,10 +1,7 @@
 import path from 'path';
 import { expect, test } from 'vitest';
 import {
-  getArchitecture,
-  getSystem,
   inputGetParts,
-  isTests,
   logDisable,
   logEnable,
   logReport,
@@ -26,38 +23,12 @@ const PLUGIN_FILENAME = 'surge.vst3';
 const PLUGIN_PATH = path.join(PLUGIN_ORG, PLUGIN_ID, PLUGIN_VERSION, 'surge.vst3');
 const PLUGIN_SLUG = `${PLUGIN_ORG}/${PLUGIN_ID}`;
 
-test('Get Architecture', () => {
-  if (process.arch === 'arm') {
-    expect(getArchitecture()).toEqual('arm32');
-  } else if (process.arch === 'arm64') {
-    expect(getArchitecture()).toEqual('arm64');
-  } else if (process.arch === 'ia32') {
-    expect(getArchitecture()).toEqual('x32');
-  } else {
-    expect(getArchitecture()).toEqual('x64');
-  }
-});
-
-test('Get System', () => {
-  if (process.platform === 'win32') {
-    expect(getSystem()).toEqual('win');
-  } else if (process.platform === 'darwin') {
-    expect(getSystem()).toEqual('mac');
-  } else {
-    expect(getSystem()).toEqual('linux');
-  }
-});
-
 test('Input get parts', () => {
   expect(inputGetParts(`${PLUGIN_ORG}/${PLUGIN_ID}`)).toEqual([`${PLUGIN_ORG}/${PLUGIN_ID}`]);
   expect(inputGetParts(`${PLUGIN_ORG}/${PLUGIN_ID}@${PLUGIN_VERSION}`)).toEqual([
     `${PLUGIN_ORG}/${PLUGIN_ID}`,
     PLUGIN_VERSION,
   ]);
-});
-
-test('Is tests', () => {
-  expect(isTests()).toEqual(true);
 });
 
 test('Log enabled', () => {
