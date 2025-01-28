@@ -11,6 +11,12 @@ import { PresetType, presetTypes } from '../types/PresetType.js';
 import { ProjectFormat, projectFormats } from '../types/ProjectFormat.js';
 import { ProjectType, projectTypes } from '../types/ProjectType.js';
 import { SystemType, systemTypes } from '../types/SystemType.js';
+import {
+  pluginCategoryEffects,
+  PluginCategoryEffect,
+  PluginCategoryInstrument,
+  pluginCategoryInstruments,
+} from '../types/PluginCategory.js';
 
 export class Config {
   config: ConfigInterface;
@@ -70,6 +76,24 @@ export class Config {
   }
 
   // Plugin formats and types.
+
+  pluginCategoryEffect(effect: PluginCategoryEffect) {
+    return pluginCategoryEffects.filter(pluginCategoryEffect => effect === pluginCategoryEffect.value)[0];
+  }
+
+  pluginCategoryEffects() {
+    return pluginCategoryEffects;
+  }
+
+  pluginCategoryInstrument(instrument: PluginCategoryInstrument) {
+    return pluginCategoryInstruments.filter(
+      pluginCategoryInstrument => instrument === pluginCategoryInstrument.value,
+    )[0];
+  }
+
+  pluginCategoryInstruments() {
+    return pluginCategoryInstruments;
+  }
 
   pluginFormat(format: PluginFormat) {
     return pluginFormats.filter(pluginFormat => format === pluginFormat.value)[0];

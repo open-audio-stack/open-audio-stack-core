@@ -13,6 +13,12 @@ import { ProjectType, projectTypes } from '../../src/types/ProjectType.js';
 import { ProjectFormat, projectFormats } from '../../src/types/ProjectFormat.js';
 import { SystemType, systemTypes } from '../../src/types/SystemType.js';
 import { configDefaults } from '../../src/helpers/config.js';
+import {
+  PluginCategoryEffect,
+  pluginCategoryEffects,
+  PluginCategoryInstrument,
+  pluginCategoryInstruments,
+} from '../../src/types/PluginCategory.js';
 
 test('Create new Config', () => {
   const config: Config = new Config(configDefaults());
@@ -71,6 +77,26 @@ test('Get license', () => {
 test('Get licenses', () => {
   const config: Config = new Config();
   expect(config.licenses()).toEqual(licenses);
+});
+
+test('Get plugin category effect', () => {
+  const config: Config = new Config();
+  expect(config.pluginCategoryEffect(PluginCategoryEffect.Compression)).toEqual(pluginCategoryEffects[1]);
+});
+
+test('Get plugin category effects', () => {
+  const config: Config = new Config();
+  expect(config.pluginCategoryEffects()).toEqual(pluginCategoryEffects);
+});
+
+test('Get plugin category instrument', () => {
+  const config: Config = new Config();
+  expect(config.pluginCategoryInstrument(PluginCategoryInstrument.Guitar)).toEqual(pluginCategoryInstruments[1]);
+});
+
+test('Get plugin category instruments', () => {
+  const config: Config = new Config();
+  expect(config.pluginCategoryInstruments()).toEqual(pluginCategoryInstruments);
 });
 
 test('Get plugin format', () => {
