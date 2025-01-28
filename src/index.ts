@@ -31,6 +31,7 @@ export * from './types/FileType.js';
 export * from './types/License.js';
 export * from './types/Package.js';
 export * from './types/Plugin.js';
+export * from './types/PluginCategory.js';
 export * from './types/PluginFormat.js';
 export * from './types/PluginType.js';
 export * from './types/Preset.js';
