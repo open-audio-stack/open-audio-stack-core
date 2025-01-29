@@ -9,8 +9,8 @@ export function getArchitecture() {
 }
 
 export function getSystem() {
-  if (process.platform === 'win32') return SystemType.Windows;
-  else if (process.platform === 'darwin') return SystemType.Macintosh;
+  if (process.platform === 'win32') return SystemType.Win;
+  else if (process.platform === 'darwin') return SystemType.Mac;
   return SystemType.Linux;
 }
 

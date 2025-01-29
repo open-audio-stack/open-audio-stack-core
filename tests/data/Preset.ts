@@ -20,7 +20,7 @@ export const PRESET: PresetInterface = {
       contains: [PresetFormat.VSTPreset],
       format: FileFormat.Zip,
       sha256: 'ddc328295ca5a25303a42c45b184f99b7e923bbcbb92b8061e33191f79f19ad9',
-      systems: [{ type: SystemType.Linux }, { type: SystemType.Macintosh }, { type: SystemType.Windows }],
+      systems: [{ type: SystemType.Linux }, { type: SystemType.Mac }, { type: SystemType.Win }],
       size: 3773,
       type: FileType.Archive,
       url: 'https://open-audio-stack.github.io/open-audio-stack-registry/presets/jh/floating-rhodes/1.0.0/floating-rhodes.zip',

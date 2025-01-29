@@ -20,7 +20,7 @@ export const PROJECT: ProjectInterface = {
       contains: [ProjectFormat.AbletonLive],
       format: FileFormat.Zip,
       sha256: '77e2d542235889b027f2ecbe66b753978a5232fabac9c97151a86173048e2eaf',
-      systems: [{ type: SystemType.Linux }, { type: SystemType.Macintosh }, { type: SystemType.Windows }],
+      systems: [{ type: SystemType.Linux }, { type: SystemType.Mac }, { type: SystemType.Win }],
       size: 216863,
       type: FileType.Archive,
       url: 'https://open-audio-stack.github.io/open-audio-stack-registry/projects/kmt/banwer/1.0.1/banwer.zip',

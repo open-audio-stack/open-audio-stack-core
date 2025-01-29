@@ -1,7 +1,7 @@
 export enum SystemType {
-  Macintosh = 'mac',
+  Mac = 'mac',
   Linux = 'linux',
-  Windows = 'win',
+  Win = 'win',
 }
 
 export interface SystemTypeOption {
@@ -18,12 +18,12 @@ export const systemTypes: SystemTypeOption[] = [
   },
   {
     description: 'Operating system designed and sold by Apple, and is known for its ease of use.',
-    value: SystemType.Macintosh,
-    name: 'Macintosh',
+    value: SystemType.Mac,
+    name: 'Mac',
   },
   {
     description: 'Most popular home operating system, preloaded on most new personal computers.',
-    value: SystemType.Windows,
+    value: SystemType.Win,
     name: 'Windows',
   },
 ];

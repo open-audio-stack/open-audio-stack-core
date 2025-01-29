@@ -52,8 +52,8 @@ export async function archiveExtract(filePath: string, dirPath: string) {
 }
 
 export function dirApp(dirName = 'open-audio-stack') {
-  if (getSystem() === SystemType.Windows) return process.env.APPDATA || path.join(os.homedir(), dirName);
-  else if (getSystem() === SystemType.Macintosh) return path.join(os.homedir(), 'Library', 'Preferences', dirName);
+  if (getSystem() === SystemType.Win) return process.env.APPDATA || path.join(os.homedir(), dirName);
+  else if (getSystem() === SystemType.Mac) return path.join(os.homedir(), 'Library', 'Preferences', dirName);
   return path.join(os.homedir(), '.local', 'share', dirName);
 }
 
@@ -103,8 +103,8 @@ export function dirMove(dir: string, dirNew: string): void | boolean {
 export function dirOpen(dir: string) {
   let command: string = '';
   if (process.env.CI) return Buffer.from('');
-  if (getSystem() === SystemType.Windows) command = 'start ""';
-  else if (getSystem() === SystemType.Macintosh) command = 'open';
+  if (getSystem() === SystemType.Win) command = 'start ""';
+  else if (getSystem() === SystemType.Mac) command = 'open';
   else command = 'xdg-open';
   console.log('⎋', `${command} "${dir}"`);
   return execSync(`${command} "${dir}"`);
@@ -117,22 +117,22 @@ export function dirPackage(pkg: PackageInterface) {
 }
 
 export function dirPlugins() {
-  if (getSystem() === SystemType.Windows) return path.join('Program Files', 'Common Files');
-  else if (getSystem() === SystemType.Macintosh) return path.join(os.homedir(), 'Library', 'Audio', 'Plug-ins');
+  if (getSystem() === SystemType.Win) return path.join('Program Files', 'Common Files');
+  else if (getSystem() === SystemType.Mac) return path.join(os.homedir(), 'Library', 'Audio', 'Plug-ins');
   return path.join('usr', 'local', 'lib');
 }
 
 export function dirPresets() {
-  if (getSystem() === SystemType.Windows) return path.join(os.homedir(), 'Documents', 'VST3 Presets');
-  else if (getSystem() === SystemType.Macintosh) return path.join(os.homedir(), 'Library', 'Audio', 'Presets');
+  if (getSystem() === SystemType.Win) return path.join(os.homedir(), 'Documents', 'VST3 Presets');
+  else if (getSystem() === SystemType.Mac) return path.join(os.homedir(), 'Library', 'Audio', 'Presets');
   return path.join(os.homedir(), '.vst3', 'presets');
 }
 
 export function dirProjects() {
   // Windows throws permissions errors if you scan hidden folders
   // Therefore set to a more specific path than Documents
-  if (getSystem() === SystemType.Windows) return path.join(os.homedir(), 'Documents', 'Audio');
-  else if (getSystem() === SystemType.Macintosh) return path.join(os.homedir(), 'Documents', 'Audio');
+  if (getSystem() === SystemType.Win) return path.join(os.homedir(), 'Documents', 'Audio');
+  else if (getSystem() === SystemType.Mac) return path.join(os.homedir(), 'Documents', 'Audio');
   return path.join(os.homedir(), 'Documents', 'Audio');
 }
 
@@ -140,7 +140,7 @@ export function dirRead(dir: string, options?: any): string[] {
   console.log('⌕', dir);
   // Glob now expects forward slashes on Windows
   // Convert backslashes from path.join() to forwardslashes
-  if (getSystem() === SystemType.Windows) {
+  if (getSystem() === SystemType.Win) {
     dir = dir.replace(/\\/g, '/');
   }
   return globSync(dir, options);
@@ -224,8 +224,8 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
 export function fileOpen(filePath: string) {
   let command: string = '';
   if (process.env.CI) return Buffer.from('');
-  if (getSystem() === SystemType.Windows) command = 'open';
-  else if (getSystem() === SystemType.Macintosh) command = 'start ""';
+  if (getSystem() === SystemType.Win) command = 'open';
+  else if (getSystem() === SystemType.Mac) command = 'start ""';
   else command = 'xdg-open';
   console.log('⎋', `${command} "${filePath}"`);
   return execSync(`${command} "${filePath}"`);
@@ -296,8 +296,8 @@ export async function fileValidateMetadata(filePath: string, fileMetadata: Plugi
 }
 
 export function getPlatform() {
-  if (getSystem() === SystemType.Windows) return SystemType.Windows;
-  else if (getSystem() === SystemType.Macintosh) return SystemType.Macintosh;
+  if (getSystem() === SystemType.Win) return SystemType.Win;
+  else if (getSystem() === SystemType.Mac) return SystemType.Mac;
   return SystemType.Linux;
 }
 
