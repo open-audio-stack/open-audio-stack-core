@@ -101,6 +101,25 @@ export function packageRecommendations(pkgVersion: PackageVersion) {
     });
     supportedFileFormats[file.format] = true;
     packageRecommendationsUrl(file, recs, 'url');
+
+    // Formats which do not support headless installation.
+    if (file.format === FileFormat.AppImage)
+      recs.push({ field: 'format', rec: 'requires manual installation steps, consider .deb and .rpm instead' });
+    if (file.format === FileFormat.AppleDiskImage)
+      recs.push({ field: 'format', rec: 'requires mounting step, consider .pkg instead' });
+    if (!file.url.includes(file.format)) recs.push({ field: 'format', rec: 'should match url field' });
+
+    // Validate format is a supported installer format
+    const installerFormats: FileFormat[] = [
+      FileFormat.AppleDiskImage,
+      FileFormat.ApplePackage,
+      FileFormat.DebianPackage,
+      FileFormat.ExecutableInstaller,
+      FileFormat.RedHatPackage,
+      FileFormat.WindowsInstaller,
+    ];
+    if (file.type === FileType.Installer && !installerFormats.includes(file.format))
+      recs.push({ field: 'type', rec: 'should match format field' });
   });
 
   // Architectures
@@ -111,18 +130,6 @@ export function packageRecommendations(pkgVersion: PackageVersion) {
   if (!supportedSystems.linux) recs.push({ field: 'systems', rec: 'should support Linux' });
   if (!supportedSystems.mac) recs.push({ field: 'systems', rec: 'should support Mac' });
   if (!supportedSystems.win) recs.push({ field: 'systems', rec: 'should support Windows' });
-
-  // Formats
-  if (supportedFileFormats.deb)
-    recs.push({
-      field: 'format',
-      rec: 'should support all Linux distributions, consider using AppImage or Tarball instead',
-    });
-  if (supportedFileFormats.rpm)
-    recs.push({
-      field: 'format',
-      rec: 'should support all Linux distributions, consider using AppImage or Tarball instead',
-    });
 
   // Tags
   const pluginTags: string[] = pkgVersion.tags.map(tag => tag.trim().toLowerCase());

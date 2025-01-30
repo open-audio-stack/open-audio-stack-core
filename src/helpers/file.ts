@@ -224,8 +224,8 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
 export function fileOpen(filePath: string) {
   let command: string = '';
   if (process.env.CI) return Buffer.from('');
-  if (getSystem() === SystemType.Win) command = 'open';
-  else if (getSystem() === SystemType.Mac) command = 'start ""';
+  if (getSystem() === SystemType.Win) command = 'start ""';
+  else if (getSystem() === SystemType.Mac) command = 'open';
   else command = 'xdg-open';
   console.log('⎋', `${command} "${filePath}"`);
   return execSync(`${command} "${filePath}"`);

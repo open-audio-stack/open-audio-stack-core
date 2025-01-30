@@ -3,12 +3,17 @@ import { packageRecommendations, packageVersionLatest, PackageVersionValidator }
 import { PLUGIN, PLUGIN_PACKAGE_MULTIPLE } from '../data/Plugin';
 import { PackageVersion } from '../../src/types/Package';
 
-test('Package recommendations pass', () => {
+test('Package version latest', () => {
   expect(packageVersionLatest(PLUGIN_PACKAGE_MULTIPLE)).toEqual('1.3.2');
 });
 
 test('Package recommendations pass', () => {
-  expect(packageRecommendations(PLUGIN)).toEqual([]);
+  expect(packageRecommendations(PLUGIN)).toEqual([
+    {
+      field: 'format',
+      rec: 'requires mounting step, consider .pkg instead',
+    },
+  ]);
 });
 
 test('Package recommendations fail', () => {
@@ -18,6 +23,10 @@ test('Package recommendations fail', () => {
     {
       field: 'url',
       rec: 'should use https url',
+    },
+    {
+      field: 'format',
+      rec: 'requires mounting step, consider .pkg instead',
     },
   ]);
 });

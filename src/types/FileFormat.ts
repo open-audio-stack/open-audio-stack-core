@@ -1,15 +1,19 @@
+// File formats have different advantages for users
+// but some do not support headless automated installation
+// which is required for a fully automated package manager.
+
 export enum FileFormat {
-  AppImage = 'appimage',
-  AppleDiskImage = 'dmg',
-  ApplePackage = 'pkg',
-  DebianPackage = 'deb',
-  ExecutableInstaller = 'exe',
-  RedHatPackage = 'rpm',
-  Tarball = 'tar.gz',
-  TarballLegacy = 'tgz',
-  WindowsInstaller = 'msi',
-  Zip = 'zip',
-  Zip7 = '7z',
+  AppImage = 'appimage', // No headless automatic installation, avoid using
+  AppleDiskImage = 'dmg', // Has to be mounted to access installer inside
+  ApplePackage = 'pkg', // Installer
+  DebianPackage = 'deb', // Installer
+  ExecutableInstaller = 'exe', // Installer
+  RedHatPackage = 'rpm', // Installer
+  Tarball = 'tar.gz', // Archive
+  TarballLegacy = 'tgz', // Archive
+  WindowsInstaller = 'msi', // Installer
+  Zip = 'zip', // Archive
+  Zip7 = '7z', // Archive
 }
 
 export interface FileFormatOption {
