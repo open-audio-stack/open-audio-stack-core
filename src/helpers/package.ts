@@ -12,9 +12,14 @@ import { PresetType } from '../types/PresetType.js';
 import { ProjectFile } from '../types/Project.js';
 import { ProjectType } from '../types/ProjectType.js';
 import { SystemType } from '../types/SystemType.js';
-import { PackageInterface, PackageValidationRec, PackageVersion } from '../types/Package.js';
+import { PackageFileMap, PackageInterface, PackageValidationRec, PackageVersion } from '../types/Package.js';
 
-export function packageCompatibleFiles(pkg: PackageVersion, arch: Architecture[], sys: SystemType[]) {
+export function packageCompatibleFiles(
+  pkg: PackageVersion,
+  arch: Architecture[],
+  sys: SystemType[],
+  excludedFormats?: FileFormat[],
+) {
   return pkg.files.filter((file: FileInterface) => {
     const archMatches = file.architectures.filter(architecture => {
       return arch.includes(architecture);
@@ -22,8 +27,21 @@ export function packageCompatibleFiles(pkg: PackageVersion, arch: Architecture[]
     const sysMatches = file.systems.filter(system => {
       return sys.includes(system.type);
     });
-    return archMatches.length && sysMatches.length;
+    const formatAllowed = excludedFormats && excludedFormats.includes(file.format) ? false : true;
+    return archMatches.length && sysMatches.length && formatAllowed;
   });
+}
+
+export function packageFileMap(pkgVersion: PackageVersion) {
+  return pkgVersion.files.reduce((result: PackageFileMap, file) => {
+    file.systems.forEach(system => {
+      if (!result[system.type]) {
+        result[system.type] = [];
+      }
+      (result as any)[system.type].push(file);
+    });
+    return result;
+  }, {});
 }
 
 export function packageVersionLatest(pkg: PackageInterface) {

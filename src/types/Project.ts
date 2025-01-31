@@ -13,6 +13,10 @@ export interface ProjectFile extends FileInterface {
   contains: ProjectFormat[];
 }
 
+export interface ProjectFileMap {
+  [key: string]: ProjectFile[];
+}
+
 export interface ProjectPlugins {
   [slug: string]: string;
 }

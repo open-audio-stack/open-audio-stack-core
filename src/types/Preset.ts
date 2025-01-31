@@ -13,6 +13,10 @@ export interface PresetFile extends FileInterface {
   contains: PresetFormat[];
 }
 
+export interface PresetFileMap {
+  [key: string]: PresetFile[];
+}
+
 export interface PresetPlugins {
   [slug: string]: string;
 }

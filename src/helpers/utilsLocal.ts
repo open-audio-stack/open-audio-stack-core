@@ -1,3 +1,4 @@
+import { exec } from 'child_process';
 import { SystemType } from '../types/SystemType.js';
 import { Architecture } from '../types/Architecture.js';
 
@@ -18,4 +19,12 @@ export function isTests() {
   const jest: boolean = process.env.JEST_WORKER_ID !== undefined;
   const vitest: boolean = process.env.VITEST_WORKER_ID !== undefined;
   return jest || vitest;
+}
+
+export function commandExists(cmd: string): Promise<boolean> {
+  return new Promise(resolve => {
+    exec(`command -v ${cmd}`, (error, stdout) => {
+      resolve(Boolean(stdout.trim()) && !error);
+    });
+  });
 }

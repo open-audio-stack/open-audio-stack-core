@@ -11,3 +11,7 @@ export interface PluginInterface extends PackageBase {
 export interface PluginFile extends FileInterface {
   contains: PluginFormat[];
 }
+
+export interface PluginFileMap {
+  [key: string]: PluginFile[];
+}

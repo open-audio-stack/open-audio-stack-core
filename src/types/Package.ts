@@ -1,6 +1,6 @@
-import { PluginInterface } from './Plugin.js';
-import { PresetInterface } from './Preset.js';
-import { ProjectInterface } from './Project.js';
+import { PluginFile, PluginFileMap, PluginInterface } from './Plugin.js';
+import { PresetFile, PresetFileMap, PresetInterface } from './Preset.js';
+import { ProjectFile, ProjectFileMap, ProjectInterface } from './Project.js';
 import { License } from './License.js';
 
 export interface PackageInterface {
@@ -28,6 +28,8 @@ export interface PackageBase {
 }
 
 export type PackageVersion = PluginInterface | PresetInterface | ProjectInterface;
+export type PackageFile = PluginFile | PresetFile | ProjectFile;
+export type PackageFileMap = PluginFileMap | PresetFileMap | ProjectFileMap;
 
 export interface PackageValidationField {
   name: string;

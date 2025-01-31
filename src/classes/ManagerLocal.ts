@@ -19,7 +19,7 @@ import {
   runCliAsAdmin,
 } from '../helpers/file.js';
 import { pathGetSlug, pathGetVersion } from '../helpers/utils.js';
-import { getArchitecture, getSystem, isTests } from '../helpers/utilsLocal.js';
+import { commandExists, getArchitecture, getSystem, isTests } from '../helpers/utilsLocal.js';
 import { PluginInterface } from '../types/Plugin.js';
 import { apiBuffer } from '../helpers/api.js';
 import { FileInterface } from '../types/File.js';
@@ -33,6 +33,7 @@ import { PresetInterface } from '../types/Preset.js';
 import { ProjectInterface } from '../types/Project.js';
 import { presetFormatDir } from '../types/PresetFormat.js';
 import { projectFormatDir } from '../types/ProjectFormat.js';
+import { FileFormat, SystemType } from '../index-browser.js';
 
 export class ManagerLocal extends Manager {
   protected typeDir: string;
@@ -83,8 +84,20 @@ export class ManagerLocal extends Manager {
     );
     dirCreate(dirDownloads);
 
+    // Not all Linux distributions support all file formats.
+    const excludedFormats: FileFormat[] = [];
+    const system = getSystem();
+    if (system === SystemType.Linux) {
+      if (!(await commandExists('dpkg'))) excludedFormats.push(FileFormat.DebianPackage);
+      if (!(await commandExists('rpm'))) excludedFormats.push(FileFormat.RedHatPackage);
+    }
     // Filter for compatible files and download.
-    const files: FileInterface[] = packageCompatibleFiles(pkgVersion, [getArchitecture()], [getSystem()]);
+    const files: FileInterface[] = packageCompatibleFiles(
+      pkgVersion,
+      [getArchitecture()],
+      [getSystem()],
+      excludedFormats,
+    );
     if (!files.length) return console.error(`Error: No compatible files found for ${slug}`);
     for (const key in files) {
       // Download file to temporary directory if not already downloaded.
