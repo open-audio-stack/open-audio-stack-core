@@ -41,6 +41,11 @@ test('Set and get value', () => {
   config.set('projectsDir', 'test/projects');
 });
 
+test('Config export', () => {
+  const config: ConfigLocal = new ConfigLocal(CONFIG_FILE_PATH);
+  expect(config.export('test/export/config')).toEqual(true);
+});
+
 test('Get architecture', () => {
   const config: ConfigLocal = new ConfigLocal(CONFIG_FILE_PATH);
   expect(config.architecture(Architecture.X32)).toEqual(architectures[2]);
