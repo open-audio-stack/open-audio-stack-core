@@ -6,10 +6,11 @@
 // Classes
 export * from './classes/Config.js';
 // export * from './classes/ConfigLocal.js';
-export * from './classes/Package.js';
 export * from './classes/Manager.js';
 // export * from './classes/ManagerLocal.js';
+export * from './classes/Package.js';
 export * from './classes/Registry.js';
+// export * from './classes/RegistryLocal.js';
 
 // Helpers
 // export * from './helpers/admin.js'; // Admin is an independent script which should not be imported here.
