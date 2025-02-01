@@ -17,7 +17,7 @@
 ![Release](https://github.com/open-audio-stack/open-audio-stack-core/workflows/Release/badge.svg)
 <a href="https://discord.com/invite/9D94f98PxP" target="_blank"><img src="https://img.shields.io/badge/chat-on%20discord-7289DA.svg" alt="Join the chat at Discord"></a>
 
-![Open Audio Stack - Registry - Specification 1.0.0](https://raw.githubusercontent.com/open-audio-stack/open-audio-stack-registry/refs/heads/main/src/assets/open-audio-stack-diagram.svg)
+![Open Audio Stack - Manager - Specification 1.0.0](https://raw.githubusercontent.com/open-audio-stack/open-audio-stack-registry/refs/heads/main/src/assets/open-audio-stack-diagram-manager.svg)
 
 </div>
 
