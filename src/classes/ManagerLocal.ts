@@ -14,13 +14,13 @@ import {
   fileHash,
   fileOpen,
   fileReadJson,
+  fileReadYaml,
   filesMove,
   isAdmin,
   runCliAsAdmin,
 } from '../helpers/file.js';
 import { pathGetSlug, pathGetVersion } from '../helpers/utils.js';
 import { commandExists, getArchitecture, getSystem, isTests } from '../helpers/utilsLocal.js';
-import { PluginInterface } from '../types/Plugin.js';
 import { apiBuffer } from '../helpers/api.js';
 import { FileInterface } from '../types/File.js';
 import { FileType } from '../types/FileType.js';
@@ -29,8 +29,6 @@ import { pluginFormatDir } from '../types/PluginFormat.js';
 import { ConfigInterface } from '../types/Config.js';
 import { ConfigLocal } from './ConfigLocal.js';
 import { packageCompatibleFiles } from '../helpers/package.js';
-import { PresetInterface } from '../types/Preset.js';
-import { ProjectInterface } from '../types/Project.js';
 import { presetFormatDir } from '../types/PresetFormat.js';
 import { projectFormatDir } from '../types/ProjectFormat.js';
 import { FileFormat, SystemType } from '../index-browser.js';
@@ -49,7 +47,8 @@ export class ManagerLocal extends Manager {
     const filePaths: string[] = dirRead(`${this.typeDir}/**/index.${ext}`);
     filePaths.forEach((filePath: string) => {
       const subPath: string = filePath.replace(`${this.typeDir}/`, '');
-      const pkgJson = fileReadJson(filePath) as PluginInterface | PresetInterface | ProjectInterface;
+      const pkgJson =
+        ext === 'yaml' ? (fileReadYaml(filePath) as PackageVersion) : (fileReadJson(filePath) as PackageVersion);
       pkgJson.installed = true;
       const pkg = new Package(pathGetSlug(subPath));
       pkg.addVersion(pathGetVersion(subPath), pkgJson);
