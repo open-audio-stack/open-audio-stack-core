@@ -10,6 +10,7 @@ import {
   dirRead,
   fileCreate,
   fileCreateJson,
+  fileCreateYaml,
   fileExists,
   fileHash,
   fileOpen,
@@ -51,9 +52,36 @@ export class ManagerLocal extends Manager {
         ext === 'yaml' ? (fileReadYaml(filePath) as PackageVersion) : (fileReadJson(filePath) as PackageVersion);
       pkgJson.installed = true;
       const pkg = new Package(pathGetSlug(subPath));
-      pkg.addVersion(pathGetVersion(subPath), pkgJson);
+      const version = pathGetVersion(subPath);
+      pkg.addVersion(version, pkgJson);
       this.addPackage(pkg);
     });
+  }
+
+  export(dir: string, ext = 'json') {
+    const packagesByOrg: any = {};
+    const filename: string = `index.${ext}`;
+    const saveFile = ext === 'yaml' ? fileCreateYaml : fileCreateJson;
+    for (const [pkgSlug, pkg] of this.packages) {
+      for (const [version, pkgVersion] of pkg.versions) {
+        dirCreate(path.join(dir, pkgSlug, version));
+        saveFile(path.join(dir, pkgSlug, version, filename), pkgVersion);
+      }
+      saveFile(path.join(dir, pkgSlug, filename), pkg.toJSON());
+
+      // TODO find a more elegant way to handle org exports.
+      const pkgOrg: string = pkgSlug.split('/')[0];
+      if (!packagesByOrg[pkgOrg]) packagesByOrg[pkgOrg] = {};
+      packagesByOrg[pkgOrg][pkgSlug] = pkg.toJSON();
+    }
+    for (const orgId in packagesByOrg) {
+      dirCreate(path.join(dir, orgId));
+      saveFile(path.join(dir, orgId, filename), packagesByOrg[orgId]);
+    }
+    dirCreate(dir);
+    saveFile(path.join(dir, filename), this.toJSON());
+    saveFile(path.join(dir, `report.${ext}`), this.getReport());
+    return true;
   }
 
   async install(slug: string, version?: string) {

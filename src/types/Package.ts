@@ -2,6 +2,7 @@ import { PluginFile, PluginFileMap, PluginInterface } from './Plugin.js';
 import { PresetFile, PresetFileMap, PresetInterface } from './Preset.js';
 import { ProjectFile, ProjectFileMap, ProjectInterface } from './Project.js';
 import { License } from './License.js';
+import { ZodIssue } from 'zod';
 
 export interface PackageInterface {
   slug: string;
@@ -25,6 +26,11 @@ export interface PackageBase {
   name: string;
   tags: string[];
   url: string;
+}
+
+export interface PackageReport {
+  errors?: ZodIssue[];
+  recs?: PackageValidationRec[];
 }
 
 export type PackageVersion = PluginInterface | PresetInterface | ProjectInterface;

@@ -148,7 +148,7 @@ test('Sync managers', async () => {
   expect(registry.toJSON()).toBeDefined();
 });
 
-test('Scan managers', async () => {
+test('Registry scan', async () => {
   // Plugin
   const pkgPlugin = new Package(PLUGIN_PACKAGE.slug);
   pkgPlugin.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
@@ -166,8 +166,17 @@ test('Scan managers', async () => {
   pkgProject.addVersion(PROJECT_PACKAGE.version, PROJECT);
   projectManager.addPackage(pkgProject);
   // Sync managers
-  await registry.scan();
+  registry.scan();
   expect(registry.toJSON()).toBeDefined();
+});
+
+test('Registry export', async () => {
+  const presetManager = new ManagerLocal(RegistryType.Presets, CONFIG);
+  registry.addManager(presetManager);
+  const projectManager = new ManagerLocal(RegistryType.Projects, CONFIG);
+  registry.addManager(projectManager);
+  await registry.sync();
+  expect(registry.export(`test/export`)).toEqual(true);
 });
 
 test('Get registry name', () => {

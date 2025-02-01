@@ -162,6 +162,10 @@ export function fileCreateJson(filePath: string, data: object): void {
   return fileCreate(filePath, JSON.stringify(data, null, 2));
 }
 
+export function fileCreateYaml(filePath: string, data: object): void {
+  return fileCreate(filePath, yaml.dump(data));
+}
+
 export function fileDate(filePath: string): Date {
   return statSync(filePath).mtime;
 }

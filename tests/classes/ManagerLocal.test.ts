@@ -27,6 +27,12 @@ test('Manager Local scan local directory', () => {
   expect(manager.toJSON()).toEqual({});
 });
 
+test('Manager Local export', async () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  await manager.sync();
+  expect(manager.export(`test/export/${RegistryType.Plugins}`)).toEqual(true);
+});
+
 test('Plugin sync, install, rescan, uninstall', async () => {
   const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
   await manager.sync();

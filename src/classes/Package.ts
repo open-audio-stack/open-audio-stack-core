@@ -1,15 +1,17 @@
 import * as semver from 'semver';
-import { PackageInterface, PackageVersion, PackageVersions } from '../types/Package.js';
-import { PackageVersionValidator } from '../helpers/package.js';
+import { PackageReport, PackageVersion, PackageVersions } from '../types/Package.js';
+import { packageErrors, packageRecommendations } from '../helpers/package.js';
 import { isValidSlug } from '../helpers/utils.js';
 
 export class Package {
+  reports: Map<string, PackageReport>;
   slug: string;
   version: string;
   versions: Map<string, PackageVersion>;
 
   constructor(slug: string, versions?: PackageVersions) {
     if (!isValidSlug(slug)) console.error('Invalid package slug', slug);
+    this.reports = new Map();
     this.slug = slug;
     this.versions = versions ? new Map(Object.entries(versions)) : new Map();
     this.version = this.latestVersion();
@@ -17,8 +19,14 @@ export class Package {
 
   addVersion(version: string, details: PackageVersion) {
     if (this.versions.has(version)) return;
-    const validationError = PackageVersionValidator.safeParse(details).error;
-    if (validationError) return console.error('Invalid package version', validationError.issues);
+    const errors = packageErrors(details);
+    const recs = packageRecommendations(details);
+    const report: PackageReport = {
+      ...(errors.length > 0 && { errors }),
+      ...(recs.length > 0 && { recs }),
+    };
+    if (Object.keys(report).length > 0) this.reports.set(version, report);
+    if (errors.length > 0) return;
     this.versions.set(version, details);
     this.version = this.latestVersion();
   }
@@ -27,6 +35,10 @@ export class Package {
     if (!this.versions.has(version)) return;
     this.versions.delete(version);
     this.version = this.latestVersion();
+  }
+
+  getReport() {
+    return Object.fromEntries(this.reports);
   }
 
   getVersion(version: string) {
@@ -42,14 +54,10 @@ export class Package {
   }
 
   toJSON() {
-    const data: PackageInterface = {
+    return {
       slug: this.slug,
       version: this.version,
-      versions: {},
+      versions: Object.fromEntries(this.versions),
     };
-    this.versions.forEach((details, version) => {
-      data.versions[version] = details;
-    });
-    return data;
   }
 }

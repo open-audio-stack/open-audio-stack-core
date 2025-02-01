@@ -25,7 +25,7 @@ export function adminArguments(): Arguments {
 export async function adminInit() {
   const argv: Arguments = adminArguments();
   const manager = new ManagerLocal(argv.type, { appDir: dirApp() });
-  manager.sync();
+  await manager.sync();
   if (argv.operation === 'install') {
     await manager.install(argv.id, argv.ver);
   } else if (argv.operation === 'uninstall') {

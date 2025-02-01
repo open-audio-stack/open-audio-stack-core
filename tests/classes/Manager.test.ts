@@ -71,6 +71,25 @@ test('Manager get package', () => {
   expect(manager.getPackage(PLUGIN_PACKAGE.slug)).toEqual(pkg);
 });
 
+test('Manager get report', () => {
+  const manager = new Manager(RegistryType.Plugins);
+  const pkg = new Package(PLUGIN_PACKAGE.slug);
+  pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
+  manager.addPackage(pkg);
+  expect(manager.getReport()).toEqual({
+    'surge-synthesizer/surge': {
+      '1.3.1': {
+        recs: [
+          {
+            field: 'format',
+            rec: 'requires mounting step, consider .pkg instead',
+          },
+        ],
+      },
+    },
+  });
+});
+
 test('Manager list packages', () => {
   const manager = new Manager(RegistryType.Plugins);
   const pkg = new Package(PLUGIN_PACKAGE.slug);

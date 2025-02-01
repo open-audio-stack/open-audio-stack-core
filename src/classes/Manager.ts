@@ -17,13 +17,13 @@ export class Manager {
   }
 
   addPackage(pkg: Package) {
-    const pkgExisting = this.packages.get(pkg.slug);
-    if (pkgExisting) {
-      for (const [version, pkgVersion] of pkg.versions) {
-        pkgExisting.addVersion(version, pkgVersion);
-      }
-    } else {
-      this.packages.set(pkg.slug, pkg);
+    let pkgExisting = this.packages.get(pkg.slug);
+    if (!pkgExisting) {
+      pkgExisting = new Package(pkg.slug);
+      this.packages.set(pkg.slug, pkgExisting);
+    }
+    for (const [version, pkgVersion] of pkg.versions) {
+      pkgExisting.addVersion(version, pkgVersion);
     }
   }
 
@@ -40,6 +40,15 @@ export class Manager {
 
   getPackage(slug: string) {
     return this.packages.get(slug);
+  }
+
+  getReport() {
+    const reports: any = {};
+    for (const [slug, pkg] of this.packages) {
+      const report = pkg.getReport();
+      if (Object.keys(report).length) reports[slug] = report;
+    }
+    return reports;
   }
 
   listPackages() {

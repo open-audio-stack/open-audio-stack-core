@@ -32,6 +32,10 @@ export function packageCompatibleFiles(
   });
 }
 
+export function packageErrors(pkgVersion: PackageVersion) {
+  return PackageVersionValidator.safeParse(pkgVersion).error?.issues || [];
+}
+
 export function packageFileMap(pkgVersion: PackageVersion) {
   return pkgVersion.files.reduce((result: PackageFileMap, file) => {
     file.systems.forEach(system => {
