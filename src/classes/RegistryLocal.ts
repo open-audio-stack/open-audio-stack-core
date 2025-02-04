@@ -21,9 +21,9 @@ export class RegistryLocal extends Registry {
     return true;
   }
 
-  scan(ext = 'json') {
+  scan(ext = 'json', installable = true) {
     for (const [, manager] of Object.entries(this.managers)) {
-      manager.scan(ext);
+      manager.scan(ext, installable);
     }
   }
 }

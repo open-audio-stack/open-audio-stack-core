@@ -4,7 +4,7 @@ import { PLUGIN, PLUGIN_INSTALLED, PLUGIN_PACKAGE } from '../data/Plugin';
 import { PRESET, PRESET_INSTALLED, PRESET_PACKAGE } from '../data/Preset';
 import { PROJECT, PROJECT_INSTALLED, PROJECT_PACKAGE } from '../data/Project';
 import { ManagerLocal } from '../../src/classes/ManagerLocal';
-import { dirDelete } from '../../src/helpers/file';
+import { dirDelete, fileReadJson } from '../../src/helpers/file';
 import { RegistryType } from '../../src/types/Registry';
 import { ConfigInterface } from '../../src/types/Config';
 import { PackageVersion } from '../../src/types/Package';
@@ -30,7 +30,11 @@ test('Manager Local scan local directory', () => {
 test('Manager Local export', async () => {
   const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
   await manager.sync();
-  expect(manager.export(`test/export/${RegistryType.Plugins}`)).toEqual(true);
+  manager.export(`test/export/${RegistryType.Plugins}`);
+  const pkg = fileReadJson('test/export/plugins/surge-synthesizer/surge/index.json');
+  expect(pkg).toEqual(manager.getPackage('surge-synthesizer/surge')?.toJSON());
+  const pkgVersion = fileReadJson('test/export/plugins/surge-synthesizer/surge/1.3.1/index.json');
+  expect(pkgVersion).toEqual(manager.getPackage('surge-synthesizer/surge')?.getVersion('1.3.1'));
 });
 
 test('Plugin sync, install, rescan, uninstall', async () => {

@@ -44,13 +44,13 @@ export class ManagerLocal extends Manager {
     this.typeDir = this.config.get(`${type}Dir`) as string;
   }
 
-  scan(ext = 'json') {
+  scan(ext = 'json', installable = true) {
     const filePaths: string[] = dirRead(`${this.typeDir}/**/index.${ext}`);
     filePaths.forEach((filePath: string) => {
       const subPath: string = filePath.replace(`${this.typeDir}/`, '');
       const pkgJson =
         ext === 'yaml' ? (fileReadYaml(filePath) as PackageVersion) : (fileReadJson(filePath) as PackageVersion);
-      pkgJson.installed = true;
+      if (installable) pkgJson.installed = true;
       const pkg = new Package(pathGetSlug(subPath));
       const version = pathGetVersion(subPath);
       pkg.addVersion(version, pkgJson);

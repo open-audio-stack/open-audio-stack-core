@@ -14,6 +14,7 @@ import { ProjectType, projectTypes } from '../../src/types/ProjectType.js';
 import { ProjectFormat, projectFormats } from '../../src/types/ProjectFormat.js';
 import { SystemType, systemTypes } from '../../src/types/SystemType.js';
 import { configDefaultsLocal } from '../../src/helpers/configLocal.js';
+import { fileReadJson } from '../../src/helpers/file.js';
 
 const CONFIG_FILE_PATH = path.join('test', 'config.json');
 
@@ -43,7 +44,11 @@ test('Set and get value', () => {
 
 test('Config export', () => {
   const config: ConfigLocal = new ConfigLocal(CONFIG_FILE_PATH);
-  expect(config.export('test/export/config')).toEqual(true);
+  config.export('test/export/config');
+  const options = fileReadJson('test/export/config/architectures/index.json');
+  expect(options).toEqual(config.architectures());
+  const option = fileReadJson('test/export/config/architectures/arm64/index.json');
+  expect(option).toEqual(config.architecture(Architecture.Arm64));
 });
 
 test('Get architecture', () => {

@@ -15,6 +15,7 @@ import { PROJECT, PROJECT_PACKAGE } from '../data/Project.js';
 import { ManagerLocal } from '../../src/classes/ManagerLocal.js';
 import { Package } from '../../src/classes/Package.js';
 import { ConfigInterface } from '../../src/types/Config.js';
+import { fileReadJson } from '../../src/helpers/file.js';
 
 const APP_DIR: string = 'test';
 const CONFIG: ConfigInterface = {
@@ -176,7 +177,16 @@ test('Registry export', async () => {
   const projectManager = new ManagerLocal(RegistryType.Projects, CONFIG);
   registry.addManager(projectManager);
   await registry.sync();
-  expect(registry.export(`test/export`)).toEqual(true);
+  registry.export(`test/export`);
+  const report = fileReadJson('test/export/plugins/report.json');
+  expect(report['surge-synthesizer/surge']['1.3.1']).toEqual({
+    recs: [
+      {
+        field: 'format',
+        rec: 'requires mounting step, consider .pkg instead',
+      },
+    ],
+  });
 });
 
 test('Get registry name', () => {
