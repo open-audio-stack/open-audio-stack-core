@@ -17,19 +17,20 @@ export type ProjectFormatDir = {
   [format in ProjectFormat]: string;
 };
 
+// TODO don't organize projects by type, as this requires knwoing the type in advance for other operations.
 export const projectFormatDir: ProjectFormatDir = {
-  [ProjectFormat.AbletonLive]: 'Ableton',
-  [ProjectFormat.Bitwig]: 'Bitwig',
-  [ProjectFormat.Cubase]: 'Cubase',
-  [ProjectFormat.DAWproject]: 'DAWproject',
-  [ProjectFormat.FLStudio]: 'FLStudio',
-  [ProjectFormat.Garageband]: 'Garageband',
-  [ProjectFormat.Lmms]: 'Lmms',
-  [ProjectFormat.Logic]: 'Logic',
-  [ProjectFormat.Musescore]: 'Musescore',
-  [ProjectFormat.ProTools]: 'ProTools',
-  [ProjectFormat.Reaper]: 'Reaper',
-  [ProjectFormat.Sonar]: 'Sonar',
+  [ProjectFormat.AbletonLive]: '',
+  [ProjectFormat.Bitwig]: '',
+  [ProjectFormat.Cubase]: '',
+  [ProjectFormat.DAWproject]: '',
+  [ProjectFormat.FLStudio]: '',
+  [ProjectFormat.Garageband]: '',
+  [ProjectFormat.Lmms]: '',
+  [ProjectFormat.Logic]: '',
+  [ProjectFormat.Musescore]: '',
+  [ProjectFormat.ProTools]: '',
+  [ProjectFormat.Reaper]: '',
+  [ProjectFormat.Sonar]: '',
 };
 
 export interface ProjectFormatOption {

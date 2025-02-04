@@ -29,7 +29,7 @@ export const PROJECT: ProjectInterface = {
   image: 'https://open-audio-stack.github.io/open-audio-stack-registry/projects/kmt/banwer/banwer.jpg',
   license: License.GNUGeneralPublicLicensev3,
   plugins: {
-    'surge-synth/surge': '1.3.1',
+    'surge-synthesizer/surge': '1.3.1',
   },
   name: 'Banwer',
   tags: ['Idea', 'Synth', 'Modulation'],

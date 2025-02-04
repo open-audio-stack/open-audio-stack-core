@@ -171,6 +171,25 @@ export class ManagerLocal extends Manager {
     return pkgVersion;
   }
 
+  async installDependencies(slug: string, version: string, type = RegistryType.Plugins) {
+    // Read the file path and parse as json.
+    const filePath: string = path.join(this.typeDir, slug, version, 'index.json');
+    const pkgJson = fileReadJson(filePath);
+
+    // Validate package json file structure, fields and values.
+    const pkg = new Package(pathGetSlug(filePath));
+    pkg.addVersion(pathGetVersion(filePath), pkgJson);
+    if (!pkgJson[type]) console.error(filePath, `${type} field not found`);
+
+    // Loop through dependency packages and install each one.
+    const manager = new ManagerLocal(type, this.config.config);
+    await manager.sync();
+    for (const slug in pkgJson[type]) {
+      await manager.install(slug, pkgJson[type][slug]);
+    }
+    return pkgJson;
+  }
+
   async uninstall(slug: string, version?: string) {
     // Get package information from registry.
     const pkg: Package | undefined = this.getPackage(slug);
@@ -208,5 +227,24 @@ export class ManagerLocal extends Manager {
 
     delete pkgVersion.installed;
     return this.getPackage(slug)?.getVersion(versionNum);
+  }
+
+  async uninstallDependencies(slug: string, version: string, type = RegistryType.Plugins) {
+    // Read the file path and parse as json.
+    const filePath: string = path.join(this.typeDir, slug, version, 'index.json');
+    const pkgJson = fileReadJson(filePath);
+
+    // Validate package json file structure, fields and values.
+    const pkg = new Package(pathGetSlug(filePath));
+    pkg.addVersion(pathGetVersion(filePath), pkgJson);
+    if (!pkgJson[type]) console.error(filePath, `${type} field not found`);
+
+    // Loop through dependency packages and uninstall each one.
+    const manager = new ManagerLocal(type, this.config.config);
+    await manager.sync();
+    for (const slug in pkgJson[type]) {
+      await manager.uninstall(slug, pkgJson[type][slug]);
+    }
+    return pkgJson;
   }
 }

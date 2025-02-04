@@ -87,3 +87,19 @@ test('Project sync, install, rescan, uninstall', async () => {
   const pkgReturned2: PackageVersion | void = await manager.uninstall(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
   expect(pkgReturned2).toEqual(PROJECT);
 });
+
+test('Project sync, install project, install project dependencies', async () => {
+  const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
+  await manager.sync();
+
+  const pkgReturned: PackageVersion | void = await manager.install(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
+  const pkgGet = manager.getPackage(PROJECT_PACKAGE.slug);
+  expect(pkgReturned).toEqual(PROJECT_INSTALLED);
+  expect(pkgGet?.getVersion(PROJECT_PACKAGE.version)).toEqual(PROJECT_INSTALLED);
+
+  manager.installDependencies(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
+
+  const pluginManager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  pluginManager.scan();
+  expect(pluginManager.toJSON()).toEqual({});
+});

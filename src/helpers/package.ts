@@ -110,59 +110,82 @@ export function packageRecommendations(pkgVersion: PackageVersion) {
     });
   }
 
-  const supportedArchitectures: any = {};
-  const supportedSystems: any = {};
-  const supportedFileFormats: any = {};
+  // Files
+  if (pkgVersion.files) {
+    const supportedArchitectures: any = {};
+    const supportedSystems: any = {};
+    const supportedFileFormats: any = {};
 
-  pkgVersion.files.forEach(file => {
-    file.architectures.forEach(architecture => {
-      supportedArchitectures[architecture] = true;
+    pkgVersion.files.forEach(file => {
+      file.architectures.forEach(architecture => {
+        supportedArchitectures[architecture] = true;
+      });
+      file.systems.forEach(system => {
+        supportedSystems[system.type] = true;
+      });
+      supportedFileFormats[file.format] = true;
+      packageRecommendationsUrl(file, recs, 'url');
+
+      // Formats which do not support headless installation.
+      if (file.format === FileFormat.AppImage)
+        recs.push({ field: 'format', rec: 'requires manual installation steps, consider .deb and .rpm instead' });
+      if (file.format === FileFormat.AppleDiskImage)
+        recs.push({ field: 'format', rec: 'requires mounting step, consider .pkg instead' });
+      if (!file.url.includes(file.format)) recs.push({ field: 'format', rec: 'should match url field' });
+
+      // Validate format is a supported installer format
+      const installerFormats: FileFormat[] = [
+        FileFormat.AppleDiskImage,
+        FileFormat.ApplePackage,
+        FileFormat.DebianPackage,
+        FileFormat.ExecutableInstaller,
+        FileFormat.RedHatPackage,
+        FileFormat.WindowsInstaller,
+      ];
+      if (file.type === FileType.Installer && !installerFormats.includes(file.format))
+        recs.push({ field: 'type', rec: 'should match format field' });
     });
-    file.systems.forEach(system => {
-      supportedSystems[system.type] = true;
+
+    // Architectures
+    if (!supportedArchitectures.arm64) recs.push({ field: 'architectures', rec: 'should support arm64' });
+    if (!supportedArchitectures.x64) recs.push({ field: 'architectures', rec: 'should support x64' });
+
+    // Systems
+    if (!supportedSystems.linux) recs.push({ field: 'systems', rec: 'should support Linux' });
+    if (!supportedSystems.mac) recs.push({ field: 'systems', rec: 'should support Mac' });
+    if (!supportedSystems.win) recs.push({ field: 'systems', rec: 'should support Windows' });
+  } else {
+    recs.push({
+      field: 'files',
+      rec: 'is missing',
     });
-    supportedFileFormats[file.format] = true;
-    packageRecommendationsUrl(file, recs, 'url');
-
-    // Formats which do not support headless installation.
-    if (file.format === FileFormat.AppImage)
-      recs.push({ field: 'format', rec: 'requires manual installation steps, consider .deb and .rpm instead' });
-    if (file.format === FileFormat.AppleDiskImage)
-      recs.push({ field: 'format', rec: 'requires mounting step, consider .pkg instead' });
-    if (!file.url.includes(file.format)) recs.push({ field: 'format', rec: 'should match url field' });
-
-    // Validate format is a supported installer format
-    const installerFormats: FileFormat[] = [
-      FileFormat.AppleDiskImage,
-      FileFormat.ApplePackage,
-      FileFormat.DebianPackage,
-      FileFormat.ExecutableInstaller,
-      FileFormat.RedHatPackage,
-      FileFormat.WindowsInstaller,
-    ];
-    if (file.type === FileType.Installer && !installerFormats.includes(file.format))
-      recs.push({ field: 'type', rec: 'should match format field' });
-  });
-
-  // Architectures
-  if (!supportedArchitectures.arm64) recs.push({ field: 'architectures', rec: 'should support arm64' });
-  if (!supportedArchitectures.x64) recs.push({ field: 'architectures', rec: 'should support x64' });
-
-  // Systems
-  if (!supportedSystems.linux) recs.push({ field: 'systems', rec: 'should support Linux' });
-  if (!supportedSystems.mac) recs.push({ field: 'systems', rec: 'should support Mac' });
-  if (!supportedSystems.win) recs.push({ field: 'systems', rec: 'should support Windows' });
+  }
 
   // Tags
-  const pluginTags: string[] = pkgVersion.tags.map(tag => tag.trim().toLowerCase());
-  if (pluginTags.length < 2) recs.push({ field: 'tags', rec: 'should have more items' });
+  if (pkgVersion.tags) {
+    const pluginTags: string[] = pkgVersion.tags.map(tag => tag.trim().toLowerCase());
+    if (pluginTags.length < 2) recs.push({ field: 'tags', rec: 'should have more items' });
+  } else {
+    recs.push({
+      field: 'tags',
+      rec: 'is missing',
+    });
+  }
 
   // Licence
-  if (!Object.values(License).includes(pkgVersion.license)) {
-    recs.push({ field: 'license', rec: 'should be from the supported list' });
-  } else if (pkgVersion.license === License.Other) {
-    recs.push({ field: 'license', rec: 'should be more specific' });
+  if (pkgVersion.license) {
+    if (!Object.values(License).includes(pkgVersion.license)) {
+      recs.push({ field: 'license', rec: 'should be from the supported list' });
+    } else if (pkgVersion.license === License.Other) {
+      recs.push({ field: 'license', rec: 'should be more specific' });
+    }
+  } else {
+    recs.push({
+      field: 'license',
+      rec: 'is missing',
+    });
   }
+
   return recs;
 }
 

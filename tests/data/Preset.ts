@@ -29,7 +29,7 @@ export const PRESET: PresetInterface = {
   image: 'https://open-audio-stack.github.io/open-audio-stack-registry/presets/jh/floating-rhodes/floating-rhodes.jpg',
   license: License.GNUGeneralPublicLicensev3,
   plugins: {
-    'surge-synth/surge': '1.3.1',
+    'surge-synthesizer/surge': '1.3.1',
   },
   name: 'Floating Rhodes',
   tags: ['Preset', 'Synth', 'Rhodes'],
