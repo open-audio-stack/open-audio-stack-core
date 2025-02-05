@@ -97,7 +97,7 @@ test('Project sync, install project, install project dependencies', async () => 
   expect(pkgReturned).toEqual(PROJECT_INSTALLED);
   expect(pkgGet?.getVersion(PROJECT_PACKAGE.version)).toEqual(PROJECT_INSTALLED);
 
-  manager.installDependencies(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
+  await manager.installDependencies(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
 
   const pluginManager = new ManagerLocal(RegistryType.Plugins, CONFIG);
   pluginManager.scan();
