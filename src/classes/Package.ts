@@ -17,23 +17,23 @@ export class Package {
     this.version = this.latestVersion();
   }
 
-  addVersion(version: string, details: PackageVersion) {
-    if (this.versions.has(version)) return;
-    const errors = packageErrors(details);
-    const recs = packageRecommendations(details);
+  addVersion(num: string, version: PackageVersion) {
+    if (this.versions.has(num)) return;
+    const errors = packageErrors(version);
+    const recs = packageRecommendations(version);
     const report: PackageReport = {
       ...(errors.length > 0 && { errors }),
       ...(recs.length > 0 && { recs }),
     };
-    if (Object.keys(report).length > 0) this.reports.set(version, report);
+    if (Object.keys(report).length > 0) this.reports.set(num, report);
     if (errors.length > 0) return;
-    this.versions.set(version, details);
+    this.versions.set(num, version);
     this.version = this.latestVersion();
   }
 
-  removeVersion(version: string) {
-    if (!this.versions.has(version)) return;
-    this.versions.delete(version);
+  removeVersion(num: string) {
+    if (!this.versions.has(num)) return;
+    this.versions.delete(num);
     this.version = this.latestVersion();
   }
 
@@ -41,8 +41,8 @@ export class Package {
     return Object.fromEntries(this.reports);
   }
 
-  getVersion(version: string) {
-    return this.versions.get(version);
+  getVersion(num: string) {
+    return this.versions.get(num);
   }
 
   getVersionLatest() {

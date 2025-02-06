@@ -2,7 +2,14 @@ import path from 'path';
 import { beforeAll, expect, test } from 'vitest';
 import { PLUGIN, PLUGIN_INSTALLED, PLUGIN_PACKAGE } from '../data/Plugin';
 import { PRESET, PRESET_INSTALLED, PRESET_PACKAGE } from '../data/Preset';
-import { PROJECT, PROJECT_INSTALLED, PROJECT_PACKAGE } from '../data/Project';
+import {
+  PROJECT,
+  PROJECT_INSTALLED,
+  PROJECT_DEPS,
+  PROJECT_PACKAGE,
+  PROJECT_NO_DEPS,
+  PROJECT_PATH,
+} from '../data/Project';
 import { ManagerLocal } from '../../src/classes/ManagerLocal';
 import { dirDelete, fileReadJson } from '../../src/helpers/file';
 import { RegistryType } from '../../src/types/Registry';
@@ -88,18 +95,31 @@ test('Project sync, install, rescan, uninstall', async () => {
   expect(pkgReturned2).toEqual(PROJECT);
 });
 
-test('Project sync, install project, install project dependencies', async () => {
+test('Project sync, install project, install dependencies, uninstall dependencies', async () => {
   const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
   await manager.sync();
-
-  const pkgReturned: PackageVersion | void = await manager.install(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
-  const pkgGet = manager.getPackage(PROJECT_PACKAGE.slug);
-  expect(pkgReturned).toEqual(PROJECT_INSTALLED);
-  expect(pkgGet?.getVersion(PROJECT_PACKAGE.version)).toEqual(PROJECT_INSTALLED);
-
-  await manager.installDependencies(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
+  await manager.install(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
 
   const pluginManager = new ManagerLocal(RegistryType.Plugins, CONFIG);
-  pluginManager.scan();
+
+  await manager.installDependencies(PROJECT_PATH);
+  await pluginManager.scan();
+  // TODO update when headless installation is working.
   expect(pluginManager.toJSON()).toEqual({});
+
+  await manager.uninstallDependencies(PROJECT_PATH);
+  await pluginManager.scan();
+  // TODO update when headless installation is working.
+  expect(pluginManager.toJSON()).toEqual({});
+});
+
+test('Project sync, install project, add new dependency, remove new dependency', async () => {
+  const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
+  await manager.sync();
+  await manager.install(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
+  const pkgDeps = await manager.installDependency(PLUGIN_PACKAGE.slug, '1.3.4', PROJECT_PATH);
+  expect(pkgDeps).toEqual(PROJECT_DEPS);
+
+  const pkgNoDeps = await manager.uninstallDependency(PLUGIN_PACKAGE.slug, '1.3.4', PROJECT_PATH);
+  expect(pkgNoDeps).toEqual(PROJECT_NO_DEPS);
 });

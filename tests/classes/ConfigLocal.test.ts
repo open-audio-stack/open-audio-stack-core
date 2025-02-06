@@ -34,12 +34,12 @@ test('Set and get value', () => {
   const config: ConfigLocal = new ConfigLocal(CONFIG_FILE_PATH);
   config.set('appDir', 'test');
   expect(config.get('appDir')).toEqual('test');
-  config.set('pluginsDir', 'test/plugins1');
-  expect(config.get('pluginsDir')).toEqual('test/plugins1');
-  config.set('pluginsDir', 'test/plugins');
-  expect(config.get('pluginsDir')).toEqual('test/plugins');
-  config.set('presetsDir', 'test/presets');
-  config.set('projectsDir', 'test/projects');
+  config.set('pluginsDir', 'test/installed/plugins1');
+  expect(config.get('pluginsDir')).toEqual('test/installed/plugins1');
+  config.set('pluginsDir', 'test/installed/plugins');
+  expect(config.get('pluginsDir')).toEqual('test/installed/plugins');
+  config.set('presetsDir', 'test/installed/presets');
+  config.set('projectsDir', 'test/installed/projects');
 });
 
 test('Config export', () => {

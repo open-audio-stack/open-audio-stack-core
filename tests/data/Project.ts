@@ -1,3 +1,4 @@
+import path from 'path';
 import { Architecture } from '../../src/types/Architecture';
 import { FileFormat } from '../../src/types/FileFormat';
 import { FileType } from '../../src/types/FileType';
@@ -7,6 +8,8 @@ import { ProjectFormat } from '../../src/types/ProjectFormat';
 import { ProjectType } from '../../src/types/ProjectType';
 import { SystemType } from '../../src/types/SystemType';
 import { PackageInterface } from '../../src/types/Package';
+
+export const PROJECT_PATH: string = path.join('test', 'installed', 'projects', 'kmt', 'banwer', '1.0.1', 'index.json');
 
 export const PROJECT: ProjectInterface = {
   audio: 'https://open-audio-stack.github.io/open-audio-stack-registry/projects/kmt/banwer/banwer.flac',
@@ -32,6 +35,7 @@ export const PROJECT: ProjectInterface = {
     'surge-synthesizer/surge': '1.3.1',
   },
   name: 'Banwer',
+  open: 'Banwer.als',
   tags: ['Idea', 'Synth', 'Modulation'],
   type: ProjectType.Song,
   url: 'https://soundcloud.com/kmt-london',
@@ -39,6 +43,14 @@ export const PROJECT: ProjectInterface = {
 
 export const PROJECT_INSTALLED: ProjectInterface = structuredClone(PROJECT);
 PROJECT_INSTALLED.installed = true;
+
+export const PROJECT_DEPS: ProjectInterface = structuredClone(PROJECT);
+PROJECT_DEPS.installed = true;
+PROJECT_DEPS.plugins['surge-synthesizer/surge'] = '1.3.4';
+
+export const PROJECT_NO_DEPS: ProjectInterface = structuredClone(PROJECT);
+PROJECT_NO_DEPS.installed = true;
+PROJECT_NO_DEPS.plugins = {};
 
 export const PROJECT_PACKAGE: PackageInterface = {
   slug: 'kmt/banwer',

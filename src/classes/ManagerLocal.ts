@@ -33,6 +33,7 @@ import { packageCompatibleFiles } from '../helpers/package.js';
 import { presetFormatDir } from '../types/PresetFormat.js';
 import { projectFormatDir } from '../types/ProjectFormat.js';
 import { FileFormat, SystemType } from '../index-browser.js';
+import { packageLoadFile, packageSaveFile } from '../helpers/packageLocal.js';
 
 export class ManagerLocal extends Manager {
   protected typeDir: string;
@@ -171,23 +172,48 @@ export class ManagerLocal extends Manager {
     return pkgVersion;
   }
 
-  async installDependencies(slug: string, version: string, type = RegistryType.Plugins) {
-    // Read the file path and parse as json.
-    const filePath: string = path.join(this.typeDir, slug, version, 'index.json');
-    const pkgJson = fileReadJson(filePath);
-
-    // Validate package json file structure, fields and values.
-    const pkg = new Package(pathGetSlug(filePath));
-    pkg.addVersion(pathGetVersion(filePath), pkgJson);
-    if (!pkgJson[type]) console.error(filePath, `${type} field not found`);
-
-    // Loop through dependency packages and install each one.
+  async installDependency(slug: string, version?: string, filePath?: string, type = RegistryType.Plugins) {
+    // Get dependency package information from registry.
     const manager = new ManagerLocal(type, this.config.config);
     await manager.sync();
-    for (const slug in pkgJson[type]) {
-      await manager.install(slug, pkgJson[type][slug]);
+    const pkg: Package | undefined = manager.getPackage(slug);
+    if (!pkg) return console.error(`Package ${slug} not found in registry`);
+    const versionNum: string = version || pkg.latestVersion();
+    const pkgVersion: PackageVersion | undefined = pkg?.getVersion(versionNum);
+    if (!pkgVersion) return console.error(`Package ${slug} version ${versionNum} not found in registry`);
+    // Get local package file.
+    const pkgFile = packageLoadFile(filePath) as any;
+    if (pkgFile[type] && pkgFile[type][slug] && pkgFile[type][slug] === versionNum) {
+      return console.error(`Package ${slug} version ${versionNum} is already a dependency`);
     }
-    return pkgJson;
+    // Install dependency.
+    await manager.install(slug, version);
+    // Add dependency to local package file and save.
+    if (!pkgFile[type]) pkgFile[type] = {};
+    pkgFile[type][slug] = versionNum;
+    packageSaveFile(pkgFile, filePath);
+    pkgFile.installed = true;
+    return pkgFile;
+  }
+
+  async installDependencies(filePath?: string, type = RegistryType.Plugins) {
+    // Loop through dependency packages and install each one.
+    const pkgFile = packageLoadFile(filePath) as any;
+    const manager = new ManagerLocal(type, this.config.config);
+    await manager.sync();
+    for (const slug in pkgFile[type]) {
+      await manager.install(slug, pkgFile[type][slug]);
+    }
+    pkgFile.installed = true;
+    return pkgFile;
+  }
+
+  open(filePath?: string) {
+    const pkgFile = packageLoadFile(filePath) as any;
+    // If installer, run the installer.
+    if (pkgFile.open) {
+      fileOpen(pkgFile.open);
+    }
   }
 
   async uninstall(slug: string, version?: string) {
@@ -229,22 +255,34 @@ export class ManagerLocal extends Manager {
     return this.getPackage(slug)?.getVersion(versionNum);
   }
 
-  async uninstallDependencies(slug: string, version: string, type = RegistryType.Plugins) {
-    // Read the file path and parse as json.
-    const filePath: string = path.join(this.typeDir, slug, version, 'index.json');
-    const pkgJson = fileReadJson(filePath);
+  async uninstallDependency(slug: string, version?: string, filePath?: string, type = RegistryType.Plugins) {
+    // Get local package file.
+    const pkgFile = packageLoadFile(filePath) as any;
+    if (!pkgFile[type]) return console.error(`Package ${type} is missing`);
+    if (!pkgFile[type][slug]) return console.error(`Package ${type} ${slug} is not a dependency`);
 
-    // Validate package json file structure, fields and values.
-    const pkg = new Package(pathGetSlug(filePath));
-    pkg.addVersion(pathGetVersion(filePath), pkgJson);
-    if (!pkgJson[type]) console.error(filePath, `${type} field not found`);
-
-    // Loop through dependency packages and uninstall each one.
+    // Uninstall dependency.
     const manager = new ManagerLocal(type, this.config.config);
     await manager.sync();
-    for (const slug in pkgJson[type]) {
-      await manager.uninstall(slug, pkgJson[type][slug]);
+    await manager.uninstall(slug, version || pkgFile[type][slug]);
+
+    // Remove dependency from local package file and save.
+    if (!pkgFile[type]) pkgFile[type] = {};
+    delete pkgFile[type][slug];
+    packageSaveFile(pkgFile, filePath);
+    pkgFile.installed = true;
+    return pkgFile;
+  }
+
+  async uninstallDependencies(filePath?: string, type = RegistryType.Plugins) {
+    // Loop through dependency packages and uninstall each one.
+    const pkgFile = packageLoadFile(filePath) as any;
+    const manager = new ManagerLocal(type, this.config.config);
+    await manager.sync();
+    for (const slug in pkgFile[type]) {
+      await manager.uninstall(slug, pkgFile[type][slug]);
     }
-    return pkgJson;
+    pkgFile.installed = true;
+    return pkgFile;
   }
 }

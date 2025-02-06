@@ -19,6 +19,7 @@ export * from './helpers/config.js';
 export * from './helpers/configLocal.js';
 export * from './helpers/file.js';
 export * from './helpers/package.js';
+export * from './helpers/packageLocal.js';
 export * from './helpers/registry.js';
 export * from './helpers/utils.js';
 export * from './helpers/utilsLocal.js';
