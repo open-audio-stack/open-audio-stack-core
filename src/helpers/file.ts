@@ -215,9 +215,10 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
     const fileExt: string = path.extname(fileSource).slice(1).toLowerCase();
     const fileExtTarget = formatDir[fileExt];
     // If this is not a supported file format, then ignore.
-    if (!fileExtTarget) return;
+    if (fileExtTarget === undefined)
+      return console.error(`${fileSource} - ${fileExt} not mapped to a installation folder, skipping.`);
     const fileTarget: string = path.join(dirTarget, fileExtTarget, dirSub, path.basename(fileSource));
-    if (fileExists(fileTarget)) return;
+    if (fileExists(fileTarget)) return console.error(`${fileSource} - ${fileTarget} already exists, skipping.`);
     dirCreate(path.dirname(fileTarget));
     fileMove(fileSource, fileTarget);
     filesMoved.push(fileTarget);

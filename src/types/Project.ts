@@ -2,10 +2,12 @@ import { FileInterface } from './File.js';
 import { PackageBase } from './Package.js';
 import { ProjectFormat } from './ProjectFormat.js';
 import { ProjectType } from './ProjectType.js';
+import { RegistryType } from './Registry.js';
 
 export interface ProjectInterface extends PackageBase {
   files: ProjectFile[];
-  plugins: ProjectPlugins;
+  open: string;
+  [RegistryType.Plugins]: ProjectPlugins;
   type: ProjectType;
 }
 
