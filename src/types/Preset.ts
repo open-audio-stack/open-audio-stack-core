@@ -2,10 +2,11 @@ import { FileInterface } from './File.js';
 import { PackageBase } from './Package.js';
 import { PresetFormat } from './PresetFormat.js';
 import { PresetType } from './PresetType.js';
+import { RegistryType } from './Registry.js';
 
 export interface PresetInterface extends PackageBase {
   files: PresetFile[];
-  plugins: PresetPlugins;
+  [RegistryType.Plugins]: PresetPlugins;
   type: PresetType;
 }
 
