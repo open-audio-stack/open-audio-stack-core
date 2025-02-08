@@ -1,8 +1,11 @@
 import chalk from 'chalk';
 import { PackageValidationRec } from '../types/Package.js';
 import { ZodIssue } from 'zod';
+import * as semver from 'semver';
+import slugify from 'slugify';
 
 let LOGGING_ENABLED: boolean = false;
+const URLSAFE_REGEX: RegExp = /[^\w\s$*_+~.()'"!\-:@/]+/g;
 
 export function inputGetParts(input: string): string[] {
   return input.split('@');
@@ -78,11 +81,22 @@ export function pathGetVersion(path: string, sep: string = '/') {
   return parts[parts.length - 2];
 }
 
+export function toSlug(val: string): string {
+  // @ts-expect-error slugify library issue with ESM modules
+  return slugify(val, { lower: true, remove: URLSAFE_REGEX });
+}
+
 export function isValidSlug(slug: string): boolean {
   let valid = true;
   // Must have exactly one slash.
   if (slug.split('/').length !== 2) valid = false;
   // Must be lowercase.
   if (slug !== slug.toLowerCase()) valid = false;
+  // Must pass slugify conversion
+  if (slug !== toSlug(slug)) valid = false;
   return valid;
+}
+
+export function isValidVersion(version: string): boolean {
+  return semver.valid(version) !== null;
 }

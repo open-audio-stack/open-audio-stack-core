@@ -20,7 +20,7 @@ import {
   isAdmin,
   runCliAsAdmin,
 } from '../helpers/file.js';
-import { pathGetSlug, pathGetVersion } from '../helpers/utils.js';
+import { isValidVersion, pathGetSlug, pathGetVersion, toSlug } from '../helpers/utils.js';
 import { commandExists, getArchitecture, getSystem, isTests } from '../helpers/utilsLocal.js';
 import { apiBuffer } from '../helpers/api.js';
 import { FileInterface } from '../types/File.js';
@@ -32,8 +32,14 @@ import { ConfigLocal } from './ConfigLocal.js';
 import { packageCompatibleFiles } from '../helpers/package.js';
 import { presetFormatDir } from '../types/PresetFormat.js';
 import { projectFormatDir } from '../types/ProjectFormat.js';
-import { FileFormat, SystemType } from '../index-browser.js';
+import { FileFormat } from '../types/FileFormat.js';
+import { licenses } from '../types/License.js';
+import { PluginTypeOption, pluginTypes } from '../types/PluginType.js';
+import { PresetTypeOption, presetTypes } from '../types/PresetType.js';
+import { ProjectTypeOption, projectTypes } from '../types/ProjectType.js';
+import { SystemType } from '../types/SystemType.js';
 import { packageLoadFile, packageSaveFile } from '../helpers/packageLocal.js';
+import inquirer from 'inquirer';
 
 export class ManagerLocal extends Manager {
   protected typeDir: string;
@@ -43,6 +49,91 @@ export class ManagerLocal extends Manager {
     const configPath: string = path.join(config.appDir || '', 'config.json');
     this.config = new ConfigLocal(configPath, config);
     this.typeDir = this.config.get(`${type}Dir`) as string;
+  }
+
+  async create() {
+    // TODO Rewrite this code after prototype is proven.
+    const pkgQuestions = [
+      {
+        name: 'org',
+        type: 'input',
+        message: 'Org id',
+        default: 'org-name',
+        validate: (value: string) => value === toSlug(value),
+      },
+      {
+        name: 'package',
+        type: 'input',
+        message: 'Package id',
+        default: 'package-name',
+        validate: (value: string) => value === toSlug(value),
+      },
+      {
+        name: 'version',
+        type: 'input',
+        message: 'Package version',
+        default: '1.0.0',
+        validate: (value: string) => isValidVersion(value),
+      },
+    ];
+    const pkgAnswers = await inquirer.prompt(pkgQuestions as any);
+    let types: PluginTypeOption[] | PresetTypeOption[] | ProjectTypeOption[] = pluginTypes;
+    if (this.type === RegistryType.Presets) {
+      types = presetTypes;
+    } else if (this.type === RegistryType.Projects) {
+      types = projectTypes;
+    }
+    const pkgVersionQuestions = [
+      { name: 'name', type: 'input', message: 'Package name' },
+      { name: 'author', type: 'input', message: 'Author name' },
+      { name: 'description', type: 'input', message: 'Description' },
+      { name: 'license', type: 'list', message: 'License', choices: licenses },
+      { name: 'type', type: 'list', message: 'Type', choices: types },
+      {
+        name: 'tags',
+        type: 'input',
+        message: 'Tags (comma-separated)',
+        filter: (input: string) =>
+          input
+            .split(',')
+            .map(tag => tag.trim())
+            .filter(tag => tag.length > 0),
+      },
+      {
+        name: 'url',
+        type: 'input',
+        message: 'Website url',
+        default: `https://github.com/${pkgAnswers.org}/${pkgAnswers.package}`,
+      },
+      {
+        name: 'audio',
+        type: 'input',
+        message: 'Audio preview url',
+        default: `https://open-audio-stack.github.io/open-audio-stack-registry/${this.type}/${pkgAnswers.org}/${pkgAnswers.package}/${pkgAnswers.package}.flac`,
+      },
+      {
+        name: 'image',
+        type: 'input',
+        message: 'Image preview url',
+        default: `https://open-audio-stack.github.io/open-audio-stack-registry/${this.type}/${pkgAnswers.org}/${pkgAnswers.package}/${pkgAnswers.package}.jpg`,
+      },
+      { name: 'date', type: 'input', message: 'Date released', default: new Date().toISOString() },
+      { name: 'changes', type: 'input', message: 'List of changes' },
+    ];
+    if (this.type === RegistryType.Projects) {
+      pkgVersionQuestions.push({ name: 'open', type: 'input', message: 'File to open' });
+    }
+    const pkgVersionAnswers = await inquirer.prompt(pkgVersionQuestions as any);
+    // TODO prompt for each file.
+    pkgVersionAnswers.files = [];
+    if (this.type === RegistryType.Presets || this.type === RegistryType.Projects) {
+      pkgVersionAnswers.plugins = [];
+    }
+    console.log(pkgVersionAnswers);
+    const pkg = new Package(`${pkgAnswers.org}/${pkgAnswers.package}`);
+    pkg.addVersion(pkgAnswers.version, pkgVersionAnswers as PackageVersion);
+    console.log(JSON.stringify(pkg.getReport(), null, 2));
+    this.addPackage(pkg);
   }
 
   scan(ext = 'json', installable = true) {
