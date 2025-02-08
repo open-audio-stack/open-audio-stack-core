@@ -30,7 +30,6 @@ import { ZodIssue } from 'zod';
 import { SystemType } from '../types/SystemType.js';
 import { fileURLToPath } from 'url';
 import sudoPrompt from '@vscode/sudo-prompt';
-import { log } from './utils.js';
 import { getSystem } from './utilsLocal.js';
 
 export async function archiveExtract(filePath: string, dirPath: string) {
@@ -102,7 +101,6 @@ export function dirMove(dir: string, dirNew: string): void | boolean {
 
 export function dirOpen(dir: string) {
   let command: string = '';
-  if (process.env.CI) return Buffer.from('');
   if (getSystem() === SystemType.Win) command = 'start ""';
   else if (getSystem() === SystemType.Mac) command = 'open';
   else command = 'xdg-open';
@@ -194,6 +192,35 @@ export async function fileHash(filePath: string, algorithm = 'sha256'): Promise<
   return hash.digest('hex');
 }
 
+export function fileInstall(filePath: string) {
+  const ext = path.extname(filePath).toLowerCase();
+  let command: string | null = null;
+  switch (ext) {
+    case '.dmg':
+      command = `hdiutil attach -nobrowse "${filePath}" && sudo installer -pkg "$(find /Volumes -name '*.pkg' -maxdepth 2 | head -n 1)" -target / && hdiutil detach "$(find /Volumes -type d -maxdepth 1 -mindepth 1 | grep -v 'Macintosh HD')"`;
+      break;
+    case '.pkg':
+      command = `sudo installer -pkg "${filePath}" -target /`;
+      break;
+    case '.deb':
+      command = `sudo dpkg -i "${filePath}" || sudo apt-get install -f -y`;
+      break;
+    case '.rpm':
+      command = `sudo rpm -i --nodigest --nofiledigest --nosignature --force "${filePath}" || sudo dnf install -y "${filePath}" || sudo yum install -y "${filePath}"`;
+      break;
+    case '.exe':
+      command = `start /wait "" "${filePath}" /quiet /norestart`;
+      break;
+    case '.msi':
+      command = `msiexec /i "${filePath}" /quiet /norestart`;
+      break;
+    default:
+      throw new Error(`Unsupported file format: ${ext}`);
+  }
+  console.log('⎋', command);
+  return execSync(command, { stdio: 'inherit' });
+}
+
 export function fileMove(filePath: string, newPath: string): void | boolean {
   if (fileExists(filePath)) {
     console.log('-', filePath);
@@ -228,7 +255,6 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
 
 export function fileOpen(filePath: string) {
   let command: string = '';
-  if (process.env.CI) return Buffer.from('');
   if (getSystem() === SystemType.Win) command = 'start ""';
   else if (getSystem() === SystemType.Mac) command = 'open';
   else command = 'xdg-open';
@@ -310,24 +336,20 @@ export function runCliAsAdmin(args: string): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     const filename: string = fileURLToPath(import.meta.url).replace('src/', 'build/');
     const dirPathClean: string = dirname(filename).replace('app.asar', 'app.asar.unpacked');
-    log(`node "${dirPathClean}${path.sep}helpers${path.sep}admin.js" ${args}`);
-    sudoPrompt.exec(
-      `node "${dirPathClean}${path.sep}helpers${path.sep}admin.js" ${args}`,
-      { name: 'Open Audio Stack' },
-      (error, stdout, stderr) => {
-        if (stdout) {
-          log('runCliAsAdmin', stdout);
-        }
-        if (stderr) {
-          log('runCliAsAdmin', stderr);
-        }
-        if (error) {
-          reject(error);
-        } else {
-          resolve(stdout?.toString() || '');
-        }
-      },
-    );
+    const script: string = path.join(dirPathClean, 'admin.js');
+    sudoPrompt.exec(`node "${script}" ${args}`, { name: 'Open Audio Stack' }, (error, stdout, stderr) => {
+      if (stdout) {
+        console.log('runCliAsAdmin', stdout);
+      }
+      if (stderr) {
+        console.log('runCliAsAdmin', stderr);
+      }
+      if (error) {
+        reject(error);
+      } else {
+        resolve(stdout?.toString() || '');
+      }
+    });
   });
 }
 

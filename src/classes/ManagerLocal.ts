@@ -13,6 +13,7 @@ import {
   fileCreateYaml,
   fileExists,
   fileHash,
+  fileInstall,
   fileOpen,
   fileReadJson,
   fileReadYaml,
@@ -231,9 +232,10 @@ export class ManagerLocal extends Manager {
       const hash: string = await fileHash(filePath);
       if (hash !== file.sha256) return console.error(`Error: ${filePath} hash mismatch`);
 
-      // If installer, run the installer.
+      // If installer, run the installer headless (without the user interface).
       if (file.type === FileType.Installer) {
-        fileOpen(filePath);
+        if (isTests()) fileOpen(filePath);
+        else fileInstall(filePath);
       }
 
       // If archive, extract the archive to temporary directory, then move individual files.

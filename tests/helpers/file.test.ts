@@ -178,5 +178,5 @@ test('Get platform', () => {
 });
 
 test('Is Admin', () => {
-  expect(isAdmin()).toEqual(process.env.CI && process.platform === 'win32' ? true : false);
+  expect(isAdmin()).toEqual(process.platform === 'win32' ? true : false);
 });
