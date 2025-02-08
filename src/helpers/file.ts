@@ -101,6 +101,7 @@ export function dirMove(dir: string, dirNew: string): void | boolean {
 
 export function dirOpen(dir: string) {
   let command: string = '';
+  if (process.env.CI) return Buffer.from('');
   if (getSystem() === SystemType.Win) command = 'start ""';
   else if (getSystem() === SystemType.Mac) command = 'open';
   else command = 'xdg-open';
@@ -193,6 +194,7 @@ export async function fileHash(filePath: string, algorithm = 'sha256'): Promise<
 }
 
 export function fileInstall(filePath: string) {
+  if (process.env.CI) return Buffer.from('');
   const ext = path.extname(filePath).toLowerCase();
   let command: string | null = null;
   switch (ext) {
@@ -255,6 +257,7 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
 
 export function fileOpen(filePath: string) {
   let command: string = '';
+  if (process.env.CI) return Buffer.from('');
   if (getSystem() === SystemType.Win) command = 'start ""';
   else if (getSystem() === SystemType.Mac) command = 'open';
   else command = 'xdg-open';
