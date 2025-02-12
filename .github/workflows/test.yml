@@ -2,12 +2,11 @@ name: Test
 
 on:
   push:
-    branches-ignore: main
   pull_request:
-    branches: main
 
 jobs:
   test_code:
+    if: github.event_name == 'push' && github.event.pull_request == null || github.event_name == 'pull_request'
     name: Test code
     runs-on: ${{ matrix.os }}
     strategy:
