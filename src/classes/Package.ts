@@ -26,7 +26,10 @@ export class Package {
       ...(recs.length > 0 && { recs }),
     };
     if (Object.keys(report).length > 0) this.reports.set(num, report);
-    if (errors.length > 0) return;
+    if (errors.length > 0) {
+      console.error(errors);
+      return;
+    }
     this.versions.set(num, version);
     this.version = this.latestVersion();
   }

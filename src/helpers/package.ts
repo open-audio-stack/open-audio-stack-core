@@ -66,7 +66,6 @@ export const PackageSystemValidator = z.object({
 
 export const PackageFileValidator = z.object({
   architectures: z.nativeEnum(Architecture).array(),
-  format: z.nativeEnum(FileFormat),
   sha256: z.string().length(64),
   size: z.number().min(0).max(9999999999),
   systems: PackageSystemValidator.array(),
