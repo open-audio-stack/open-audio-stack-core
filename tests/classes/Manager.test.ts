@@ -81,7 +81,7 @@ test('Manager get report', () => {
       '1.3.1': {
         recs: [
           {
-            field: 'format',
+            field: 'url',
             rec: 'requires mounting step, consider .pkg instead',
           },
         ],

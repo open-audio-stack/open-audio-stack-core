@@ -160,6 +160,7 @@ export class ManagerLocal extends Manager {
         dirCreate(path.join(dir, pkgSlug, version));
         saveFile(path.join(dir, pkgSlug, version, filename), pkgVersion);
       }
+      dirCreate(path.join(dir, pkgSlug));
       saveFile(path.join(dir, pkgSlug, filename), pkg.toJSON());
 
       // TODO find a more elegant way to handle org exports.

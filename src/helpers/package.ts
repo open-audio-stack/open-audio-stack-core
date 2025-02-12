@@ -13,6 +13,7 @@ import { ProjectFile } from '../types/Project.js';
 import { ProjectType } from '../types/ProjectType.js';
 import { SystemType } from '../types/SystemType.js';
 import { PackageFileMap, PackageInterface, PackageValidationRec, PackageVersion } from '../types/Package.js';
+import { pathGetExt } from './utils.js';
 
 export function packageCompatibleFiles(
   pkg: PackageVersion,
@@ -27,7 +28,8 @@ export function packageCompatibleFiles(
     const sysMatches = file.systems.filter(system => {
       return sys.includes(system.type);
     });
-    const formatAllowed = excludedFormats && excludedFormats.includes(file.format) ? false : true;
+    const formatAllowed =
+      excludedFormats && excludedFormats.includes(pathGetExt(file.url) as FileFormat) ? false : true;
     return archMatches.length && sysMatches.length && formatAllowed;
   });
 }
@@ -123,15 +125,17 @@ export function packageRecommendations(pkgVersion: PackageVersion) {
       file.systems.forEach(system => {
         supportedSystems[system.type] = true;
       });
-      supportedFileFormats[file.format] = true;
+      const ext: string = pathGetExt(file.url);
+      supportedFileFormats[ext] = true;
       packageRecommendationsUrl(file, recs, 'url');
 
       // Formats which do not support headless installation.
-      if (file.format === FileFormat.AppImage)
-        recs.push({ field: 'format', rec: 'requires manual installation steps, consider .deb and .rpm instead' });
-      if (file.format === FileFormat.AppleDiskImage)
-        recs.push({ field: 'format', rec: 'requires mounting step, consider .pkg instead' });
-      if (!file.url.includes(file.format)) recs.push({ field: 'format', rec: 'should match url field' });
+      if (ext === FileFormat.AppImage)
+        recs.push({ field: 'url', rec: 'requires manual installation steps, consider .deb and .rpm instead' });
+      if (ext === FileFormat.AppleDiskImage)
+        recs.push({ field: 'url', rec: 'requires mounting step, consider .pkg instead' });
+      if (!Object.values(FileFormat).includes(ext as FileFormat))
+        recs.push({ field: 'url', rec: 'not a supported format' });
 
       // Validate format is a supported installer format
       const installerFormats: FileFormat[] = [
@@ -142,8 +146,8 @@ export function packageRecommendations(pkgVersion: PackageVersion) {
         FileFormat.RedHatPackage,
         FileFormat.WindowsInstaller,
       ];
-      if (file.type === FileType.Installer && !installerFormats.includes(file.format))
-        recs.push({ field: 'type', rec: 'should match format field' });
+      if (file.type === FileType.Installer && !installerFormats.includes(ext as FileFormat))
+        recs.push({ field: 'type', rec: 'should match url field' });
     });
 
     // Architectures
