@@ -10,7 +10,7 @@ test('Package version latest', () => {
 test('Package recommendations pass', () => {
   expect(packageRecommendations(PLUGIN)).toEqual([
     {
-      field: 'format',
+      field: 'url',
       rec: 'requires mounting step, consider .pkg instead',
     },
   ]);
@@ -25,7 +25,7 @@ test('Package recommendations fail', () => {
       rec: 'should use https url',
     },
     {
-      field: 'format',
+      field: 'url',
       rec: 'requires mounting step, consider .pkg instead',
     },
   ]);

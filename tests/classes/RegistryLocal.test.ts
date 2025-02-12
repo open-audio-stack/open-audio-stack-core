@@ -182,7 +182,7 @@ test('Registry export', async () => {
   expect(report['surge-synthesizer/surge']['1.3.1']).toEqual({
     recs: [
       {
-        field: 'format',
+        field: 'url',
         rec: 'requires mounting step, consider .pkg instead',
       },
     ],
