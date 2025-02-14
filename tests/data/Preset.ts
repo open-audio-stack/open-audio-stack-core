@@ -1,5 +1,4 @@
 import { Architecture } from '../../src/types/Architecture';
-import { FileFormat } from '../../src/types/FileFormat';
 import { FileType } from '../../src/types/FileType';
 import { License } from '../../src/types/License';
 import { PresetFormat } from '../../src/types/PresetFormat';
@@ -18,7 +17,6 @@ export const PRESET: PresetInterface = {
     {
       architectures: [Architecture.Arm32, Architecture.Arm64, Architecture.X32, Architecture.X64],
       contains: [PresetFormat.VSTPreset],
-      format: FileFormat.Zip,
       sha256: 'ddc328295ca5a25303a42c45b184f99b7e923bbcbb92b8061e33191f79f19ad9',
       systems: [{ type: SystemType.Linux }, { type: SystemType.Mac }, { type: SystemType.Win }],
       size: 3773,

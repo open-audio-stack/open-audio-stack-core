@@ -1,6 +1,5 @@
 import path from 'path';
 import { Architecture } from '../../src/types/Architecture';
-import { FileFormat } from '../../src/types/FileFormat';
 import { FileType } from '../../src/types/FileType';
 import { License } from '../../src/types/License';
 import { ProjectInterface } from '../../src/types/Project';
@@ -21,7 +20,6 @@ export const PROJECT: ProjectInterface = {
     {
       architectures: [Architecture.Arm32, Architecture.Arm64, Architecture.X32, Architecture.X64],
       contains: [ProjectFormat.AbletonLive],
-      format: FileFormat.Zip,
       sha256: '77e2d542235889b027f2ecbe66b753978a5232fabac9c97151a86173048e2eaf',
       systems: [{ type: SystemType.Linux }, { type: SystemType.Mac }, { type: SystemType.Win }],
       size: 216863,

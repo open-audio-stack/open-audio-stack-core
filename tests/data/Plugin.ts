@@ -1,6 +1,5 @@
 import { PackageInterface } from '../../src/types/Package';
 import { Architecture } from '../../src/types/Architecture';
-import { FileFormat } from '../../src/types/FileFormat';
 import { FileType } from '../../src/types/FileType';
 import { License } from '../../src/types/License';
 import { PluginInterface } from '../../src/types/Plugin';
@@ -27,7 +26,6 @@ export const PLUGIN: PluginInterface = {
         PluginFormat.LADSPAVersion2,
         PluginFormat.VST3,
       ],
-      format: FileFormat.DebianPackage,
       sha256: '729d92b5a4288f4c22587b8e84244c26aef34e58312ab5b4f4d1f196699b802e',
       systems: [{ type: SystemType.Linux }],
       size: 220693484,
@@ -42,7 +40,6 @@ export const PLUGIN: PluginInterface = {
         PluginFormat.LADSPAVersion2,
         PluginFormat.VST3,
       ],
-      format: FileFormat.RedHatPackage,
       sha256: '135e9b8d3e71ab4dd502eee464b99f82c733be2ae23e8fca3724773dee3d54e8',
       systems: [{ type: SystemType.Linux }],
       size: 346260010,
@@ -57,7 +54,6 @@ export const PLUGIN: PluginInterface = {
         PluginFormat.AudioUnits,
         PluginFormat.VST3,
       ],
-      format: FileFormat.AppleDiskImage,
       sha256: 'e30b218700d4067edb3a0eadb4128784e41f91f663cff19e3fbb38460883cf59',
       systems: [{ type: SystemType.Mac }],
       size: 411860016,
@@ -67,7 +63,6 @@ export const PLUGIN: PluginInterface = {
     {
       architectures: [Architecture.X32],
       contains: [PluginFormat.WinStandalone, PluginFormat.VST3],
-      format: FileFormat.ExecutableInstaller,
       sha256: '3d766adb0d04b86f7aca8c136bc4c7b0727d316ec10895f679f1c01b0c236a00',
       systems: [{ type: SystemType.Win }],
       size: 180270273,
@@ -77,7 +72,6 @@ export const PLUGIN: PluginInterface = {
     {
       architectures: [Architecture.X64],
       contains: [PluginFormat.WinStandalone, PluginFormat.CleverAudioPlugin, PluginFormat.VST3],
-      format: FileFormat.ExecutableInstaller,
       sha256: '2bac9c87c3e4293ecc4110087f5bb90a5218427921613409b84673f513f02bd3',
       systems: [{ type: SystemType.Win }],
       size: 182890274,
