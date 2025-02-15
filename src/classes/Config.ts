@@ -17,11 +17,13 @@ import {
   PluginCategoryInstrument,
   pluginCategoryInstruments,
 } from '../types/PluginCategory.js';
+import { Base } from './Base.js';
 
-export class Config {
+export class Config extends Base {
   config: ConfigInterface;
 
   constructor(config?: ConfigInterface) {
+    super();
     this.config = { ...configDefaults(), ...config };
   }
 

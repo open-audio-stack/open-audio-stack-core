@@ -371,7 +371,7 @@ export function zipCreate(filesPath: string, zipPath: string): void {
         zip.addLocalFile(pathItem);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   });
   console.log('+', zipPath);

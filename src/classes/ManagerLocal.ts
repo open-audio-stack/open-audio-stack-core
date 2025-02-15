@@ -130,10 +130,10 @@ export class ManagerLocal extends Manager {
     if (this.type === RegistryType.Presets || this.type === RegistryType.Projects) {
       pkgVersionAnswers.plugins = [];
     }
-    console.log(pkgVersionAnswers);
+    this.log(pkgVersionAnswers);
     const pkg = new Package(`${pkgAnswers.org}/${pkgAnswers.package}`);
     pkg.addVersion(pkgAnswers.version, pkgVersionAnswers as PackageVersion);
-    console.log(JSON.stringify(pkg.getReport(), null, 2));
+    this.log(JSON.stringify(pkg.getReport(), null, 2));
     this.addPackage(pkg);
   }
 

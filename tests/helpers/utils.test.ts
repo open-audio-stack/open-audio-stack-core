@@ -2,16 +2,12 @@ import path from 'path';
 import { expect, test } from 'vitest';
 import {
   inputGetParts,
-  logDisable,
-  logEnable,
-  logReport,
   pathGetDirectory,
   pathGetExt,
   pathGetFilename,
   pathGetSlug,
   pathGetVersion,
 } from '../../src/helpers/utils';
-import { log } from 'console';
 
 const PLUGIN_ORG = 'surge-synthesizer';
 const PLUGIN_ID = 'surge';
@@ -29,26 +25,6 @@ test('Input get parts', () => {
     `${PLUGIN_ORG}/${PLUGIN_ID}`,
     PLUGIN_VERSION,
   ]);
-});
-
-test('Log enabled', () => {
-  expect(logEnable()).toEqual(true);
-});
-
-test('Log when enabled', () => {
-  expect(log()).toEqual(undefined);
-});
-
-test('Log disabled', () => {
-  expect(logDisable()).toEqual(false);
-});
-
-test('Log when disabled', () => {
-  expect(log()).toEqual(undefined);
-});
-
-test('Log report', () => {
-  expect(logReport('Example')).toEqual(undefined);
 });
 
 test('Path get directory', () => {

@@ -4,6 +4,7 @@
 // Comment out any files which are not NodeJS compatible.
 
 // Classes
+export * from './classes/Base.js';
 export * from './classes/Config.js';
 export * from './classes/ConfigLocal.js';
 export * from './classes/Manager.js';

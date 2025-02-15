@@ -4,13 +4,15 @@ import { ConfigInterface, ConfigRegistry } from '../types/Config.js';
 import { Package } from './Package.js';
 import { PackageVersion } from '../types/Package.js';
 import { RegistryInterface, RegistryPackages, RegistryType } from '../types/Registry.js';
+import { Base } from './Base.js';
 
-export class Manager {
+export class Manager extends Base {
   protected config: Config;
   protected packages: Map<string, Package>;
   type: RegistryType;
 
   constructor(type: RegistryType, config?: ConfigInterface) {
+    super();
     this.config = new Config(config);
     this.packages = new Map();
     this.type = type;

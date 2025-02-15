@@ -1,62 +1,10 @@
-import chalk from 'chalk';
-import { PackageValidationRec } from '../types/Package.js';
-import { ZodIssue } from 'zod';
 import * as semver from 'semver';
 import slugify from 'slugify';
 
-let LOGGING_ENABLED: boolean = false;
 const URLSAFE_REGEX: RegExp = /[^\w\s$*_+~.()'"!\-:@/]+/g;
 
 export function inputGetParts(input: string): string[] {
   return input.split('@');
-}
-
-export function log(...args: any) {
-  if (LOGGING_ENABLED) {
-    console.log(...args);
-    return true;
-  }
-  return false;
-}
-
-export function logEnable() {
-  return (LOGGING_ENABLED = true);
-}
-
-export function logDisable() {
-  return (LOGGING_ENABLED = false);
-}
-
-export function logReport(info: string, errors?: ZodIssue[], recs?: PackageValidationRec[]) {
-  if (errors && errors.length > 0) {
-    console.log(chalk.red(`X ${info}`));
-    logErrors(errors);
-  } else {
-    console.log(chalk.green(`✓ ${info}`));
-  }
-  if (recs) logRecommendations(recs);
-}
-
-export function logErrors(errors: ZodIssue[]) {
-  errors.forEach(error => {
-    // @ts-expect-error need to filter by code.
-    if (error.received) {
-      console.log(
-        chalk.red(
-          // @ts-expect-error need to filter by code.
-          `- ${error.path} (${error.message}) received '${error.received}' expected '${error.expected}'`,
-        ),
-      );
-    } else {
-      console.log(chalk.red(`- ${error.path} (${error.message})`));
-    }
-  });
-}
-
-export function logRecommendations(recs: PackageValidationRec[]) {
-  recs.forEach(rec => {
-    console.log(chalk.yellow(`- ${rec.field} ${rec.rec}`));
-  });
 }
 
 export function pathGetDirectory(path: string, sep: string = '/') {

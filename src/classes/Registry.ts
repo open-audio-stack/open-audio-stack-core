@@ -1,7 +1,8 @@
 import { Manager } from './Manager.js';
 import { RegistryInterface, RegistryType } from '../types/Registry.js';
+import { Base } from './Base.js';
 
-export class Registry {
+export class Registry extends Base {
   name: string;
   url: string;
   version: string;
@@ -9,6 +10,7 @@ export class Registry {
   protected managers: Record<string, Manager>;
 
   constructor(name: string, url: string, version: string) {
+    super();
     this.name = name;
     this.url = url;
     this.version = version;

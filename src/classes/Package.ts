@@ -2,14 +2,16 @@ import * as semver from 'semver';
 import { PackageReport, PackageVersion, PackageVersions } from '../types/Package.js';
 import { packageErrors, packageRecommendations } from '../helpers/package.js';
 import { isValidSlug } from '../helpers/utils.js';
+import { Base } from './Base.js';
 
-export class Package {
+export class Package extends Base {
   reports: Map<string, PackageReport>;
   slug: string;
   version: string;
   versions: Map<string, PackageVersion>;
 
   constructor(slug: string, versions?: PackageVersions) {
+    super();
     if (!isValidSlug(slug)) console.error('Invalid package slug', slug);
     this.reports = new Map();
     this.slug = slug;

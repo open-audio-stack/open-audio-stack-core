@@ -31,7 +31,7 @@ export async function adminInit() {
   } else if (argv.operation === 'uninstall') {
     await manager.uninstall(argv.id, argv.ver);
   } else {
-    console.log('Missing --operation argument');
+    console.error('Missing --operation argument');
   }
 }
 
