@@ -1,3 +1,4 @@
+import path from 'path';
 import { beforeAll, expect, test } from 'vitest';
 import { CONFIG_LOCAL, CONFIG_LOCAL_TEST } from '../data/Config.js';
 import { ConfigLocal } from '../../src/classes/ConfigLocal.js';
@@ -19,9 +20,9 @@ import { ConfigInterface } from '../../src/types/Config.js';
 const APP_DIR: string = 'test';
 const CONFIG: ConfigInterface = {
   appDir: APP_DIR,
-  pluginsDir: `${APP_DIR}/installed/plugins`,
-  presetsDir: `${APP_DIR}/installed/presets`,
-  projectsDir: `${APP_DIR}/installed/projects`,
+  pluginsDir: path.join(APP_DIR, 'installed', 'plugins'),
+  presetsDir: path.join(APP_DIR, 'installed', 'presets'),
+  projectsDir: path.join(APP_DIR, 'installed', 'projects'),
 };
 
 beforeAll(() => {
@@ -32,20 +33,22 @@ beforeAll(() => {
 test('Create new Config', () => {
   const config: ConfigLocal = new ConfigLocal(configDefaultsLocal());
   const config2: ConfigLocal = new ConfigLocal(CONFIG);
+  const config3: ConfigLocal = new ConfigLocal();
   expect(config.getAll()).toEqual(CONFIG_LOCAL);
   expect(config2.getAll()).toEqual(CONFIG_LOCAL_TEST);
+  expect(config3.getAll()).toEqual(CONFIG_LOCAL);
 });
 
 test('Set and get value', () => {
   const config: ConfigLocal = new ConfigLocal(CONFIG);
   config.set('appDir', 'test');
   expect(config.get('appDir')).toEqual('test');
-  config.set('pluginsDir', 'test/installed/plugins1');
-  expect(config.get('pluginsDir')).toEqual('test/installed/plugins1');
-  config.set('pluginsDir', 'test/installed/plugins');
-  expect(config.get('pluginsDir')).toEqual('test/installed/plugins');
-  config.set('presetsDir', 'test/installed/presets');
-  config.set('projectsDir', 'test/installed/projects');
+  config.set('pluginsDir', CONFIG_LOCAL_TEST.pluginsDir + '1');
+  expect(config.get('pluginsDir')).toEqual(CONFIG_LOCAL_TEST.pluginsDir + '1');
+  config.set('pluginsDir', CONFIG_LOCAL_TEST.pluginsDir);
+  expect(config.get('pluginsDir')).toEqual(CONFIG_LOCAL_TEST.pluginsDir);
+  config.set('presetsDir', CONFIG_LOCAL_TEST.presetsDir);
+  config.set('projectsDir', CONFIG_LOCAL_TEST.projectsDir);
 });
 
 test('Config export', () => {
