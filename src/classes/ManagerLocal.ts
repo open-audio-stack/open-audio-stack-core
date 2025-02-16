@@ -47,8 +47,7 @@ export class ManagerLocal extends Manager {
 
   constructor(type: RegistryType, config: ConfigInterface) {
     super(type, config);
-    const configPath: string = path.join(config.appDir || '', 'config.json');
-    this.config = new ConfigLocal(configPath, config);
+    this.config = new ConfigLocal(config);
     this.typeDir = this.config.get(`${type}Dir`) as string;
   }
 

@@ -7,10 +7,10 @@ import { configDefaultsLocal } from '../helpers/configLocal.js';
 export class ConfigLocal extends Config {
   path: string;
 
-  constructor(configPath: string, config?: ConfigInterface) {
+  constructor(config?: ConfigInterface) {
     super(config);
     this.config = { ...configDefaultsLocal(), ...config };
-    this.path = configPath;
+    this.path = path.join(this.config.appDir || '', 'config.json');
     if (fileExists(this.path)) {
       this.config = { ...this.config, ...this.load() };
     } else {
