@@ -5,6 +5,7 @@
   "type": "module",
   "main": "./build/index.js",
   "exports": {
+    "import": "./build/index.js",
     "node": "./build/index.js",
     "default": "./build/index-browser.js"
   },

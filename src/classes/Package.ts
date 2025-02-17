@@ -54,6 +54,14 @@ export class Package extends Base {
     return this.versions.get(this.latestVersion());
   }
 
+  getVersionOrLatest(num?: string) {
+    if (num) {
+      const pkgVersion = this.getVersion(num);
+      if (pkgVersion) return pkgVersion;
+    }
+    return this.getVersionLatest();
+  }
+
   latestVersion() {
     return Array.from(this.versions.keys()).sort(semver.rcompare)[0] || '0.0.0';
   }

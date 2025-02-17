@@ -58,3 +58,21 @@ test('Package latest version', () => {
   pkg.addVersion('2.1.0', PLUGIN);
   expect(pkg.latestVersion()).toEqual('3.2.1');
 });
+
+test('Package get version or latest', () => {
+  const PLUGIN_V2: PackageVersion = structuredClone(PLUGIN);
+  PLUGIN_V2.name = 'Plugin V2';
+  const PLUGIN_V3: PackageVersion = structuredClone(PLUGIN);
+  PLUGIN_V3.name = 'Plugin V3';
+
+  const pkg = new Package(PLUGIN_PACKAGE.slug);
+  pkg.addVersion('3.2.1', PLUGIN_V3);
+  pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
+  pkg.addVersion('2.1.0', PLUGIN_V2);
+  expect(pkg.getVersionOrLatest('2.1.0')).toEqual(PLUGIN_V2);
+  expect(pkg.getVersionOrLatest()).toEqual(PLUGIN_V3);
+  expect(pkg.getVersionOrLatest('2.2.2')).toEqual(PLUGIN_V3);
+  expect(pkg.getVersionOrLatest(PLUGIN_PACKAGE.version)).toEqual(PLUGIN);
+  expect(pkg.getVersionOrLatest('3.2.1')).toEqual(PLUGIN_V3);
+  expect(pkg.getVersionOrLatest('4.0.0')).toEqual(PLUGIN_V3);
+});

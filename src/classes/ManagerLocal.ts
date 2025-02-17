@@ -45,7 +45,7 @@ import inquirer from 'inquirer';
 export class ManagerLocal extends Manager {
   protected typeDir: string;
 
-  constructor(type: RegistryType, config: ConfigInterface) {
+  constructor(type: RegistryType, config?: ConfigInterface) {
     super(type, config);
     this.config = new ConfigLocal(config);
     this.typeDir = this.config.get(`${type}Dir`) as string;
