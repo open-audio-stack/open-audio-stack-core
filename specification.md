@@ -17,7 +17,7 @@ This document describes an open specification for audio package managers. The go
 
 This dotted line in the diagram indicates the scope of this specification. A separate specification focuses on the upper area of the diagram: audio package metadata stored in a registry: [Open Audio Stack - Registry - Specification 1.0.0](https://github.com/open-audio-stack/open-audio-stack-registry/blob/main/specification.md)
 
-## Definitions
+### Definitions
 
 - **Developer** \- Audio plugin developer who releases audio plugins.
 - **Package** \- Collection of files to be distributed along with metadata about those files:
@@ -33,7 +33,7 @@ This dotted line in the diagram indicates the scope of this specification. A sep
 - **User \-** Musician using a computer to run audio software.
   - **Digital Audio Workstation (DAW)** \- software that allows users to record, edit, and produce audio.
 
-## Problems solved
+### Problems solved
 
 Musicians install Digital Audio Workstation (DAW) software on computers to record and arrange music. They add audio plugins such as instruments and effects to extend their DAW functionality. The method of downloading and installing audio plugins differs depending on the company or individual distributing the software. The result is:
 
@@ -50,7 +50,7 @@ Musicians install Digital Audio Workstation (DAW) software on computers to recor
 
 This specification aims to solve these issues by applying established conventions and best practices from other well-known software package managers such as [npm](https://docs.npmjs.com), [pip](https://pip.pypa.io/en/stable/), [maven](https://maven.apache.org), [gems](https://guides.rubygems.org) and [composer](https://getcomposer.org). Audio plugin managers adopting this specification will be compatible and interoperable with each other. Musicians using compatible audio plugin managers will benefit from well-established package management features.
 
-## Use cases
+### Use cases
 
 1. Search for audio plugins and filter by metadata attributes such as platform or license.
 2. View audio plugin details such as description and size and preview image and audio.
@@ -58,8 +58,6 @@ This specification aims to solve these issues by applying established convention
 4. Install plugin versions automatically choosing the best version of each for your system.
 5. Download and extract files into configured directories.
 6. Extend existing plugin functionality by installing additional presets.
-
----
 
 ## Manager
 
@@ -98,8 +96,6 @@ $ manager --version
 #### JSON output
 
 `$ manager <command> --json`
-
----
 
 ## Config
 
@@ -216,8 +212,6 @@ $ manager config get projectDir
 /Users/username/Documents/Audio
 ```
 
----
-
 ## Manager
 
 These functions can be run in a browser as part of a website or app. They do not rely on access to the local machine. ManagerLocal extends this with methods to install and manage plugins locally.
@@ -276,8 +270,6 @@ Get a specific package version metadata.
 
 Resets/clears the synced package list.  
 `$ manager <registryType> reset`
-
-## ---
 
 ## Manager Local
 
@@ -422,8 +414,6 @@ Create new package metadata:
 - `type`
 - `url`
 
----
-
 ## Project
 
 For all project commands the \<`path`\> option is optional:
@@ -519,8 +509,6 @@ Uninstall dependencies listed inside a package json file.
 
 Open project by slug:  
 `$ manager project open <path>`
-
----
 
 ## Tools
 
