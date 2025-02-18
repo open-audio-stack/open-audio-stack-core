@@ -31,9 +31,10 @@ import { SystemType } from '../types/SystemType.js';
 import { fileURLToPath } from 'url';
 import sudoPrompt from '@vscode/sudo-prompt';
 import { getSystem } from './utilsLocal.js';
+import { log } from './utils.js';
 
 export async function archiveExtract(filePath: string, dirPath: string) {
-  console.log('⎋', dirPath);
+  log('⎋', dirPath);
   const ext = path.extname(filePath).trim().toLowerCase();
   if (ext === '.zip') {
     const zip: AdmZip = new AdmZip(filePath);
@@ -62,7 +63,7 @@ export function dirContains(parentDir: string, childDir: string): boolean {
 
 export function dirCreate(dir: string) {
   if (!dirExists(dir)) {
-    console.log('+', dir);
+    log('+', dir);
     mkdirSync(dir, { recursive: true });
     return dir;
   }
@@ -71,7 +72,7 @@ export function dirCreate(dir: string) {
 
 export function dirDelete(dir: string) {
   if (dirExists(dir)) {
-    console.log('-', dir);
+    log('-', dir);
     return rmSync(dir, { recursive: true });
   }
   return false;
@@ -92,8 +93,8 @@ export function dirIs(dir: string) {
 
 export function dirMove(dir: string, dirNew: string): void | boolean {
   if (dirExists(dir)) {
-    console.log('-', dir);
-    console.log('+', dirNew);
+    log('-', dir);
+    log('+', dirNew);
     return moveSync(dir, dirNew, { overwrite: true });
   }
   return false;
@@ -105,7 +106,7 @@ export function dirOpen(dir: string) {
   if (getSystem() === SystemType.Win) command = 'start ""';
   else if (getSystem() === SystemType.Mac) command = 'open';
   else command = 'xdg-open';
-  console.log('⎋', `${command} "${dir}"`);
+  log('⎋', `${command} "${dir}"`);
   return execSync(`${command} "${dir}"`);
 }
 
@@ -136,7 +137,7 @@ export function dirProjects() {
 }
 
 export function dirRead(dir: string, options?: any): string[] {
-  console.log('⌕', dir);
+  log('⌕', dir);
   // Glob now expects forward slashes on Windows
   // Convert backslashes from path.join() to forwardslashes
   if (getSystem() === SystemType.Win) {
@@ -153,7 +154,7 @@ export function dirRename(dir: string, dirNew: string): void | boolean {
 }
 
 export function fileCreate(filePath: string, data: string | Buffer): void {
-  console.log('+', filePath);
+  log('+', filePath);
   return writeFileSync(filePath, data);
 }
 
@@ -171,7 +172,7 @@ export function fileDate(filePath: string): Date {
 
 export function fileDelete(filePath: string): boolean | void {
   if (fileExists(filePath)) {
-    console.log('-', filePath);
+    log('-', filePath);
     return unlinkSync(filePath);
   }
   return false;
@@ -186,7 +187,7 @@ export function fileExists(filePath: string): boolean {
 }
 
 export async function fileHash(filePath: string, algorithm = 'sha256'): Promise<string> {
-  console.log('⎋', filePath);
+  log('⎋', filePath);
   const input = createReadStream(filePath);
   const hash = createHash(algorithm);
   await stream.pipeline(input, hash);
@@ -219,14 +220,14 @@ export function fileInstall(filePath: string) {
     default:
       throw new Error(`Unsupported file format: ${ext}`);
   }
-  console.log('⎋', command);
+  log('⎋', command);
   return execSync(command, { stdio: 'inherit' });
 }
 
 export function fileMove(filePath: string, newPath: string): void | boolean {
   if (fileExists(filePath)) {
-    console.log('-', filePath);
-    console.log('+', newPath);
+    log('-', filePath);
+    log('+', newPath);
     return moveSync(filePath, newPath, { overwrite: true });
   }
   return false;
@@ -245,9 +246,9 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
     const fileExtTarget = formatDir[fileExt];
     // If this is not a supported file format, then ignore.
     if (fileExtTarget === undefined)
-      return console.error(`${fileSource} - ${fileExt} not mapped to a installation folder, skipping.`);
+      return log(`${fileSource} - ${fileExt} not mapped to a installation folder, skipping.`);
     const fileTarget: string = path.join(dirTarget, fileExtTarget, dirSub, path.basename(fileSource));
-    if (fileExists(fileTarget)) return console.error(`${fileSource} - ${fileTarget} already exists, skipping.`);
+    if (fileExists(fileTarget)) return log(`${fileSource} - ${fileTarget} already exists, skipping.`);
     dirCreate(path.dirname(fileTarget));
     fileMove(fileSource, fileTarget);
     filesMoved.push(fileTarget);
@@ -261,25 +262,25 @@ export function fileOpen(filePath: string) {
   if (getSystem() === SystemType.Win) command = 'start ""';
   else if (getSystem() === SystemType.Mac) command = 'open';
   else command = 'xdg-open';
-  console.log('⎋', `${command} "${filePath}"`);
+  log('⎋', `${command} "${filePath}"`);
   return execSync(`${command} "${filePath}"`);
 }
 
 export function fileRead(filePath: string) {
-  console.log('⎋', filePath);
+  log('⎋', filePath);
   return readFileSync(filePath, 'utf8');
 }
 
 export function fileReadJson(filePath: string) {
   if (fileExists(filePath)) {
-    console.log('⎋', filePath);
+    log('⎋', filePath);
     return JSON.parse(readFileSync(filePath, 'utf8').toString());
   }
   return false;
 }
 
 export function fileReadString(filePath: string) {
-  console.log('⎋', filePath);
+  log('⎋', filePath);
   return readFileSync(filePath, 'utf8').toString();
 }
 
@@ -342,10 +343,10 @@ export function runCliAsAdmin(args: string): Promise<string> {
     const script: string = path.join(dirPathClean, 'admin.js');
     sudoPrompt.exec(`node "${script}" ${args}`, { name: 'Open Audio Stack' }, (error, stdout, stderr) => {
       if (stdout) {
-        console.log('runCliAsAdmin', stdout);
+        log('runCliAsAdmin', stdout);
       }
       if (stderr) {
-        console.log('runCliAsAdmin', stderr);
+        log('runCliAsAdmin', stderr);
       }
       if (error) {
         reject(error);
@@ -363,7 +364,7 @@ export function zipCreate(filesPath: string, zipPath: string): void {
   const zip: AdmZip = new AdmZip();
   const pathList: string[] = dirRead(filesPath);
   pathList.forEach(pathItem => {
-    console.log('⎋', pathItem);
+    log('⎋', pathItem);
     try {
       if (dirIs(pathItem)) {
         zip.addLocalFolder(pathItem, path.basename(pathItem));
@@ -371,9 +372,9 @@ export function zipCreate(filesPath: string, zipPath: string): void {
         zip.addLocalFile(pathItem);
       }
     } catch (error) {
-      console.error(error);
+      log(error);
     }
   });
-  console.log('+', zipPath);
+  log('+', zipPath);
   return zip.writeZip(zipPath);
 }

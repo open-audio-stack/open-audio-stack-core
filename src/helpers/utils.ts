@@ -1,10 +1,23 @@
 import * as semver from 'semver';
 import slugify from 'slugify';
 
+let DEBUG = false;
 const URLSAFE_REGEX: RegExp = /[^\w\s$*_+~.()'"!\-:@/]+/g;
 
 export function inputGetParts(input: string): string[] {
   return input.split('@');
+}
+
+export function log(...args: any) {
+  if (DEBUG) console.log(...args);
+}
+
+export function logEnable() {
+  return (DEBUG = true);
+}
+
+export function logDisable() {
+  return (DEBUG = false);
 }
 
 export function pathGetDirectory(path: string, sep: string = '/') {

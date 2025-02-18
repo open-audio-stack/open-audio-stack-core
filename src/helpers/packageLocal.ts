@@ -1,19 +1,19 @@
 import path from 'path';
 import { fileCreateJson, fileReadJson } from './file.js';
 import { Package } from '../classes/Package.js';
-import { pathGetSlug, pathGetVersion } from './utils.js';
+import { log, pathGetSlug, pathGetVersion } from './utils.js';
 import { PackageVersion } from '../index-browser.js';
 
 export function packageLoadFile(filePath?: string) {
   // Read the file path and parse as json.
   if (!filePath) filePath = path.join('.', 'index.json');
   const pkgFile: PackageVersion = fileReadJson(filePath);
-  if (!pkgFile) console.error(filePath, `not a valid json file`);
+  if (!pkgFile) log(filePath, `not a valid json file`);
 
   // Validate package json file structure, fields and values.
   const pkg = new Package(pathGetSlug(filePath));
   pkg.addVersion(pathGetVersion(filePath), pkgFile);
-  console.log(JSON.stringify(pkg.getReport()));
+  log(JSON.stringify(pkg.getReport()));
 
   return pkgFile;
 }

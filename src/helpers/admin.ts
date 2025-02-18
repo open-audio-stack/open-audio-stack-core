@@ -5,6 +5,7 @@
 import { RegistryType } from '../types/Registry.js';
 import { ManagerLocal } from '../classes/ManagerLocal.js';
 import { dirApp } from './file.js';
+import { log } from './utils.js';
 
 export interface Arguments {
   operation: string;
@@ -31,7 +32,7 @@ export async function adminInit() {
   } else if (argv.operation === 'uninstall') {
     await manager.uninstall(argv.id, argv.ver);
   } else {
-    console.error('Missing --operation argument');
+    log('Missing --operation argument');
   }
 }
 

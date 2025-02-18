@@ -180,10 +180,10 @@ export class ManagerLocal extends Manager {
   async install(slug: string, version?: string) {
     // Get package information from registry.
     const pkg: Package | undefined = this.getPackage(slug);
-    if (!pkg) return console.error(`Package ${slug} not found in registry`);
+    if (!pkg) return this.log(`Package ${slug} not found in registry`);
     const versionNum: string = version || pkg.latestVersion();
     const pkgVersion: PackageVersion | undefined = pkg?.getVersion(versionNum);
-    if (!pkgVersion) return console.error(`Package ${slug} version ${versionNum} not found in registry`);
+    if (!pkgVersion) return this.log(`Package ${slug} version ${versionNum} not found in registry`);
     if (pkgVersion.installed) return pkgVersion;
 
     // Elevate permissions if not running as admin.
@@ -218,7 +218,7 @@ export class ManagerLocal extends Manager {
       [getSystem()],
       excludedFormats,
     );
-    if (!files.length) return console.error(`Error: No compatible files found for ${slug}`);
+    if (!files.length) return this.log(`Error: No compatible files found for ${slug}`);
     for (const key in files) {
       // Download file to temporary directory if not already downloaded.
       const file: FileInterface = files[key];
@@ -230,7 +230,7 @@ export class ManagerLocal extends Manager {
 
       // Check file hash matches expected hash.
       const hash: string = await fileHash(filePath);
-      if (hash !== file.sha256) return console.error(`Error: ${filePath} hash mismatch`);
+      if (hash !== file.sha256) return this.log(`Error: ${filePath} hash mismatch`);
 
       // If installer, run the installer headless (without the user interface).
       if (file.type === FileType.Installer) {
@@ -270,14 +270,14 @@ export class ManagerLocal extends Manager {
     const manager = new ManagerLocal(type, this.config.config);
     await manager.sync();
     const pkg: Package | undefined = manager.getPackage(slug);
-    if (!pkg) return console.error(`Package ${slug} not found in registry`);
+    if (!pkg) return this.log(`Package ${slug} not found in registry`);
     const versionNum: string = version || pkg.latestVersion();
     const pkgVersion: PackageVersion | undefined = pkg?.getVersion(versionNum);
-    if (!pkgVersion) return console.error(`Package ${slug} version ${versionNum} not found in registry`);
+    if (!pkgVersion) return this.log(`Package ${slug} version ${versionNum} not found in registry`);
     // Get local package file.
     const pkgFile = packageLoadFile(filePath) as any;
     if (pkgFile[type] && pkgFile[type][slug] && pkgFile[type][slug] === versionNum) {
-      return console.error(`Package ${slug} version ${versionNum} is already a dependency`);
+      return this.log(`Package ${slug} version ${versionNum} is already a dependency`);
     }
     // Install dependency.
     await manager.install(slug, version);
@@ -312,11 +312,11 @@ export class ManagerLocal extends Manager {
   async uninstall(slug: string, version?: string) {
     // Get package information from registry.
     const pkg: Package | undefined = this.getPackage(slug);
-    if (!pkg) return console.error(`Package ${slug} not found in registry`);
+    if (!pkg) return this.log(`Package ${slug} not found in registry`);
     const versionNum: string = version || pkg.latestVersion();
     const pkgVersion: PackageVersion | undefined = pkg?.getVersion(versionNum);
-    if (!pkgVersion) return console.error(`Package ${slug} version ${versionNum} not found in registry`);
-    if (!pkgVersion.installed) return console.error(`Package ${slug} version ${versionNum} not installed`);
+    if (!pkgVersion) return this.log(`Package ${slug} version ${versionNum} not found in registry`);
+    if (!pkgVersion.installed) return this.log(`Package ${slug} version ${versionNum} not installed`);
 
     // Elevate permissions if not running as admin.
     if (!isAdmin() && !isTests()) {
@@ -351,8 +351,8 @@ export class ManagerLocal extends Manager {
   async uninstallDependency(slug: string, version?: string, filePath?: string, type = RegistryType.Plugins) {
     // Get local package file.
     const pkgFile = packageLoadFile(filePath) as any;
-    if (!pkgFile[type]) return console.error(`Package ${type} is missing`);
-    if (!pkgFile[type][slug]) return console.error(`Package ${type} ${slug} is not a dependency`);
+    if (!pkgFile[type]) return this.log(`Package ${type} is missing`);
+    if (!pkgFile[type][slug]) return this.log(`Package ${type} ${slug} is not a dependency`);
 
     // Uninstall dependency.
     const manager = new ManagerLocal(type, this.config.config);

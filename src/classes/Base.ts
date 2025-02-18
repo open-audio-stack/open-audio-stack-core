@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import { PackageValidationRec } from '../types/Package.js';
 import { ZodIssue } from 'zod';
+import { logEnable, logDisable } from '../helpers/utils.js';
 
 export class Base {
   debug: boolean = false;
@@ -10,10 +11,12 @@ export class Base {
   }
 
   logEnable() {
+    logEnable();
     return (this.debug = true);
   }
 
   logDisable() {
+    logDisable();
     return (this.debug = false);
   }
 

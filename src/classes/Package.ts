@@ -12,7 +12,7 @@ export class Package extends Base {
 
   constructor(slug: string, versions?: PackageVersions) {
     super();
-    if (!isValidSlug(slug)) console.error('Invalid package slug', slug);
+    if (!isValidSlug(slug)) this.log('Invalid package slug', slug);
     this.reports = new Map();
     this.slug = slug;
     this.versions = versions ? new Map(Object.entries(versions)) : new Map();
@@ -29,7 +29,7 @@ export class Package extends Base {
     };
     if (Object.keys(report).length > 0) this.reports.set(num, report);
     if (errors.length > 0) {
-      console.error(errors);
+      this.log(errors);
       return;
     }
     this.versions.set(num, version);
