@@ -2,7 +2,6 @@ export enum PluginType {
   Effect = 'effect',
   Generator = 'generator',
   Instrument = 'instrument',
-  Preset = 'preset',
   Sampler = 'sampler',
   Tool = 'tool',
 }
@@ -28,11 +27,6 @@ export const pluginTypes: PluginTypeOption[] = [
     description: 'Sound synthesis or sample playback based on audio or midi input.',
     value: PluginType.Instrument,
     name: 'Instrument',
-  },
-  {
-    description: 'Preset containing predefined settings for an instrument or effect.',
-    value: PluginType.Preset,
-    name: 'Preset',
   },
   {
     description: 'Sample playback based on audio or midi input.',
