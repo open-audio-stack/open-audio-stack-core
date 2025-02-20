@@ -2,6 +2,7 @@ export enum PluginFormat {
   AudioUnits = 'component',
   AvidAudioExtension = 'aax',
   CleverAudioPlugin = 'clap',
+  JesuSonicPlugin = 'jsfx',
   LADSPAVersion2 = 'lv2',
   LinuxStandalone = 'elf',
   MacStandalone = 'app',
@@ -24,6 +25,7 @@ export const pluginFormatDir: PluginFormatDir = {
   [PluginFormat.AudioUnits]: 'Components',
   [PluginFormat.AvidAudioExtension]: 'Avid',
   [PluginFormat.CleverAudioPlugin]: 'Clap',
+  [PluginFormat.JesuSonicPlugin]: 'Jsfx',
   [PluginFormat.LADSPAVersion2]: 'Lv2',
   [PluginFormat.LinuxStandalone]: 'Elf',
   [PluginFormat.MacStandalone]: 'App',
@@ -42,6 +44,7 @@ export interface PluginFormatOption {
   description: string;
   value: PluginFormat;
   name: string;
+  players?: string[];
 }
 
 export const pluginFormats: PluginFormatOption[] = [
@@ -61,9 +64,10 @@ export const pluginFormats: PluginFormatOption[] = [
     name: 'Clever Audio Plugin',
   },
   {
-    description: "Real-time plugin format used in Avid's Pro Tools.",
-    value: PluginFormat.RealTimeAudioSuite,
-    name: 'Real-Time AudioSuite',
+    description: 'Simple text files which become full featured plug-ins when loaded.',
+    value: PluginFormat.JesuSonicPlugin,
+    name: 'Jesusonic Plugin',
+    players: ['joepvanlier/ysfx'],
   },
   {
     description: 'Linux-friendly plugin format primarily used in open-source environments.',
@@ -81,14 +85,21 @@ export const pluginFormats: PluginFormatOption[] = [
     name: 'MacOS Standalone',
   },
   {
+    description: "Real-time plugin format used in Avid's Pro Tools.",
+    value: PluginFormat.RealTimeAudioSuite,
+    name: 'Real-Time AudioSuite',
+  },
+  {
     description: 'An open standard for defining instrument patches and sound samples.',
     value: PluginFormat.SFZ,
     name: 'SFZ',
+    players: ['sfztools/sfizz'],
   },
   {
     description: 'Widely used format for sound samples in musical instruments.',
     value: PluginFormat.SoundFont2,
     name: 'SoundFont 2',
+    players: ['birch-san/juicysfplugin'],
   },
   {
     description: 'Legacy plugin format used in early Pro Tools systems.',
