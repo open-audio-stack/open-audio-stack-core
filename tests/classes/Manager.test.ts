@@ -96,6 +96,8 @@ test('Manager list packages', () => {
   pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
   manager.addPackage(pkg);
   expect(manager.listPackages()).toEqual([pkg]);
+  expect(manager.listPackages(true)).toEqual([]);
+  expect(manager.listPackages(false)).toEqual([pkg]);
 });
 
 test('Manager filter packages', () => {

@@ -162,7 +162,7 @@ For example:
 #### Get plugin directory
 
 ```
-$ manager config get pluginDir
+$ manager config get pluginsDir
 /Users/username/Library/Audio/Plug-ins
 ```
 
@@ -185,7 +185,7 @@ For example:
 #### Get preset directory
 
 ```
-$ manager config get presetDir
+$ manager config get presetsDir
 /Users/username/Library/Audio/Presets
 ```
 
@@ -208,7 +208,7 @@ For example:
 #### Get project directory
 
 ```
-$ manager config get projectDir
+$ manager config get projectsDir
 /Users/username/Documents/Audio
 ```
 
@@ -253,8 +253,9 @@ Search the registry package index for lazy matching query. Returns an array of m
 
 ### List
 
-Returns all the packages cached from all registries:  
+Returns all the packages cached in the registry.
 `$ manager <registryType> list`
+`$ manager <registryType> list --installed`
 
 ### Get by slug
 

@@ -53,7 +53,18 @@ export class Manager extends Base {
     return reports;
   }
 
-  listPackages() {
+  listPackages(installed?: boolean) {
+    if (installed !== undefined) {
+      const packagesFiltered: Package[] = [];
+      Array.from(this.packages.values()).forEach(pkg => {
+        Array.from(pkg.versions.values()).forEach(pkgVersion => {
+          if ((installed === true && pkgVersion.installed) || (installed === false && !pkgVersion.installed)) {
+            packagesFiltered.push(pkg);
+          }
+        });
+      });
+      return packagesFiltered;
+    }
     return Array.from(this.packages.values());
   }
 
