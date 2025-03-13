@@ -7,6 +7,7 @@ import {
   dirCreate,
   dirDelete,
   dirEmpty,
+  dirMove,
   dirRead,
   fileCreate,
   fileCreateJson,
@@ -35,7 +36,7 @@ import { presetFormatDir } from '../types/PresetFormat.js';
 import { projectFormatDir } from '../types/ProjectFormat.js';
 import { FileFormat } from '../types/FileFormat.js';
 import { licenses } from '../types/License.js';
-import { PluginTypeOption, pluginTypes } from '../types/PluginType.js';
+import { PluginType, PluginTypeOption, pluginTypes } from '../types/PluginType.js';
 import { PresetTypeOption, presetTypes } from '../types/PresetType.js';
 import { ProjectTypeOption, projectTypes } from '../types/ProjectType.js';
 import { SystemType } from '../types/SystemType.js';
@@ -252,13 +253,21 @@ export class ManagerLocal extends Manager {
         if (this.type === RegistryType.Presets) formatDir = presetFormatDir;
         if (this.type === RegistryType.Projects) formatDir = projectFormatDir;
         archiveExtract(filePath, dirSource);
-        const filesMoved: string[] = filesMove(dirSource, this.typeDir, dirSub, formatDir);
 
-        // Output json metadata into every directory a file was added to.
-        filesMoved.forEach((fileMoved: string) => {
-          const fileJson: string = path.join(path.dirname(fileMoved), 'index.json');
-          fileCreateJson(fileJson, pkgVersion);
-        });
+        // Move entire directory, maintaining the same folder structure.
+        if (pkgVersion.type === PluginType.Sampler) {
+          const dirTarget: string = path.join(this.typeDir, PluginType.Sampler, dirSub);
+          dirCreate(dirTarget);
+          dirMove(dirSource, dirTarget);
+          fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
+        } else {
+          // Move only supported file extensions into their respective installation directories.
+          const filesMoved: string[] = filesMove(dirSource, this.typeDir, dirSub, formatDir);
+          filesMoved.forEach((fileMoved: string) => {
+            const fileJson: string = path.join(path.dirname(fileMoved), 'index.json');
+            fileCreateJson(fileJson, pkgVersion);
+          });
+        }
       }
     }
     pkgVersion.installed = true;
