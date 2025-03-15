@@ -140,7 +140,11 @@ export class ManagerLocal extends Manager {
   scan(ext = 'json', installable = true) {
     const filePaths: string[] = dirRead(`${this.typeDir}/**/index.${ext}`);
     filePaths.forEach((filePath: string) => {
-      const subPath: string = filePath.replace(`${this.typeDir}/`, '');
+      let subPath: string = filePath.replace(`${this.typeDir}/`, '');
+      // TODO improve this code.
+      const parts = subPath.split('/');
+      parts.shift();
+      subPath = parts.join('/');
       const pkgJson =
         ext === 'yaml' ? (fileReadYaml(filePath) as PackageVersion) : (fileReadJson(filePath) as PackageVersion);
       if (installable) pkgJson.installed = true;
@@ -179,18 +183,23 @@ export class ManagerLocal extends Manager {
   }
 
   async install(slug: string, version?: string) {
+    this.log('install', slug, version);
     // Get package information from registry.
     const pkg: Package | undefined = this.getPackage(slug);
     if (!pkg) return this.log(`Package ${slug} not found in registry`);
     const versionNum: string = version || pkg.latestVersion();
     const pkgVersion: PackageVersion | undefined = pkg?.getVersion(versionNum);
     if (!pkgVersion) return this.log(`Package ${slug} version ${versionNum} not found in registry`);
-    if (pkgVersion.installed) return pkgVersion;
+    if (pkgVersion.installed) {
+      this.log(`Package ${slug} version ${versionNum} already installed`);
+      return pkgVersion;
+    }
 
     // Elevate permissions if not running as admin.
     if (!isAdmin() && !isTests()) {
-      let command: string = `--operation install --type ${this.type} --slug ${slug}`;
-      if (version) command += ` --ver ${version}`;
+      let command: string = `--appDir "${this.config.get('appDir')}" --operation "install" --type "${this.type}" --id "${slug}"`;
+      if (version) command += ` --ver "${version}"`;
+      if (this.debug) command += ` --log`;
       await runCliAsAdmin(command);
       return this.getPackage(slug)?.getVersion(versionNum);
     }
@@ -278,6 +287,7 @@ export class ManagerLocal extends Manager {
     // Get dependency package information from registry.
     const manager = new ManagerLocal(type, this.config.config);
     await manager.sync();
+    manager.scan();
     const pkg: Package | undefined = manager.getPackage(slug);
     if (!pkg) return this.log(`Package ${slug} not found in registry`);
     const versionNum: string = version || pkg.latestVersion();
@@ -303,6 +313,7 @@ export class ManagerLocal extends Manager {
     const pkgFile = packageLoadFile(filePath) as any;
     const manager = new ManagerLocal(type, this.config.config);
     await manager.sync();
+    manager.scan();
     for (const slug in pkgFile[type]) {
       await manager.install(slug, pkgFile[type][slug]);
     }
@@ -329,8 +340,9 @@ export class ManagerLocal extends Manager {
 
     // Elevate permissions if not running as admin.
     if (!isAdmin() && !isTests()) {
-      let command: string = `--operation uninstall --type ${this.type} --slug ${slug}`;
-      if (version) command += ` --ver ${version}`;
+      let command: string = `--appDir "${this.config.get('appDir')}" --operation "install" --type "${this.type}" --id "${slug}"`;
+      if (version) command += ` --ver "${version}"`;
+      if (this.debug) command += ` --log`;
       await runCliAsAdmin(command);
       return this.getPackage(slug)?.getVersion(versionNum);
     }
@@ -366,6 +378,7 @@ export class ManagerLocal extends Manager {
     // Uninstall dependency.
     const manager = new ManagerLocal(type, this.config.config);
     await manager.sync();
+    manager.scan();
     await manager.uninstall(slug, version || pkgFile[type][slug]);
 
     // Remove dependency from local package file and save.
@@ -381,6 +394,7 @@ export class ManagerLocal extends Manager {
     const pkgFile = packageLoadFile(filePath) as any;
     const manager = new ManagerLocal(type, this.config.config);
     await manager.sync();
+    manager.scan();
     for (const slug in pkgFile[type]) {
       await manager.uninstall(slug, pkgFile[type][slug]);
     }

@@ -172,5 +172,5 @@ test('Manager sync with existing package', async () => {
 
   await manager.sync();
   const pkgReturned = manager.getPackage(PLUGIN_PACKAGE.slug);
-  expect(pkgReturned?.getVersion(PLUGIN_PACKAGE.version)?.name).toEqual('Surge modified');
+  expect(pkgReturned?.getVersion(PLUGIN_PACKAGE.version)?.name).toEqual('Surge XT');
 });

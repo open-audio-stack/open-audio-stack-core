@@ -20,7 +20,8 @@ export class Package extends Base {
   }
 
   addVersion(num: string, version: PackageVersion) {
-    if (this.versions.has(num)) return;
+    // For now allow package versions to be overwritten.
+    // if (this.versions.has(num)) return this.log(`Package ${version.name} version ${num} already exists`);
     const errors = packageErrors(version);
     const recs = packageRecommendations(version);
     const report: PackageReport = {
@@ -28,10 +29,7 @@ export class Package extends Base {
       ...(recs.length > 0 && { recs }),
     };
     if (Object.keys(report).length > 0) this.reports.set(num, report);
-    if (errors.length > 0) {
-      this.log(errors);
-      return;
-    }
+    if (errors.length > 0) return this.log(`Package ${version.name} version ${num} errors`, errors);
     this.versions.set(num, version);
     this.version = this.latestVersion();
   }

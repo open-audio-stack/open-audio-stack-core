@@ -341,6 +341,7 @@ export function runCliAsAdmin(args: string): Promise<string> {
     const filename: string = fileURLToPath(import.meta.url).replace('src/', 'build/');
     const dirPathClean: string = dirname(filename).replace('app.asar', 'app.asar.unpacked');
     const script: string = path.join(dirPathClean, 'admin.js');
+    log(`node "${script}" ${args}`);
     sudoPrompt.exec(`node "${script}" ${args}`, { name: 'Open Audio Stack' }, (error, stdout, stderr) => {
       if (stdout) {
         log('runCliAsAdmin', stdout);
