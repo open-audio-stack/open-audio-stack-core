@@ -9,7 +9,7 @@ export enum FileFormat {
   DebianPackage = 'deb', // Installer
   ExecutableInstaller = 'exe', // Installer
   RedHatPackage = 'rpm', // Installer
-  Tarball = 'tar.gz', // Archive
+  Tarball = 'gz', // Archive
   TarballLegacy = 'tgz', // Archive
   WindowsInstaller = 'msi', // Installer
   Zip = 'zip', // Archive

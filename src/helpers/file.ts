@@ -39,8 +39,8 @@ export async function archiveExtract(filePath: string, dirPath: string) {
   if (ext === '.zip') {
     const zip: AdmZip = new AdmZip(filePath);
     return zip.extractAllTo(dirPath);
-  } else if (ext === '.tar' || ext === '.tar.gz' || ext === '.tgz') {
-    return await tar.x({
+  } else if (ext === '.tar' || ext === '.gz' || ext === '.tgz') {
+    return await tar.extract({
       file: filePath,
       cwd: dirPath,
     });

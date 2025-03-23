@@ -261,11 +261,11 @@ export class ManagerLocal extends Manager {
         let formatDir: Record<string, string> = pluginFormatDir;
         if (this.type === RegistryType.Presets) formatDir = presetFormatDir;
         if (this.type === RegistryType.Projects) formatDir = projectFormatDir;
-        archiveExtract(filePath, dirSource);
+        await archiveExtract(filePath, dirSource);
 
         // Move entire directory, maintaining the same folder structure.
         if (pkgVersion.type === PluginType.Sampler) {
-          const dirTarget: string = path.join(this.typeDir, PluginType.Sampler, dirSub);
+          const dirTarget: string = path.join(this.typeDir, 'Samplers', dirSub);
           dirCreate(dirTarget);
           dirMove(dirSource, dirTarget);
           fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
@@ -340,7 +340,7 @@ export class ManagerLocal extends Manager {
 
     // Elevate permissions if not running as admin.
     if (!isAdmin() && !isTests()) {
-      let command: string = `--appDir "${this.config.get('appDir')}" --operation "install" --type "${this.type}" --id "${slug}"`;
+      let command: string = `--appDir "${this.config.get('appDir')}" --operation "uninstall" --type "${this.type}" --id "${slug}"`;
       if (version) command += ` --ver "${version}"`;
       if (this.debug) command += ` --log`;
       await runCliAsAdmin(command);
