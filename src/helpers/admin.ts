@@ -52,6 +52,8 @@ export async function adminInit() {
     await manager.install(args.id, args.version);
   } else if (args.operation === 'uninstall') {
     await manager.uninstall(args.id, args.version);
+  } else if (args.operation === 'installAll') {
+    await manager.installAll();
   }
 }
 

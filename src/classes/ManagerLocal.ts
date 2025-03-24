@@ -246,6 +246,12 @@ export class ManagerLocal extends Manager {
       if (file.type === FileType.Installer) {
         if (isTests()) fileOpen(filePath);
         else fileInstall(filePath);
+        // Currently we don't get a list of paths from the installer.
+        // Create empty directory and save package version information.
+        // Installers have to be manually uninstalled for now.
+        const dirTarget: string = path.join(this.typeDir, 'Installers', slug, versionNum);
+        dirCreate(dirTarget);
+        fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
       }
 
       // If archive, extract the archive to temporary directory, then move individual files.
@@ -281,6 +287,24 @@ export class ManagerLocal extends Manager {
     }
     pkgVersion.installed = true;
     return pkgVersion;
+  }
+
+  async installAll() {
+    // Elevate permissions if not running as admin.
+    if (!isAdmin() && !isTests()) {
+      let command: string = `--appDir "${this.config.get('appDir')}" --operation "installAll" --type "${this.type}"`;
+      if (this.debug) command += ` --log`;
+      await runCliAsAdmin(command);
+      return this.listPackages();
+    }
+
+    // Loop through all packages and install each one.
+    for (const [slug, pkg] of this.packages) {
+      const versionNum: string = pkg.latestVersion();
+      console.log(`Installing ${slug} version ${versionNum}`);
+      await this.install(slug, versionNum);
+    }
+    return this.listPackages();
   }
 
   async installDependency(slug: string, version?: string, filePath?: string, type = RegistryType.Plugins) {

@@ -1,5 +1,5 @@
 import AdmZip from 'adm-zip';
-import { execFileSync, execSync } from 'child_process';
+import { execFileSync, execSync, spawn } from 'child_process';
 import {
   createReadStream,
   chmodSync,
@@ -200,7 +200,7 @@ export function fileInstall(filePath: string) {
   let command: string | null = null;
   switch (ext) {
     case '.dmg':
-      command = `hdiutil attach -nobrowse "${filePath}" && sudo installer -pkg "$(find /Volumes -name '*.pkg' -maxdepth 2 | head -n 1)" -target / && hdiutil detach "$(find /Volumes -type d -maxdepth 1 -mindepth 1 | grep -v 'Macintosh HD')"`;
+      command = `hdiutil attach -nobrowse "${filePath}" && sudo installer -pkg "$(find /Volumes -name '*.pkg' -maxdepth 2 | head -n 1)" -target / && hdiutil detach "$(dirname "$(find /Volumes -name '*.pkg' -maxdepth 2 | head -n 1)")"`;
       break;
     case '.pkg':
       command = `sudo installer -pkg "${filePath}" -target /`;
@@ -336,23 +336,33 @@ export function getPlatform() {
   return SystemType.Linux;
 }
 
-export function runCliAsAdmin(args: string): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
+export function runCliAsAdmin(args: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
     const filename: string = fileURLToPath(import.meta.url).replace('src/', 'build/');
     const dirPathClean: string = dirname(filename).replace('app.asar', 'app.asar.unpacked');
     const script: string = path.join(dirPathClean, 'admin.js');
-    log(`node "${script}" ${args}`);
-    sudoPrompt.exec(`node "${script}" ${args}`, { name: 'Open Audio Stack' }, (error, stdout, stderr) => {
-      if (stdout) {
-        log('runCliAsAdmin', stdout);
-      }
-      if (stderr) {
-        log('runCliAsAdmin', stderr);
-      }
+
+    // Temp file for logging
+    const logFile = path.join(dirPathClean, 'admin.log');
+    writeFileSync(logFile, ''); // Clear previous logs
+
+    log(`Running as admin: node "${script}" ${args}`);
+
+    // Tail the log file in real-time
+    const tail = spawn('tail', ['-f', logFile]);
+    const grep = spawn('grep', ['.']);
+    tail.stdout.pipe(grep.stdin);
+    grep.stdout.on('data', data => {
+      log(data.toString());
+    });
+
+    // Run the script with sudoPrompt
+    sudoPrompt.exec(`node "${script}" ${args} >> "${logFile}" 2>&1`, { name: 'Open Audio Stack' }, error => {
+      tail.kill();
       if (error) {
         reject(error);
       } else {
-        resolve(stdout?.toString() || '');
+        resolve();
       }
     });
   });
