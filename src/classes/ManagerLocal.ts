@@ -301,7 +301,6 @@ export class ManagerLocal extends Manager {
     // Loop through all packages and install each one.
     for (const [slug, pkg] of this.packages) {
       const versionNum: string = pkg.latestVersion();
-      console.log(`Installing ${slug} version ${versionNum}`);
       await this.install(slug, versionNum);
     }
     return this.listPackages();

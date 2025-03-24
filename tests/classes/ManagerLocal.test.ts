@@ -1,6 +1,6 @@
 import path from 'path';
 import { beforeAll, expect, test } from 'vitest';
-import { PLUGIN, PLUGIN_INSTALLED, PLUGIN_PACKAGE } from '../data/Plugin';
+import { PLUGIN, PLUGIN_INSTALLED, PLUGIN_PACKAGE, PLUGIN_PACKAGE_INSTALLED } from '../data/Plugin';
 import { PRESET, PRESET_INSTALLED, PRESET_PACKAGE } from '../data/Preset';
 import {
   PROJECT,
@@ -104,13 +104,15 @@ test('Project sync, install project, install dependencies, uninstall dependencie
 
   await manager.installDependencies(PROJECT_PATH);
   await pluginManager.scan();
-  // TODO update when headless installation is working.
-  expect(pluginManager.toJSON()).toEqual({});
-
+  expect(pluginManager.toJSON()).toEqual({
+    [PLUGIN_PACKAGE.slug]: PLUGIN_PACKAGE_INSTALLED,
+  });
   await manager.uninstallDependencies(PROJECT_PATH);
   await pluginManager.scan();
   // TODO update when headless installation is working.
-  expect(pluginManager.toJSON()).toEqual({});
+  expect(pluginManager.toJSON()).toEqual({
+    [PLUGIN_PACKAGE.slug]: PLUGIN_PACKAGE_INSTALLED,
+  });
 });
 
 test('Project sync, install project, add new dependency, remove new dependency', async () => {

@@ -104,6 +104,14 @@ export const PLUGIN_PACKAGE_EMPTY: PackageInterface = {
   versions: {},
 };
 
+export const PLUGIN_PACKAGE_INSTALLED: PackageInterface = {
+  slug,
+  version,
+  versions: {
+    [version]: PLUGIN_INSTALLED,
+  },
+};
+
 export const PLUGIN_PACKAGE_MULTIPLE: PackageInterface = {
   slug,
   version: '1.3.2',
