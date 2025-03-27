@@ -25,6 +25,8 @@ beforeAll(() => {
   dirDelete(path.join(APP_DIR, 'archive'));
   // Retain existing downloads to speed-up subsequent test runs.
   // dirDelete(path.join(APP_DIR, 'downloads'));
+  dirDelete(path.join(APP_DIR, 'export'));
+  dirDelete(path.join(APP_DIR, 'installed'));
   dirDelete(path.join(APP_DIR, 'plugins'));
 });
 

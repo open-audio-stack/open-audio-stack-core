@@ -138,18 +138,18 @@ export class ManagerLocal extends Manager {
   }
 
   scan(ext = 'json', installable = true) {
-    const filePaths: string[] = dirRead(`${this.typeDir}/**/index.${ext}`);
+    const filePaths: string[] = dirRead(path.join(this.typeDir, '**', `index.${ext}`));
     filePaths.forEach((filePath: string) => {
-      let subPath: string = filePath.replace(`${this.typeDir}/`, '');
+      let subPath: string = filePath.replace(`${this.typeDir}` + path.sep, '');
       // TODO improve this code.
-      const parts = subPath.split('/');
+      const parts = subPath.split(path.sep);
       parts.shift();
-      subPath = parts.join('/');
+      subPath = parts.join(path.sep);
       const pkgJson =
         ext === 'yaml' ? (fileReadYaml(filePath) as PackageVersion) : (fileReadJson(filePath) as PackageVersion);
       if (installable) pkgJson.installed = true;
-      const pkg = new Package(pathGetSlug(subPath));
-      const version = pathGetVersion(subPath);
+      const pkg = new Package(pathGetSlug(subPath, path.sep));
+      const version = pathGetVersion(subPath, path.sep);
       pkg.addVersion(version, pkgJson);
       this.addPackage(pkg);
     });
@@ -371,19 +371,19 @@ export class ManagerLocal extends Manager {
     }
 
     // Delete all directories for this package version.
-    const versionDirs: string[] = dirRead(`${this.typeDir}/**/${slug}/${versionNum}`);
+    const versionDirs: string[] = dirRead(path.join(this.typeDir, '**', slug, versionNum));
     versionDirs.forEach((versionDir: string) => {
       dirDelete(versionDir);
     });
 
     // Delete all empty directories for this package.
-    const pkgDirs: string[] = dirRead(`${this.typeDir}/**/${slug}`);
+    const pkgDirs: string[] = dirRead(path.join(this.typeDir, '**', slug));
     pkgDirs.forEach((pkgDir: string) => {
       if (dirEmpty(pkgDir)) dirDelete(pkgDir);
     });
 
     // Delete all empty directories for the org.
-    const orgDirs: string[] = dirRead(`${this.typeDir}/**/${slug.split('/')[0]}`);
+    const orgDirs: string[] = dirRead(path.join(this.typeDir, '**', slug.split('/')[0]));
     orgDirs.forEach((orgDir: string) => {
       if (dirEmpty(orgDir)) dirDelete(orgDir);
     });

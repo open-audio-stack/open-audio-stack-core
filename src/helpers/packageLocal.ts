@@ -11,8 +11,8 @@ export function packageLoadFile(filePath?: string) {
   if (!pkgFile) log(filePath, `not a valid json file`);
 
   // Validate package json file structure, fields and values.
-  const pkg = new Package(pathGetSlug(filePath));
-  pkg.addVersion(pathGetVersion(filePath), pkgFile);
+  const pkg = new Package(pathGetSlug(filePath, path.sep));
+  pkg.addVersion(pathGetVersion(filePath, path.sep), pkgFile);
   log(JSON.stringify(pkg.getReport()));
 
   return pkgFile;
