@@ -5,9 +5,9 @@
   "type": "module",
   "main": "./build/index.js",
   "exports": {
-    "import": "./build/index.js",
+    "default": "./build/index.js",
     "node": "./build/index.js",
-    "default": "./build/index-browser.js"
+    "browser": "./build/index-browser.js"
   },
   "types": "./build/index.d.ts",
   "files": [
