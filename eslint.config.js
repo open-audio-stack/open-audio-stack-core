@@ -6,7 +6,7 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ['build'],
+    ignores: ['build', 'coverage', 'node_modules'],
   },
   {
     languageOptions: { globals: globals.node },

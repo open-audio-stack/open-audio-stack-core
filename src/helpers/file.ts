@@ -15,7 +15,7 @@ import {
 import { createHash } from 'crypto';
 import { unpack } from '7zip-min';
 import stream from 'stream/promises';
-import { globSync } from 'glob';
+import { GlobOptionsWithFileTypesFalse, globSync } from 'glob';
 import { moveSync } from 'fs-extra/esm';
 import os from 'os';
 import * as tar from 'tar';
@@ -136,14 +136,23 @@ export function dirProjects() {
   return path.join(os.homedir(), 'Documents', 'Audio');
 }
 
-export function dirRead(dir: string, options?: any): string[] {
+export function dirRead(dir: string, options?: GlobOptionsWithFileTypesFalse): string[] {
   log('⌕', dir);
   // Glob now expects forward slashes on Windows
   // Convert backslashes from path.join() to forwardslashes
   if (getSystem() === SystemType.Win) {
     dir = dir.replace(/\\/g, '/');
   }
-  return globSync(dir, options);
+  // Ignore Mac files in Contents folders
+  // Filter out any paths not starting with the base directory
+  // This is to prevent issues with symlinks.
+  const baseDir: string = dir.includes('*') ? dir.split('*')[0] : dir;
+  const allPaths = globSync(dir, {
+    ignore: [`${baseDir}/**/*.{app,component,lv2,vst,vst3}/**/*`],
+    realpath: true,
+    ...options,
+  });
+  return allPaths.filter(p => p.startsWith(baseDir));
 }
 
 export function dirRename(dir: string, dirNew: string): void | boolean {
@@ -235,9 +244,7 @@ export function fileMove(filePath: string, newPath: string): void | boolean {
 
 export function filesMove(dirSource: string, dirTarget: string, dirSub: string, formatDir: Record<string, string>) {
   // Read files from source directory, ignoring Mac Contents files.
-  const files: string[] = dirRead(`${dirSource}/**/*.*`, {
-    ignore: [`${dirSource}/**/Contents/**/*`],
-  });
+  const files: string[] = dirRead(`${dirSource}/**/*.*`);
   const filesMoved: string[] = [];
 
   // For each file, move to correct folder based on type

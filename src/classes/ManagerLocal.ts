@@ -331,7 +331,7 @@ export class ManagerLocal extends Manager {
     return pkgFile;
   }
 
-  async installDependencies(filePath?: string, type = RegistryType.Plugins) {
+  async installDependencies(filePath: string, type = RegistryType.Plugins) {
     // Loop through dependency packages and install each one.
     const pkgFile = packageLoadFile(filePath) as any;
     const manager = new ManagerLocal(type, this.config.config);
@@ -344,7 +344,7 @@ export class ManagerLocal extends Manager {
     return pkgFile;
   }
 
-  open(filePath?: string) {
+  open(filePath: string) {
     const pkgFile = packageLoadFile(filePath) as any;
     // If installer, run the installer.
     if (pkgFile.open) {
