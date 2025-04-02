@@ -152,7 +152,10 @@ export function dirRead(dir: string, options?: GlobOptionsWithFileTypesFalse): s
     realpath: true,
     ...options,
   });
-  return allPaths.filter(p => p.startsWith(baseDir));
+  // Glob input paths use forward slashes.
+  // Glob output paths are system-specific.
+  const baseDirCrossPlatform: string = baseDir.split('/').join(path.sep);
+  return allPaths.filter(p => p.startsWith(baseDirCrossPlatform));
 }
 
 export function dirRename(dir: string, dirNew: string): void | boolean {
