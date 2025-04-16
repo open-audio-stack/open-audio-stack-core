@@ -386,6 +386,7 @@ Clone a new package from a template.
 - `changes`
 - `date`
 - `description`
+- `donate`
 - `image`
 - `files`
 - `license`
@@ -406,6 +407,7 @@ Create new package metadata:
 - `changes`
 - `date`
 - `description`
+- `donate`
 - `image`
 - `files`
 - `license`

@@ -107,6 +107,11 @@ export class ManagerLocal extends Manager {
         default: `https://github.com/${pkgAnswers.org}/${pkgAnswers.package}`,
       },
       {
+        name: 'donate',
+        type: 'input',
+        message: 'Donation url',
+      },
+      {
         name: 'audio',
         type: 'input',
         message: 'Audio preview url',
