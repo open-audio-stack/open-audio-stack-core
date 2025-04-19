@@ -151,7 +151,7 @@ Default plugin installation path per platform. Users are able to change the path
 | :--------------- | :---------------------------------------------------------------------------------- |
 | Linux platform   | `$HOME/usr/local/lib/$format`                                                       |
 | Mac platform     | `$HOME/Library/Audio/Plug-ins/$format`                                              |
-| Windows platform | `C:\Program Files\Common Files\$format C:\Program Files (x86)\Common Files\$format` |
+| Windows platform | `C:\Program Files (x86)\Common Files\$format` |
 
 Recommended sub-directory hierarchy to keep installed plugins separate and easier to manage:  
 `$plugin_dir/$plugin_slug/$plugin_version/`
@@ -386,6 +386,7 @@ Clone a new package from a template.
 - `changes`
 - `date`
 - `description`
+- `donate`
 - `image`
 - `files`
 - `license`
@@ -406,6 +407,7 @@ Create new package metadata:
 - `changes`
 - `date`
 - `description`
+- `donate`
 - `image`
 - `files`
 - `license`

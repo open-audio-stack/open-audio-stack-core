@@ -20,6 +20,7 @@ export interface PackageBase {
   changes: string;
   date: string;
   description: string;
+  donate?: string;
   image: string;
   installed?: boolean;
   license: License;

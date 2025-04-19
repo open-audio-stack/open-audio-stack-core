@@ -80,6 +80,7 @@ export const PackageVersionValidator = z.object({
   changes: z.string().min(0).max(256),
   date: z.string().datetime(),
   description: z.string().min(0).max(256),
+  donate: z.optional(z.string().min(0).max(256).startsWith('https://')),
   files: z.array(PackageFileValidator),
   image: z.string().min(0).max(256).startsWith('https://'),
   license: z.nativeEnum(License),
@@ -93,9 +94,10 @@ export const PackageVersionValidator = z.object({
 export function packageRecommendations(pkgVersion: PackageVersion) {
   const recs: PackageValidationRec[] = [];
 
-  packageRecommendationsUrl(pkgVersion, recs, 'audio');
-  packageRecommendationsUrl(pkgVersion, recs, 'image');
-  packageRecommendationsUrl(pkgVersion, recs, 'url');
+  packageRecommendationsUrl(pkgVersion, recs, 'audio', 'github');
+  packageRecommendationsUrl(pkgVersion, recs, 'image', 'github');
+  packageRecommendationsUrl(pkgVersion, recs, 'url', 'github');
+  packageRecommendationsUrl(pkgVersion, recs, 'donate');
 
   // Image/audio previews
   if (pkgVersion.image && pkgVersion.image.endsWith('png')) {
@@ -126,7 +128,7 @@ export function packageRecommendations(pkgVersion: PackageVersion) {
       });
       const ext: string = pathGetExt(file.url);
       supportedFileFormats[ext] = true;
-      packageRecommendationsUrl(file, recs, 'url');
+      packageRecommendationsUrl(file, recs, 'url', 'github');
 
       // Formats which do not support headless installation.
       if (ext === FileFormat.AppImage)
@@ -196,6 +198,7 @@ export function packageRecommendationsUrl(
   obj: PackageVersion | PluginFile | PresetFile | ProjectFile,
   recs: PackageValidationRec[],
   field: string,
+  domain?: string,
 ) {
   // @ts-expect-error indexing a field with multiple package types.
   const val = obj[field];
@@ -206,7 +209,7 @@ export function packageRecommendationsUrl(
       rec: 'should use https url',
     });
   }
-  if (!val.includes('github.com') && !val.includes('github.io')) {
+  if (domain && !val.includes(`${domain}.com`) && !val.includes(`${domain}.io`)) {
     recs.push({
       field,
       rec: 'should point to GitHub',
