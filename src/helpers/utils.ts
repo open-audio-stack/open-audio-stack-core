@@ -34,12 +34,14 @@ export function pathGetFilename(path: string, sep: string = '/') {
 
 export function pathGetSlug(path: string, sep: string = '/') {
   const parts: string[] = path.split(sep);
-  return parts[0] + '/' + parts[1];
+  const index: number = parts.findIndex(part => semver.valid(part));
+  return parts[index - 2] + '/' + parts[index - 1];
 }
 
 export function pathGetVersion(path: string, sep: string = '/') {
   const parts: string[] = path.split(sep);
-  return parts[parts.length - 2];
+  const index: number = parts.findIndex(part => semver.valid(part));
+  return parts[index];
 }
 
 export function toSlug(val: string): string {

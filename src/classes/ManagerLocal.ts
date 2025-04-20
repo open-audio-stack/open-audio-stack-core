@@ -145,13 +145,7 @@ export class ManagerLocal extends Manager {
   scan(ext = 'json', installable = true) {
     const filePaths: string[] = dirRead(path.join(this.typeDir, '**', `index.${ext}`));
     filePaths.forEach((filePath: string) => {
-      let subPath: string = filePath.replace(`${this.typeDir}${path.sep}`, '');
-      // TODO improve this code.
-      if (this.type === RegistryType.Plugins || this.type === RegistryType.Presets) {
-        const parts = subPath.split(path.sep);
-        parts.shift();
-        subPath = parts.join(path.sep);
-      }
+      const subPath: string = filePath.replace(`${this.typeDir}${path.sep}`, '');
       const pkgJson =
         ext === 'yaml' ? (fileReadYaml(filePath) as PackageVersion) : (fileReadJson(filePath) as PackageVersion);
       if (installable) pkgJson.installed = true;

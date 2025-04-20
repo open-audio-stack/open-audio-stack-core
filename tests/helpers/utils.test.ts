@@ -41,8 +41,20 @@ test('Path get filename', () => {
 
 test('Path get slug', () => {
   expect(pathGetSlug(PLUGIN_PATH, path.sep)).toEqual(PLUGIN_SLUG);
+  expect(pathGetSlug(path.join('prefix-dir', PLUGIN_ORG, PLUGIN_ID, PLUGIN_VERSION, 'surge.vst3'), path.sep)).toEqual(
+    PLUGIN_SLUG,
+  );
+  expect(pathGetSlug(path.join(PLUGIN_ORG, PLUGIN_ID, PLUGIN_VERSION, 'suffix-dir', 'surge.vst3'), path.sep)).toEqual(
+    PLUGIN_SLUG,
+  );
 });
 
 test('Path get version', () => {
   expect(pathGetVersion(PLUGIN_PATH, path.sep)).toEqual(PLUGIN_VERSION);
+  expect(
+    pathGetVersion(path.join('prefix-dir', PLUGIN_ORG, PLUGIN_ID, PLUGIN_VERSION, 'surge.vst3'), path.sep),
+  ).toEqual(PLUGIN_VERSION);
+  expect(
+    pathGetVersion(path.join(PLUGIN_ORG, PLUGIN_ID, PLUGIN_VERSION, 'suffix-dir', 'surge.vst3'), path.sep),
+  ).toEqual(PLUGIN_VERSION);
 });

@@ -147,10 +147,10 @@ Defaults to manager installation directory.
 
 Default plugin installation path per platform. Users are able to change the path via settings.
 
-| Platform         | Path                                                                                |
-| :--------------- | :---------------------------------------------------------------------------------- |
-| Linux platform   | `$HOME/usr/local/lib/$format`                                                       |
-| Mac platform     | `$HOME/Library/Audio/Plug-ins/$format`                                              |
+| Platform         | Path                                          |
+| :--------------- | :-------------------------------------------- |
+| Linux platform   | `$HOME/usr/local/lib/$format`                 |
+| Mac platform     | `$HOME/Library/Audio/Plug-ins/$format`        |
 | Windows platform | `C:\Program Files (x86)\Common Files\$format` |
 
 Recommended sub-directory hierarchy to keep installed plugins separate and easier to manage:  
