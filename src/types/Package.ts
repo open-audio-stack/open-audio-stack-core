@@ -29,9 +29,17 @@ export interface PackageBase {
   url: string;
 }
 
-export interface PackageReport {
+export interface PackageVersionReport {
   errors?: ZodIssue[];
   recs?: PackageValidationRec[];
+}
+
+export interface PackageReport {
+  [version: string]: PackageVersionReport;
+}
+
+export interface ManagerReport {
+  [slug: string]: PackageReport;
 }
 
 export type PackageVersion = PluginInterface | PresetInterface | ProjectInterface;

@@ -2,7 +2,7 @@ import { apiJson } from '../helpers/api.js';
 import { Config } from './Config.js';
 import { ConfigInterface, ConfigRegistry } from '../types/Config.js';
 import { Package } from './Package.js';
-import { PackageVersion } from '../types/Package.js';
+import { ManagerReport, PackageVersion } from '../types/Package.js';
 import { RegistryInterface, RegistryPackages, RegistryType } from '../types/Registry.js';
 import { Base } from './Base.js';
 
@@ -45,12 +45,21 @@ export class Manager extends Base {
   }
 
   getReport() {
-    const reports: any = {};
+    const reports: ManagerReport = {};
     for (const [slug, pkg] of this.packages) {
       const report = pkg.getReport();
       if (Object.keys(report).length) reports[slug] = report;
     }
     return reports;
+  }
+
+  outputReport() {
+    const reports = this.getReport();
+    for (const [slug, report] of Object.entries(reports)) {
+      for (const [ver, reportVersion] of Object.entries(report)) {
+        this.logReport(`${slug}/${ver}`, reportVersion.errors, reportVersion.recs);
+      }
+    }
   }
 
   listPackages(installed?: boolean) {

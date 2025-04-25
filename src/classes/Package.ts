@@ -1,11 +1,11 @@
 import * as semver from 'semver';
-import { PackageReport, PackageVersion, PackageVersions } from '../types/Package.js';
+import { PackageVersionReport, PackageVersion, PackageVersions } from '../types/Package.js';
 import { packageErrors, packageRecommendations } from '../helpers/package.js';
 import { isValidSlug } from '../helpers/utils.js';
 import { Base } from './Base.js';
 
 export class Package extends Base {
-  reports: Map<string, PackageReport>;
+  reports: Map<string, PackageVersionReport>;
   slug: string;
   version: string;
   versions: Map<string, PackageVersion>;
@@ -24,7 +24,7 @@ export class Package extends Base {
     // if (this.versions.has(num)) return this.log(`Package ${version.name} version ${num} already exists`);
     const errors = packageErrors(version);
     const recs = packageRecommendations(version);
-    const report: PackageReport = {
+    const report: PackageVersionReport = {
       ...(errors.length > 0 && { errors }),
       ...(recs.length > 0 && { recs }),
     };
@@ -42,6 +42,13 @@ export class Package extends Base {
 
   getReport() {
     return Object.fromEntries(this.reports);
+  }
+
+  outputReport() {
+    const reports = this.getReport();
+    for (const [ver, report] of Object.entries(reports)) {
+      this.logReport(`${this.slug}/${ver}`, report.errors, report.recs);
+    }
   }
 
   getVersion(num: string) {

@@ -90,6 +90,16 @@ test('Manager get report', () => {
   });
 });
 
+test('Manager output report', () => {
+  const manager = new Manager(RegistryType.Plugins);
+  const pkg = new Package(PLUGIN_PACKAGE.slug);
+  pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
+  manager.addPackage(pkg);
+  // TODO add test support for sdout, or update report to return a testable string.
+  // manager.logEnable();
+  expect(manager.outputReport()).toEqual(undefined);
+});
+
 test('Manager list packages', () => {
   const manager = new Manager(RegistryType.Plugins);
   const pkg = new Package(PLUGIN_PACKAGE.slug);
