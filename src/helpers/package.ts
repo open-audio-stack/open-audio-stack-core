@@ -226,5 +226,5 @@ export function packageRecommendationsUrl(
 }
 
 export function packageToYaml(pkgVersion: PackageVersion) {
-  return yaml.dump(pkgVersion);
+  return yaml.dump(pkgVersion, { lineWidth: -1 });
 }
