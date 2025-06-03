@@ -56,7 +56,7 @@ export function packageVersionLatest(pkg: PackageInterface) {
 
 // This is a first version using zod library for validation.
 // If it works well, consider updating all types to infer from Zod objects.
-// This will remove duplicatation of code between types and validators.
+// This will remove duplication of code between types and validators.
 
 export const PackageSystemValidator = z.object({
   max: z.number().min(0).max(99).optional(),
@@ -65,30 +65,37 @@ export const PackageSystemValidator = z.object({
 });
 
 export const PackageFileValidator = z.object({
-  architectures: z.nativeEnum(Architecture).array(),
+  architectures: z.nativeEnum(Architecture).array().min(1).max(Object.keys(Architecture).length),
   sha256: z.string().length(64),
-  size: z.number().min(0).max(9999999999),
-  systems: PackageSystemValidator.array(),
+  size: z.number().min(8).max(9999999999),
+  systems: PackageSystemValidator.array().min(1).max(Object.keys(SystemType).length),
   type: z.nativeEnum(FileType),
-  url: z.string().min(0).max(256).startsWith('https://'),
+  url: z.string().min(8).max(256).startsWith('https://'),
 });
 
 export const PackageTypeObj = { ...PluginType, ...PresetType, ...ProjectType };
 export const PackageVersionValidator = z.object({
-  audio: z.string().min(0).max(256).startsWith('https://'),
-  author: z.string().min(0).max(256),
-  changes: z.string().min(0).max(256),
+  audio: z.string().min(8).max(256).startsWith('https://'),
+  author: z.string().min(1).max(256),
+  changes: z.string().min(1).max(256),
   date: z.string().datetime(),
-  description: z.string().min(0).max(256),
-  donate: z.optional(z.string().min(0).max(256).startsWith('https://')),
-  files: z.array(PackageFileValidator),
-  image: z.string().min(0).max(256).startsWith('https://'),
+  description: z.string().min(1).max(256),
+  donate: z.optional(z.string().min(8).max(256).startsWith('https://')),
+  files: z.array(PackageFileValidator).min(1).max(256),
+  image: z.string().min(8).max(256).startsWith('https://'),
   license: z.nativeEnum(License),
-  name: z.string().min(0).max(256),
-  tags: z.string().min(0).max(256).array(),
+  name: z.string().min(1).max(256),
+  tags: z.string().min(1).max(256).array().min(1).max(8),
   type: z.nativeEnum(PackageTypeObj),
-  url: z.string().min(0).max(256).startsWith('https://'),
+  url: z.string().min(8).max(256).startsWith('https://'),
 });
+
+export const SemverValidator = z
+  .string()
+  .regex(
+    /^v?([0-9]+)\.([0-9]+)\.([0-9]+)(?:-[\w.-]+)?(?:\+[\w.-]+)?$/,
+    'Invalid semantic version (expected format: x.y.z or vX.Y.Z)',
+  );
 
 // TODO refactor all this using a proper validation library.
 export function packageRecommendations(pkgVersion: PackageVersion) {
