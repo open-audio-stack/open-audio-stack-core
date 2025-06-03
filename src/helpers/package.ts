@@ -14,6 +14,7 @@ import { ProjectType } from '../types/ProjectType.js';
 import { SystemType } from '../types/SystemType.js';
 import { PackageFileMap, PackageInterface, PackageValidationRec, PackageVersion } from '../types/Package.js';
 import { pathGetExt } from './utils.js';
+import yaml from 'js-yaml';
 
 export function packageCompatibleFiles(
   pkg: PackageVersion,
@@ -222,4 +223,8 @@ export function packageRecommendationsUrl(
       rec: 'should point to GitHub',
     });
   }
+}
+
+export function packageToYaml(pkgVersion: PackageVersion) {
+  return yaml.dump(pkgVersion);
 }
