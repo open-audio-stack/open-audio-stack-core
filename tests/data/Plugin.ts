@@ -85,6 +85,7 @@ export const PLUGIN: PluginInterface = {
   tags: ['Instrument', 'Synth', 'Modulation'],
   type: PluginType.Instrument,
   url: 'https://github.com/surge-synthesizer/surge',
+  verified: true,
 };
 
 export const PLUGIN_INSTALLED: PluginInterface = structuredClone(PLUGIN);

@@ -1,6 +1,6 @@
 import * as semver from 'semver';
 import { PackageVersionReport, PackageVersion, PackageVersions } from '../types/Package.js';
-import { packageErrors, packageRecommendations } from '../helpers/package.js';
+import { packageErrors, packageIsVerified, packageRecommendations } from '../helpers/package.js';
 import { isValidSlug } from '../helpers/utils.js';
 import { Base } from './Base.js';
 
@@ -30,6 +30,7 @@ export class Package extends Base {
     };
     if (Object.keys(report).length > 0) this.reports.set(num, report);
     if (errors.length > 0) return this.log(`Package ${version.name} version ${num} errors`, errors);
+    version.verified = packageIsVerified(this.slug, version);
     this.versions.set(num, version);
     this.version = this.latestVersion();
   }

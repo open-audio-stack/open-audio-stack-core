@@ -13,18 +13,18 @@ export const PROJECT_PATH: string = path.join('test', 'installed', 'projects', '
 export const PROJECT: ProjectInterface = {
   audio: 'https://open-audio-stack.github.io/open-audio-stack-registry/projects/kmt/banwer/banwer.flac',
   author: 'KMT',
-  changes: '- First version\n',
+  changes: '- Collect and save files\n',
   date: '2024-03-02T00:00:00.000Z',
   description: 'Song idea using synthesizers.',
   files: [
     {
       architectures: [Architecture.Arm32, Architecture.Arm64, Architecture.X32, Architecture.X64],
       contains: [ProjectFormat.AbletonLive],
-      sha256: '77e2d542235889b027f2ecbe66b753978a5232fabac9c97151a86173048e2eaf',
+      sha256: 'e99fa24234d02814e3cb788d106b766876a065113c71d4855faf83cb9476ab98',
       systems: [{ type: SystemType.Linux }, { type: SystemType.Mac }, { type: SystemType.Win }],
-      size: 216863,
+      size: 3720765,
       type: FileType.Archive,
-      url: 'https://open-audio-stack.github.io/open-audio-stack-registry/projects/kmt/banwer/1.0.1/banwer.zip',
+      url: 'https://github.com/kmturley/banwer/releases/download/v1.0.1/banwer.zip',
     },
   ],
   image: 'https://open-audio-stack.github.io/open-audio-stack-registry/projects/kmt/banwer/banwer.jpg',
@@ -36,7 +36,8 @@ export const PROJECT: ProjectInterface = {
   open: 'Banwer.als',
   tags: ['Idea', 'Synth', 'Modulation'],
   type: ProjectType.Song,
-  url: 'https://soundcloud.com/kmt-london',
+  url: 'https://github.com/kmturley/banwer',
+  verified: false,
 };
 
 export const PROJECT_INSTALLED: ProjectInterface = structuredClone(PROJECT);

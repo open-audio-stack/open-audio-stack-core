@@ -33,6 +33,7 @@ export const PRESET: PresetInterface = {
   tags: ['Preset', 'Synth', 'Rhodes'],
   type: PresetType.Patch,
   url: 'https://presetshare.com/p763',
+  verified: false,
 };
 
 export const PRESET_INSTALLED: PresetInterface = structuredClone(PRESET);

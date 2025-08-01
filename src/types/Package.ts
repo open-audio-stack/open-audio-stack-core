@@ -27,6 +27,7 @@ export interface PackageBase {
   name: string;
   tags: string[];
   url: string;
+  verified?: boolean;
 }
 
 export interface PackageVersionReport {
