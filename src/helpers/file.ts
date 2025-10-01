@@ -38,7 +38,26 @@ export async function archiveExtract(filePath: string, dirPath: string) {
   const ext = path.extname(filePath).trim().toLowerCase();
   if (ext === '.zip') {
     const zip: AdmZip = new AdmZip(filePath);
-    return zip.extractAllTo(dirPath);
+    try {
+      return zip.extractAllTo(dirPath);
+    } catch (error: any) {
+      // Handle Windows special character issues by extracting files manually
+      if (getSystem() === SystemType.Win && error.message?.includes('ENOENT')) {
+        log('⚠️', 'Extracting files manually due to special characters in filenames');
+        const entries = zip.getEntries();
+        entries.forEach(entry => {
+          const sanitizedName: string = entry.entryName.replace(/[<>:"|?*]/g, '_');
+          if (!entry.isDirectory) {
+            const outputPath = path.join(dirPath, sanitizedName);
+            dirCreate(path.dirname(outputPath));
+            writeFileSync(outputPath, entry.getData());
+          } else {
+            dirCreate(path.join(dirPath, sanitizedName));
+          }
+        });
+        return;
+      }
+    }
   } else if (ext === '.tar' || ext === '.gz' || ext === '.tgz') {
     return await tar.extract({
       file: filePath,
