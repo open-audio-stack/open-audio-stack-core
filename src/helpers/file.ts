@@ -46,7 +46,7 @@ export async function archiveExtract(filePath: string, dirPath: string) {
         log('⚠️', 'Extracting files manually due to special characters in filenames');
         const entries = zip.getEntries();
         entries.forEach(entry => {
-          const sanitizedName: string = entry.entryName.replace(/[<>:"|?*]/g, '_');
+          const sanitizedName: string = entry.entryName.replace(/[<>:"|?*]/g, '_').replace(/[\r\n]/g, '');
           if (!entry.isDirectory) {
             const outputPath = path.join(dirPath, sanitizedName);
             dirCreate(path.dirname(outputPath));
