@@ -52,6 +52,11 @@ export class ManagerLocal extends Manager {
     this.typeDir = this.config.get(`${type}Dir`) as string;
   }
 
+  isPackageInstalled(slug: string, version: string): boolean {
+    const versionDirs: string[] = dirRead(path.join(this.typeDir, '**', slug, version));
+    return versionDirs.length > 0;
+  }
+
   async create() {
     // TODO Rewrite this code after prototype is proven.
     const pkgQuestions = [
@@ -191,8 +196,9 @@ export class ManagerLocal extends Manager {
     const versionNum: string = version || pkg.latestVersion();
     const pkgVersion: PackageVersion | undefined = pkg?.getVersion(versionNum);
     if (!pkgVersion) return this.log(`Package ${slug} version ${versionNum} not found in registry`);
-    if (pkgVersion.installed) {
+    if (this.isPackageInstalled(slug, versionNum)) {
       this.log(`Package ${slug} version ${versionNum} already installed`);
+      pkgVersion.installed = true;
       return pkgVersion;
     }
 
@@ -202,7 +208,12 @@ export class ManagerLocal extends Manager {
       if (version) command += ` --ver "${version}"`;
       if (this.debug) command += ` --log`;
       await runCliAsAdmin(command);
-      return this.getPackage(slug)?.getVersion(versionNum);
+      const returnedPkg = this.getPackage(slug)?.getVersion(versionNum);
+      if (returnedPkg) {
+        if (this.isPackageInstalled(slug, versionNum)) returnedPkg.installed = true;
+        else delete returnedPkg.installed;
+        return returnedPkg;
+      }
     }
 
     // Create temporary directory to store downloaded files.
@@ -360,7 +371,8 @@ export class ManagerLocal extends Manager {
     const versionNum: string = version || pkg.latestVersion();
     const pkgVersion: PackageVersion | undefined = pkg?.getVersion(versionNum);
     if (!pkgVersion) return this.log(`Package ${slug} version ${versionNum} not found in registry`);
-    if (!pkgVersion.installed) return this.log(`Package ${slug} version ${versionNum} not installed`);
+    if (!this.isPackageInstalled(slug, versionNum))
+      return this.log(`Package ${slug} version ${versionNum} not installed`);
 
     // Elevate permissions if not running as admin.
     if (!isAdmin() && !isTests()) {
@@ -368,7 +380,12 @@ export class ManagerLocal extends Manager {
       if (version) command += ` --ver "${version}"`;
       if (this.debug) command += ` --log`;
       await runCliAsAdmin(command);
-      return this.getPackage(slug)?.getVersion(versionNum);
+      const returnedPkg = this.getPackage(slug)?.getVersion(versionNum);
+      if (returnedPkg) {
+        if (this.isPackageInstalled(slug, versionNum)) returnedPkg.installed = true;
+        else delete returnedPkg.installed;
+        return returnedPkg;
+      }
     }
 
     // Delete all directories for this package version.

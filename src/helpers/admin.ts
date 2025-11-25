@@ -55,6 +55,7 @@ export async function adminInit() {
   } else if (args.operation === 'installAll') {
     await manager.installAll();
   }
+  console.log('ADMIN_COMPLETE');
 }
 
 adminInit();
