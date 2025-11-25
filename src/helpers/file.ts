@@ -377,21 +377,24 @@ export function runCliAsAdmin(args: string): Promise<void> {
 
     log(`Running as admin: node "${script}" ${args}`);
 
-    // Tail the log file in real-time
+    // Monitor log file for completion
+    let completed = false;
     const tail = spawn('tail', ['-f', logFile]);
-    const grep = spawn('grep', ['.']);
-    tail.stdout.pipe(grep.stdin);
-    grep.stdout.on('data', data => {
-      log(data.toString());
+    tail.stdout.on('data', data => {
+      const output = data.toString();
+      log(output);
+      if (output.includes('ADMIN_COMPLETE')) {
+        completed = true;
+        tail.kill();
+        resolve();
+      }
     });
 
     // Run the script with sudoPrompt
     sudoPrompt.exec(`node "${script}" ${args} >> "${logFile}" 2>&1`, { name: 'Open Audio Stack' }, error => {
-      tail.kill();
-      if (error) {
+      if (error && !completed) {
+        tail.kill();
         reject(error);
-      } else {
-        resolve();
       }
     });
   });
