@@ -143,6 +143,16 @@ Defaults to manager installation directory.
 | Mac platform     | `$HOME/Library/Preferences/$manager` |
 | Windows platform | `$HOME\$manager`                     |
 
+### Apps directory
+
+Defaults to manager installation directory.
+
+| Platform         | Path                           |
+| :--------------- | :----------------------------- |
+| Linux platform   | `/usr/local/bin`               |
+| Mac platform     | `/Applications`                |
+| Windows platform | `$HOME\AppData\Local\Programs` |
+
 ### Plugins directory
 
 Default plugin installation path per platform. Users are able to change the path via settings.
@@ -222,6 +232,7 @@ Registries can contain different types of packages, more could be added in the f
 
 | Name     | Value      |
 | :------- | :--------- |
+| Apps     | `apps`     |
 | Plugins  | `plugins`  |
 | Presets  | `presets`  |
 | Projects | `projects` |
@@ -417,6 +428,22 @@ Create new package metadata:
 - `type`
 - `url`
 
+### Open
+
+#### Open logic
+
+- Get package version metadata from package index/cache:
+  - If package not found, return error
+  - If package version not found return error
+- Check to see if package is installed:
+  - If not installed, return error
+- Check if the package has an `open` field defined in metadata:
+  - If not set, return missing field error
+- Execute the file/command specified in the `open` field with any additional options
+
+Open any package by slug and version:
+`$ manager <registryType> open <slug>@<version> <options>`
+
 ## Project
 
 For all project commands the \<`path`\> option is optional:
@@ -498,39 +525,3 @@ Uninstall dependencies listed inside a package json file.
 
 `$ manager project uninstall <registryType> <path>`  
 `$ manager project uninstall plugins`
-
-### Open project
-
-#### Open project logic
-
-- If path is not supplied use the current directory, then load and parse as json.
-  - If not valid json, return error.
-- Validate package json file structure, fields and values.
-  - If not validate structure, fields or values, return error.
-- If the package.open field is set, then open the file from the command line.
-  - If not set, return missing field error.
-
-Open project by slug:  
-`$ manager project open <path>`
-
-## Tools
-
-Provide the ability to run other tools, scripts on a package and make the output useful/readable.
-
-#### Types
-
-- Clapinfo: [https://github.com/free-audio/clap-info](https://github.com/free-audio/clap-info)
-- Pluginval: [https://github.com/Tracktion/pluginval](https://github.com/Tracktion/pluginval)
-- Steinberg validator: [built within the VST3 SDK](https://steinbergmedia.github.io/vst3_dev_portal/pages/What+is+the+VST+3+SDK/Validator.html)
-
-### Install
-
-`$ manager tool install <type>`
-
-### Uninstall
-
-`$ manager tool uninstall <type>`
-
-### Run
-
-`$ manager tool run <type> <tool-specific-options>`

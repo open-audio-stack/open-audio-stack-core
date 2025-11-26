@@ -356,11 +356,53 @@ export class ManagerLocal extends Manager {
     return pkgFile;
   }
 
-  open(filePath: string) {
-    const pkgFile = packageLoadFile(filePath) as any;
-    // If installer, run the installer.
-    if (pkgFile.open) {
-      fileOpen(pkgFile.open);
+  open(slug: string, version?: string, options: string[] = []) {
+    this.log('open', slug, version, options);
+
+    // Get package information
+    const pkg = this.getPackage(slug);
+    if (!pkg) {
+      this.log(`Package ${slug} not found`);
+      return false;
+    }
+
+    const versionNum = version || pkg.latestVersion();
+    const pkgVersion = pkg.getVersion(versionNum);
+    if (!pkgVersion) {
+      this.log(`Package ${slug} version ${versionNum} not found`);
+      return false;
+    }
+
+    // Check if package has open field
+    if (!(pkgVersion as any).open) {
+      this.log(`Package ${slug} has no open command defined`);
+      return false;
+    }
+
+    // Check if package is installed
+    if (!this.isPackageInstalled(slug, versionNum)) {
+      this.log(`Package ${slug} version ${versionNum} not installed`);
+      return false;
+    }
+
+    try {
+      const openPath = (pkgVersion as any).open;
+      const packageDir = path.join(this.typeDir, slug, versionNum);
+      const fullPath = path.isAbsolute(openPath) ? openPath : path.join(packageDir, openPath);
+      const command = `"${fullPath}" ${options.join(' ')}`;
+
+      this.log(`Running: ${command}`);
+
+      if (isTests()) {
+        this.log(`Would run: ${command}`);
+      } else {
+        fileOpen(fullPath);
+      }
+
+      return true;
+    } catch (error) {
+      this.log(`Error opening package ${slug}:`, error);
+      return false;
     }
   }
 

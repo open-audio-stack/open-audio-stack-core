@@ -155,6 +155,12 @@ export function dirProjects() {
   return path.join(os.homedir(), 'Documents', 'Audio');
 }
 
+export function dirApps() {
+  if (getSystem() === SystemType.Win) return path.join(os.homedir(), 'AppData', 'Local', 'Programs');
+  else if (getSystem() === SystemType.Mac) return path.join('/Applications');
+  return path.join('/usr', 'local', 'bin');
+}
+
 export function dirRead(dir: string, options?: GlobOptionsWithFileTypesFalse): string[] {
   log('⌕', dir);
   // Glob now expects forward slashes on Windows

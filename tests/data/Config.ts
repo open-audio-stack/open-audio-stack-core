@@ -1,5 +1,5 @@
 import path from 'path';
-import { dirApp, dirPlugins, dirPresets, dirProjects } from '../../src/helpers/file';
+import { dirApp, dirApps, dirPlugins, dirPresets, dirProjects } from '../../src/helpers/file';
 import { ConfigInterface } from '../../src/types/Config';
 
 export const CONFIG: ConfigInterface = {
@@ -15,6 +15,7 @@ export const CONFIG: ConfigInterface = {
 export const CONFIG_LOCAL: ConfigInterface = {
   ...CONFIG,
   appDir: dirApp(),
+  appsDir: dirApps(),
   pluginsDir: dirPlugins(),
   presetsDir: dirPresets(),
   projectsDir: dirProjects(),
@@ -23,6 +24,7 @@ export const CONFIG_LOCAL: ConfigInterface = {
 export const CONFIG_LOCAL_TEST: ConfigInterface = {
   ...CONFIG,
   appDir: 'test',
+  appsDir: path.join('test', 'installed', 'apps'),
   pluginsDir: path.join('test', 'installed', 'plugins'),
   presetsDir: path.join('test', 'installed', 'presets'),
   projectsDir: path.join('test', 'installed', 'projects'),
