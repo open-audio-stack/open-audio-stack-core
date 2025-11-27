@@ -20,6 +20,7 @@ export const PROJECT: ProjectInterface = {
     {
       architectures: [Architecture.Arm32, Architecture.Arm64, Architecture.X32, Architecture.X64],
       contains: [ProjectFormat.AbletonLive],
+      open: 'Banwer.als',
       sha256: 'e99fa24234d02814e3cb788d106b766876a065113c71d4855faf83cb9476ab98',
       systems: [{ type: SystemType.Linux }, { type: SystemType.Mac }, { type: SystemType.Win }],
       size: 3720765,
@@ -33,7 +34,6 @@ export const PROJECT: ProjectInterface = {
     'surge-synthesizer/surge': '1.3.1',
   },
   name: 'Banwer',
-  open: 'Banwer.als',
   tags: ['Idea', 'Synth', 'Modulation'],
   type: ProjectType.Song,
   url: 'https://github.com/kmturley/banwer',

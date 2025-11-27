@@ -131,9 +131,7 @@ export class ManagerLocal extends Manager {
       { name: 'date', type: 'input', message: 'Date released', default: new Date().toISOString() },
       { name: 'changes', type: 'input', message: 'List of changes' },
     ];
-    if (this.type === RegistryType.Projects) {
-      pkgVersionQuestions.push({ name: 'open', type: 'input', message: 'File to open' });
-    }
+
     const pkgVersionAnswers = await inquirer.prompt(pkgVersionQuestions as any);
     // TODO prompt for each file.
     pkgVersionAnswers.files = [];
@@ -373,20 +371,23 @@ export class ManagerLocal extends Manager {
       return false;
     }
 
-    // Check if package has open field
-    if (!(pkgVersion as any).open) {
-      this.log(`Package ${slug} has no open command defined`);
-      return false;
-    }
-
     // Check if package is installed
     if (!this.isPackageInstalled(slug, versionNum)) {
       this.log(`Package ${slug} version ${versionNum} not installed`);
       return false;
     }
 
+    // Filter compatible files and find one with open field
+    const files: FileInterface[] = packageCompatibleFiles(pkgVersion, [getArchitecture()], [getSystem()], []);
+
+    const openableFile = files.find(file => (file as any).open);
+    if (!openableFile) {
+      this.log(`Package ${slug} has no compatible file with open command defined`);
+      return false;
+    }
+
     try {
-      const openPath = (pkgVersion as any).open;
+      const openPath = (openableFile as any).open;
       const packageDir = path.join(this.typeDir, slug, versionNum);
       const fullPath = path.isAbsolute(openPath) ? openPath : path.join(packageDir, openPath);
       const command = `"${fullPath}" ${options.join(' ')}`;

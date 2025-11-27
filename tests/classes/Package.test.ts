@@ -24,7 +24,7 @@ test('Package add version', () => {
 test('Package add invalid version', () => {
   const PLUGIN_INVALID: PackageVersion = structuredClone(PLUGIN);
   // @ts-expect-error this is intentionally bad data.
-  delete PLUGIN_INVALID['audio'];
+  delete PLUGIN_INVALID['image'];
   const pkg = new Package(PLUGIN_PACKAGE.slug);
   pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN_INVALID);
   expect(pkg.toJSON()).toEqual(PLUGIN_PACKAGE_EMPTY);
