@@ -286,6 +286,16 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
     if (fileExists(fileTarget)) return log(`${fileSource} - ${fileTarget} already exists, skipping.`);
     dirCreate(path.dirname(fileTarget));
     fileMove(fileSource, fileTarget);
+    // Set executable permissions for executable file types
+    if (fileExt === 'app') {
+      // For .app bundles, find and set permissions on the actual executable
+      const executablePath = path.join(fileTarget, 'Contents', 'MacOS', path.basename(fileTarget, '.app'));
+      if (fileExists(executablePath)) {
+        fileExec(executablePath);
+      }
+    } else if (['elf', 'exe'].includes(fileExt)) {
+      fileExec(fileTarget);
+    }
     filesMoved.push(fileTarget);
   });
   return filesMoved;
