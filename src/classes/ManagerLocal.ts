@@ -28,7 +28,7 @@ import { apiBuffer } from '../helpers/api.js';
 import { FileInterface } from '../types/File.js';
 import { FileType } from '../types/FileType.js';
 import { RegistryType } from '../types/Registry.js';
-import { pluginFormatDir } from '../types/PluginFormat.js';
+import { PluginFormat, pluginFormatDir } from '../types/PluginFormat.js';
 import { ConfigInterface } from '../types/Config.js';
 import { ConfigLocal } from './ConfigLocal.js';
 import { packageCompatibleFiles } from '../helpers/package.js';
@@ -388,7 +388,9 @@ export class ManagerLocal extends Manager {
 
     try {
       const openPath = (openableFile as any).open;
-      const packageDir = path.join(this.typeDir, slug, versionNum);
+      const fileExt: string = path.extname(openableFile.url).slice(1).toLowerCase();
+      const formatDir = pluginFormatDir[fileExt as PluginFormat];
+      const packageDir = path.join(this.typeDir, formatDir, slug, versionNum);
       const fullPath = path.isAbsolute(openPath) ? openPath : path.join(packageDir, openPath);
       const command = `"${fullPath}" ${options.join(' ')}`;
 

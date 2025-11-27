@@ -89,9 +89,9 @@ $ manager --version
 1.0.0
 ```
 
-#### Debug output
+#### Log output
 
-`$ manager <command> --debug`
+`$ manager <command> --log`
 
 #### JSON output
 
