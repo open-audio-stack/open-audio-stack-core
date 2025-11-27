@@ -6,7 +6,6 @@ import { RegistryType } from './Registry.js';
 
 export interface ProjectInterface extends PackageBase {
   files: ProjectFile[];
-  open: string;
   [RegistryType.Plugins]: ProjectPlugins;
   type: ProjectType;
 }

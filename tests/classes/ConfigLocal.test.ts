@@ -20,6 +20,7 @@ import { ConfigInterface } from '../../src/types/Config.js';
 const APP_DIR: string = 'test';
 const CONFIG: ConfigInterface = {
   appDir: APP_DIR,
+  appsDir: path.join(APP_DIR, 'installed', 'apps'),
   pluginsDir: path.join(APP_DIR, 'installed', 'plugins'),
   presetsDir: path.join(APP_DIR, 'installed', 'presets'),
   projectsDir: path.join(APP_DIR, 'installed', 'projects'),
@@ -43,6 +44,8 @@ test('Set and get value', () => {
   const config: ConfigLocal = new ConfigLocal(CONFIG);
   config.set('appDir', 'test');
   expect(config.get('appDir')).toEqual('test');
+  config.set('appsDir', CONFIG_LOCAL_TEST.appsDir);
+  expect(config.get('appsDir')).toEqual(CONFIG_LOCAL_TEST.appsDir);
   config.set('pluginsDir', CONFIG_LOCAL_TEST.pluginsDir + '1');
   expect(config.get('pluginsDir')).toEqual(CONFIG_LOCAL_TEST.pluginsDir + '1');
   config.set('pluginsDir', CONFIG_LOCAL_TEST.pluginsDir);

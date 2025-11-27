@@ -76,7 +76,7 @@ export const PackageFileValidator = z.object({
 
 export const PackageTypeObj = { ...PluginType, ...PresetType, ...ProjectType };
 export const PackageVersionValidator = z.object({
-  audio: z.string().min(8).max(256).startsWith('https://'),
+  audio: z.optional(z.string().min(8).max(256).startsWith('https://')),
   author: z.string().min(1).max(256),
   changes: z.string().min(1).max(256),
   date: z.string().datetime(),

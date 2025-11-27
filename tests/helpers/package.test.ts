@@ -38,13 +38,13 @@ test('Package validate pass', () => {
 test('Package validate missing field', () => {
   const PLUGIN_BAD: PackageVersion = structuredClone(PLUGIN);
   // @ts-expect-error this is intentionally bad data.
-  delete PLUGIN_BAD['audio'];
+  delete PLUGIN_BAD['image'];
   expect(PackageVersionValidator.safeParse(PLUGIN_BAD).error?.issues).toEqual([
     {
       code: 'invalid_type',
       expected: 'string',
       message: 'Required',
-      path: ['audio'],
+      path: ['image'],
       received: 'undefined',
     },
   ]);
@@ -53,13 +53,13 @@ test('Package validate missing field', () => {
 test('Package validate invalid type', () => {
   const PLUGIN_BAD: PackageVersion = structuredClone(PLUGIN);
   // @ts-expect-error this is intentionally bad data.
-  PLUGIN_BAD['audio'] = 123;
+  PLUGIN_BAD['image'] = 123;
   expect(PackageVersionValidator.safeParse(PLUGIN_BAD).error?.issues).toEqual([
     {
       code: 'invalid_type',
       expected: 'string',
       message: 'Expected string, received number',
-      path: ['audio'],
+      path: ['image'],
       received: 'number',
     },
   ]);

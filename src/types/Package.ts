@@ -15,7 +15,7 @@ export interface PackageVersions {
 }
 
 export interface PackageBase {
-  audio: string;
+  audio?: string;
   author: string;
   changes: string;
   date: string;
