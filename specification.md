@@ -437,9 +437,10 @@ Create new package metadata:
   - If package version not found return error
 - Check to see if package is installed:
   - If not installed, return error
-- Check if the package has an `open` field defined in metadata:
-  - If not set, return missing field error
-- Execute the file/command specified in the `open` field with any additional options
+- Filter package files that match the current architecture and system
+- Find a file with an `open` field defined:
+  - If no compatible file with `open` field found, return error
+- Execute the file/command specified in the file's `open` field with any additional options
 
 Open any package by slug and version:
 `$ manager <registryType> open <slug>@<version> <options>`
