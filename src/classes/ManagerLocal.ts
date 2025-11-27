@@ -28,12 +28,12 @@ import { apiBuffer } from '../helpers/api.js';
 import { FileInterface } from '../types/File.js';
 import { FileType } from '../types/FileType.js';
 import { RegistryType } from '../types/Registry.js';
-import { pluginFormatDir } from '../types/PluginFormat.js';
+import { PluginFormat, pluginFormatDir } from '../types/PluginFormat.js';
 import { ConfigInterface } from '../types/Config.js';
 import { ConfigLocal } from './ConfigLocal.js';
 import { packageCompatibleFiles } from '../helpers/package.js';
-import { presetFormatDir } from '../types/PresetFormat.js';
-import { projectFormatDir } from '../types/ProjectFormat.js';
+import { PresetFormat, presetFormatDir } from '../types/PresetFormat.js';
+import { ProjectFormat, projectFormatDir } from '../types/ProjectFormat.js';
 import { FileFormat } from '../types/FileFormat.js';
 import { licenses } from '../types/License.js';
 import { PluginType, PluginTypeOption, pluginTypes } from '../types/PluginType.js';
@@ -84,7 +84,9 @@ export class ManagerLocal extends Manager {
     ];
     const pkgAnswers = await inquirer.prompt(pkgQuestions as any);
     let types: PluginTypeOption[] | PresetTypeOption[] | ProjectTypeOption[] = pluginTypes;
-    if (this.type === RegistryType.Presets) {
+    if (this.type === RegistryType.Apps) {
+      types = pluginTypes;
+    } else if (this.type === RegistryType.Presets) {
       types = presetTypes;
     } else if (this.type === RegistryType.Projects) {
       types = projectTypes;
@@ -275,8 +277,9 @@ export class ManagerLocal extends Manager {
         );
         const dirSub: string = path.join(slug, versionNum);
         let formatDir: Record<string, string> = pluginFormatDir;
-        if (this.type === RegistryType.Presets) formatDir = presetFormatDir;
-        if (this.type === RegistryType.Projects) formatDir = projectFormatDir;
+        if (this.type === RegistryType.Apps) formatDir = pluginFormatDir;
+        else if (this.type === RegistryType.Presets) formatDir = presetFormatDir;
+        else if (this.type === RegistryType.Projects) formatDir = projectFormatDir;
         await archiveExtract(filePath, dirSource);
 
         // Move entire directory, maintaining the same folder structure.
@@ -388,8 +391,22 @@ export class ManagerLocal extends Manager {
 
     try {
       const openPath = (openableFile as any).open;
-      const packageDir = path.join(this.typeDir, slug, versionNum);
-      const fullPath = path.isAbsolute(openPath) ? openPath : path.join(packageDir, openPath);
+      const fileExt: string = path.extname(openPath).slice(1).toLowerCase();
+      let formatDir: string = pluginFormatDir[fileExt as PluginFormat] || 'Plugin';
+      if (this.type === RegistryType.Apps) formatDir = pluginFormatDir[fileExt as PluginFormat] || 'App';
+      else if (this.type === RegistryType.Presets) formatDir = presetFormatDir[fileExt as PresetFormat] || 'Preset';
+      else if (this.type === RegistryType.Projects) formatDir = projectFormatDir[fileExt as ProjectFormat] || 'Project';
+      const packageDir = path.join(this.typeDir, formatDir, slug, versionNum);
+      let fullPath: string;
+      if (path.isAbsolute(openPath)) {
+        fullPath = openPath;
+      } else if (fileExt === 'app') {
+        // For .app bundles, construct path to executable inside Contents/MacOS/
+        const appName = path.basename(openPath, '.app');
+        fullPath = path.join(packageDir, openPath, 'Contents', 'MacOS', appName);
+      } else {
+        fullPath = path.join(packageDir, openPath);
+      }
       const command = `"${fullPath}" ${options.join(' ')}`;
 
       this.log(`Running: ${command}`);
