@@ -5,6 +5,8 @@ import { Package } from './Package.js';
 import { ManagerReport, PackageVersion } from '../types/Package.js';
 import { RegistryInterface, RegistryPackages, RegistryType } from '../types/Registry.js';
 import { Base } from './Base.js';
+import { packageCompatibleFiles } from '../helpers/package.js';
+import { getArchitecture, getSystem } from '../helpers/utilsLocal.js';
 
 export class Manager extends Base {
   protected config: Config;
@@ -62,19 +64,27 @@ export class Manager extends Base {
     }
   }
 
-  listPackages(installed?: boolean) {
+  listPackages(installed?: boolean, showAll = false) {
+    let packages = Array.from(this.packages.values());
+
     if (installed !== undefined) {
-      const packagesFiltered: Package[] = [];
-      Array.from(this.packages.values()).forEach(pkg => {
-        Array.from(pkg.versions.values()).forEach(pkgVersion => {
-          if ((installed === true && pkgVersion.installed) || (installed === false && !pkgVersion.installed)) {
-            packagesFiltered.push(pkg);
-          }
-        });
-      });
-      return packagesFiltered;
+      packages = packages.filter(pkg =>
+        Array.from(pkg.versions.values()).some(
+          pkgVersion => (installed === true && pkgVersion.installed) || (installed === false && !pkgVersion.installed),
+        ),
+      );
     }
-    return Array.from(this.packages.values());
+
+    if (!showAll) {
+      packages = packages.filter(pkg => {
+        const pkgVersion = pkg.getVersionLatest();
+        if (!pkgVersion) return false;
+        const files = packageCompatibleFiles(pkgVersion, [getArchitecture()], [getSystem()], []);
+        return files.length > 0;
+      });
+    }
+
+    return packages.sort((a, b) => a.slug.localeCompare(b.slug));
   }
 
   removePackage(slug: string) {

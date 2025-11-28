@@ -192,15 +192,30 @@ export class ManagerLocal extends Manager {
     this.log('install', slug, version);
     // Get package information from registry.
     const pkg: Package | undefined = this.getPackage(slug);
-    if (!pkg) return this.log(`Package ${slug} not found in registry`);
+    if (!pkg) throw new Error(`Package ${slug} not found in registry`);
     const versionNum: string = version || pkg.latestVersion();
     const pkgVersion: PackageVersion | undefined = pkg?.getVersion(versionNum);
-    if (!pkgVersion) return this.log(`Package ${slug} version ${versionNum} not found in registry`);
+    if (!pkgVersion) throw new Error(`Package ${slug} version ${versionNum} not found in registry`);
     if (this.isPackageInstalled(slug, versionNum)) {
       this.log(`Package ${slug} version ${versionNum} already installed`);
       pkgVersion.installed = true;
       return pkgVersion;
     }
+
+    // Check for compatible files before running admin command
+    const excludedFormats: FileFormat[] = [];
+    const system = getSystem();
+    if (system === SystemType.Linux) {
+      if (!(await commandExists('dpkg'))) excludedFormats.push(FileFormat.DebianPackage);
+      if (!(await commandExists('rpm'))) excludedFormats.push(FileFormat.RedHatPackage);
+    }
+    const files: FileInterface[] = packageCompatibleFiles(
+      pkgVersion,
+      [getArchitecture()],
+      [getSystem()],
+      excludedFormats,
+    );
+    if (!files.length) throw new Error(`No compatible files found for ${slug}`);
 
     // Elevate permissions if not running as admin.
     if (!isAdmin() && !isTests()) {
@@ -225,22 +240,6 @@ export class ManagerLocal extends Manager {
       versionNum,
     );
     dirCreate(dirDownloads);
-
-    // Not all Linux distributions support all file formats.
-    const excludedFormats: FileFormat[] = [];
-    const system = getSystem();
-    if (system === SystemType.Linux) {
-      if (!(await commandExists('dpkg'))) excludedFormats.push(FileFormat.DebianPackage);
-      if (!(await commandExists('rpm'))) excludedFormats.push(FileFormat.RedHatPackage);
-    }
-    // Filter for compatible files and download.
-    const files: FileInterface[] = packageCompatibleFiles(
-      pkgVersion,
-      [getArchitecture()],
-      [getSystem()],
-      excludedFormats,
-    );
-    if (!files.length) return this.log(`Error: No compatible files found for ${slug}`);
     for (const key in files) {
       // Download file to temporary directory if not already downloaded.
       const file: FileInterface = files[key];
@@ -252,10 +251,11 @@ export class ManagerLocal extends Manager {
 
       // Check file hash matches expected hash.
       const hash: string = await fileHash(filePath);
-      if (hash !== file.sha256) return this.log(`Error: ${filePath} hash mismatch`);
+      if (hash !== file.sha256) throw new Error(`${filePath} hash mismatch`);
 
       // If installer, run the installer headless (without the user interface).
       if (file.type === FileType.Installer) {
+        // Test time out if installing during tests.
         if (isTests()) fileOpen(filePath);
         else fileInstall(filePath);
         // Currently we don't get a list of paths from the installer.
@@ -363,21 +363,18 @@ export class ManagerLocal extends Manager {
     // Get package information
     const pkg = this.getPackage(slug);
     if (!pkg) {
-      this.log(`Package ${slug} not found`);
-      return false;
+      throw new Error(`Package ${slug} not found`);
     }
 
     const versionNum = version || pkg.latestVersion();
     const pkgVersion = pkg.getVersion(versionNum);
     if (!pkgVersion) {
-      this.log(`Package ${slug} version ${versionNum} not found`);
-      return false;
+      throw new Error(`Package ${slug} version ${versionNum} not found`);
     }
 
     // Check if package is installed
     if (!this.isPackageInstalled(slug, versionNum)) {
-      this.log(`Package ${slug} version ${versionNum} not installed`);
-      return false;
+      throw new Error(`Package ${slug} version ${versionNum} not installed`);
     }
 
     // Filter compatible files and find one with open field
@@ -385,8 +382,7 @@ export class ManagerLocal extends Manager {
 
     const openableFile = files.find(file => (file as any).open);
     if (!openableFile) {
-      this.log(`Package ${slug} has no compatible file with open command defined`);
-      return false;
+      throw new Error(`Package ${slug} has no compatible file with open command defined`);
     }
 
     try {
@@ -410,13 +406,7 @@ export class ManagerLocal extends Manager {
       const command = `"${fullPath}" ${options.join(' ')}`;
 
       this.log(`Running: ${command}`);
-
-      if (isTests()) {
-        this.log(`Would run: ${command}`);
-      } else {
-        fileOpen(fullPath);
-      }
-
+      fileOpen(fullPath, options);
       return true;
     } catch (error) {
       this.log(`Error opening package ${slug}:`, error);
@@ -427,12 +417,12 @@ export class ManagerLocal extends Manager {
   async uninstall(slug: string, version?: string) {
     // Get package information from registry.
     const pkg: Package | undefined = this.getPackage(slug);
-    if (!pkg) return this.log(`Package ${slug} not found in registry`);
+    if (!pkg) throw new Error(`Package ${slug} not found in registry`);
     const versionNum: string = version || pkg.latestVersion();
     const pkgVersion: PackageVersion | undefined = pkg?.getVersion(versionNum);
-    if (!pkgVersion) return this.log(`Package ${slug} version ${versionNum} not found in registry`);
+    if (!pkgVersion) throw new Error(`Package ${slug} version ${versionNum} not found in registry`);
     if (!this.isPackageInstalled(slug, versionNum))
-      return this.log(`Package ${slug} version ${versionNum} not installed`);
+      throw new Error(`Package ${slug} version ${versionNum} not installed`);
 
     // Elevate permissions if not running as admin.
     if (!isAdmin() && !isTests()) {
