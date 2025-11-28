@@ -271,8 +271,9 @@ export function fileMove(filePath: string, newPath: string): void | boolean {
 }
 
 export function filesMove(dirSource: string, dirTarget: string, dirSub: string, formatDir: Record<string, string>) {
-  // Read files from source directory, ignoring Mac Contents files.
-  const files: string[] = dirRead(`${dirSource}/**/*.*`);
+  // Read all files from source directory, ignoring Mac Contents files.
+  const allFiles: string[] = dirRead(`${dirSource}/**/*`);
+  const files = allFiles.filter(f => !dirIs(f));
   const filesMoved: string[] = [];
 
   // For each file, move to correct folder based on type
@@ -281,7 +282,7 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
     const fileExtTarget = formatDir[fileExt];
     // If this is not a supported file format, then ignore.
     if (fileExtTarget === undefined)
-      return log(`${fileSource} - ${fileExt} not mapped to a installation folder, skipping.`);
+      return log(`${fileSource} - ${fileExt || 'no extension'} not mapped to a installation folder, skipping.`);
     const fileTarget: string = path.join(dirTarget, fileExtTarget, dirSub, path.basename(fileSource));
     if (fileExists(fileTarget)) return log(`${fileSource} - ${fileTarget} already exists, skipping.`);
     dirCreate(path.dirname(fileTarget));
@@ -293,7 +294,7 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
       if (fileExists(executablePath)) {
         fileExec(executablePath);
       }
-    } else if (['elf', 'exe'].includes(fileExt)) {
+    } else if (['elf', 'exe', ''].includes(fileExt)) {
       fileExec(fileTarget);
     }
     filesMoved.push(fileTarget);
@@ -301,11 +302,24 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
   return filesMoved;
 }
 
-export function fileOpen(filePath: string) {
-  let command: string = '';
+export function fileOpen(filePath: string, options: string[] = []) {
   if (process.env.CI) return Buffer.from('');
+
+  if (getSystem() === SystemType.Mac) {
+    const isExecutable = !path.extname(filePath);
+    if (isExecutable) {
+      // Use spawn for executables with stdio inherit to show output
+      log('⎋', `spawn "${filePath}" ${options.join(' ')}`);
+      const child = spawn(filePath, options, { stdio: 'inherit' });
+      return child;
+    } else {
+      log('⎋', `open "${filePath}"`);
+      return execSync(`open "${filePath}"`);
+    }
+  }
+
+  let command: string = '';
   if (getSystem() === SystemType.Win) command = 'start ""';
-  else if (getSystem() === SystemType.Mac) command = 'open';
   else command = 'xdg-open';
   log('⎋', `${command} "${filePath}"`);
   return execSync(`${command} "${filePath}"`);

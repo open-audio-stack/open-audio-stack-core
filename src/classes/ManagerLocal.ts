@@ -414,7 +414,7 @@ export class ManagerLocal extends Manager {
       if (isTests()) {
         this.log(`Would run: ${command}`);
       } else {
-        fileOpen(fullPath);
+        fileOpen(fullPath, options);
       }
 
       return true;

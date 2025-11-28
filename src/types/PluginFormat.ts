@@ -21,7 +21,7 @@ export type PluginFormatDir = {
   [format in PluginFormat]: string;
 };
 
-export const pluginFormatDir: PluginFormatDir = {
+export const pluginFormatDir: PluginFormatDir & { '': string } = {
   [PluginFormat.AudioUnits]: 'Components',
   [PluginFormat.AvidAudioExtension]: 'Avid',
   [PluginFormat.CleverAudioPlugin]: 'Clap',
@@ -38,6 +38,7 @@ export const pluginFormatDir: PluginFormatDir = {
   [PluginFormat.VSTMac]: 'VST',
   [PluginFormat.VSTWin]: 'VST',
   [PluginFormat.WinStandalone]: 'Exe',
+  '': 'App',
 };
 
 export interface PluginFormatOption {
