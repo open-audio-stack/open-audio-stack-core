@@ -206,8 +206,16 @@ export class ManagerLocal extends Manager {
     const excludedFormats: FileFormat[] = [];
     const system = getSystem();
     if (system === SystemType.Linux) {
-      if (!(await commandExists('dpkg'))) excludedFormats.push(FileFormat.DebianPackage);
-      if (!(await commandExists('rpm'))) excludedFormats.push(FileFormat.RedHatPackage);
+      const hasDpkg = await commandExists('dpkg');
+      const hasRpm = await commandExists('rpm');
+      // If both exist, prefer DEB over RPM
+      if (hasDpkg && hasRpm) {
+        excludedFormats.push(FileFormat.RedHatPackage);
+      } else if (!hasDpkg) {
+        excludedFormats.push(FileFormat.DebianPackage);
+      } else if (!hasRpm) {
+        excludedFormats.push(FileFormat.RedHatPackage);
+      }
     }
     const files: FileInterface[] = packageCompatibleFiles(
       pkgVersion,
