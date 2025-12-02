@@ -1,7 +1,15 @@
 import { expect, test } from 'vitest';
-import { packageRecommendations, packageVersionLatest, PackageVersionValidator } from '../../src/helpers/package.js';
+import {
+  packageCompatibleFiles,
+  packageRecommendations,
+  packageVersionLatest,
+  PackageVersionValidator,
+} from '../../src/helpers/package.js';
 import { PLUGIN, PLUGIN_PACKAGE_MULTIPLE } from '../data/Plugin';
 import { PackageVersion } from '../../src/types/Package';
+import { Architecture } from '../../src/types/Architecture.js';
+import { SystemType } from '../../src/types/SystemType.js';
+import { FileFormat } from '../../src/types/FileFormat.js';
 
 test('Package version latest', () => {
   expect(packageVersionLatest(PLUGIN_PACKAGE_MULTIPLE)).toEqual('1.3.2');
@@ -63,4 +71,33 @@ test('Package validate invalid type', () => {
       received: 'number',
     },
   ]);
+});
+
+test('Package compatible files returns empty when only unsupported formats exist', () => {
+  const rpmOnlyPackage: PackageVersion = {
+    ...PLUGIN,
+    files: [PLUGIN.files[1]], // Only the RPM file
+  };
+  const excludedResult = packageCompatibleFiles(
+    rpmOnlyPackage,
+    [Architecture.X64],
+    [SystemType.Linux],
+    [FileFormat.RedHatPackage],
+  );
+  expect(excludedResult).toHaveLength(0);
+});
+
+test('Package compatible files respects exclusions when alternatives exist', () => {
+  const bothFormatsPackage: PackageVersion = {
+    ...PLUGIN,
+    files: [PLUGIN.files[0], PLUGIN.files[1]], // DEB and RPM files
+  };
+  const result = packageCompatibleFiles(
+    bothFormatsPackage,
+    [Architecture.X64],
+    [SystemType.Linux],
+    [FileFormat.RedHatPackage],
+  );
+  expect(result).toHaveLength(1);
+  expect(result[0].url).toContain('.deb');
 });
