@@ -28,7 +28,7 @@ jobs:
 
       - name: Audit
         run: |
-          npm audit --audit-level high
+          npm audit
 
       - name: Lint
         run: |
