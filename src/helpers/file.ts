@@ -64,8 +64,12 @@ export async function archiveExtract(filePath: string, dirPath: string) {
       cwd: dirPath,
     });
   } else if (ext === '.7z') {
-    return unpack(filePath, dirPath, err => {
-      if (err) throw new Error(`7z extraction failed: ${err.message}`);
+    return new Promise<void>((resolve, reject) => {
+      unpack(filePath, dirPath, (err2: any) => {
+        if (err2)
+          return reject(new Error(`7z extraction failed: ${err2 && err2.message ? err2.message : String(err2)}`));
+        return resolve();
+      });
     });
   }
 }
@@ -271,10 +275,20 @@ export function fileMove(filePath: string, newPath: string): void | boolean {
 }
 
 export function filesMove(dirSource: string, dirTarget: string, dirSub: string, formatDir: Record<string, string>) {
-  // Read all files from source directory, ignoring Mac Contents files.
-  const allFiles: string[] = dirRead(`${dirSource}/**/*`);
-  const files = allFiles.filter(f => !dirIs(f));
+  const filesAndFolders: string[] = dirRead(`${dirSource}/**/*`);
+  log('filesAndFolders', filesAndFolders);
+  const files = filesAndFolders.filter(f => {
+    // Include files.
+    if (!dirIs(f)) return true;
+    // Include macOS application bundles (directory of files presented as a single file).
+    if (fileExists(path.join(f, 'Contents', 'Info.plist'))) return true;
+    // Include LV2 plugin folders.
+    if (fileExists(path.join(f, 'manifest.ttl'))) return true;
+    // Otherwise ignore.
+    return false;
+  });
   const filesMoved: string[] = [];
+  log('files', files);
 
   // For each file, move to correct folder based on type
   files.forEach((fileSource: string) => {
@@ -401,32 +415,61 @@ export function runCliAsAdmin(args: string): Promise<void> {
     const dirPathClean: string = dirname(filename).replace('app.asar', 'app.asar.unpacked');
     const script: string = path.join(dirPathClean, 'admin.js');
 
-    // Temp file for logging
-    const logFile = path.join(dirPathClean, 'admin.log');
-    writeFileSync(logFile, ''); // Clear previous logs
-
     log(`Running as admin: node "${script}" ${args}`);
 
-    // Monitor log file for completion
-    let completed = false;
-    const tail = spawn('tail', ['-f', logFile]);
-    tail.stdout.on('data', data => {
-      const output = data.toString();
-      log(output);
-      if (output.includes('ADMIN_COMPLETE')) {
-        completed = true;
-        tail.kill();
-        resolve();
-      }
-    });
+    const cmd = `node "${script}" ${args}`;
 
-    // Run the script with sudoPrompt
-    sudoPrompt.exec(`node "${script}" ${args} >> "${logFile}" 2>&1`, { name: 'Open Audio Stack' }, error => {
-      if (error && !completed) {
-        tail.kill();
-        reject(error);
-      }
-    });
+    sudoPrompt.exec(
+      cmd,
+      { name: 'Open Audio Stack' },
+      (error?: Error | undefined, stdout?: string | Buffer | undefined, stderr?: string | Buffer | undefined) => {
+        // Prefer explicit error from sudo-prompt callback
+        if (error) {
+          const stderrStr = stderr ? (typeof stderr === 'string' ? stderr : stderr.toString()) : '';
+          const msg = `runCliAsAdmin: admin command failed: ${error && error.message ? error.message : String(error)}${
+            stderrStr ? `\nstderr: ${stderrStr}` : ''
+          }`;
+          const err: any = new Error(msg);
+          err.code = (error as any) && (error as any).code ? (error as any).code : undefined;
+          return reject(err);
+        }
+
+        // Convert stdout/stderr buffers to strings for inspection
+        const stdoutStr = stdout ? (typeof stdout === 'string' ? stdout : stdout.toString()) : '';
+        const stderrStr = stderr ? (typeof stderr === 'string' ? stderr : stderr.toString()) : '';
+
+        const out = stdoutStr + stderrStr;
+        log(out);
+
+        // Try to parse structured JSON output from the admin script first.
+        // Admin script outputs JSON on its own line after a newline, so look for the last JSON object.
+        const lines = out.split('\n');
+        let jsonPayload = null;
+        for (let i = lines.length - 1; i >= 0; i--) {
+          const line = lines[i].trim();
+          if (!line) continue; // Skip empty lines
+          try {
+            jsonPayload = JSON.parse(line);
+            break; // Found valid JSON, stop searching backwards
+          } catch {
+            // This line is not JSON, continue searching
+          }
+        }
+
+        if (jsonPayload) {
+          if (jsonPayload && (jsonPayload.status === 'ok' || jsonPayload.code === 0)) {
+            return resolve();
+          }
+          const errMsg = jsonPayload && jsonPayload.message ? jsonPayload.message : JSON.stringify(jsonPayload);
+          return reject(new Error(`runCliAsAdmin: admin command reported error: ${errMsg}`));
+        }
+        return reject(
+          new Error(
+            `runCliAsAdmin: admin command did not report completion. stdout: ${stdoutStr} stderr: ${stderrStr}`,
+          ),
+        );
+      },
+    );
   });
 }
 

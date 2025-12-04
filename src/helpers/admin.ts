@@ -48,14 +48,25 @@ export async function adminInit() {
   manager.log('adminInit', args);
   await manager.sync();
   manager.scan();
-  if (args.operation === 'install') {
-    await manager.install(args.id, args.version);
-  } else if (args.operation === 'uninstall') {
-    await manager.uninstall(args.id, args.version);
-  } else if (args.operation === 'installAll') {
-    await manager.installAll();
+  try {
+    if (args.operation === 'install') {
+      await manager.install(args.id, args.version);
+    } else if (args.operation === 'uninstall') {
+      await manager.uninstall(args.id, args.version);
+    } else if (args.operation === 'installAll') {
+      await manager.installAll();
+    }
+    const result = { status: 'ok', code: 0 };
+    process.stdout.write('\n');
+    console.log(JSON.stringify(result));
+    process.exit(0);
+  } catch (err: any) {
+    const message = err && err.message ? err.message : String(err);
+    const errorResult = { status: 'error', code: err && err.code ? err.code : 1, message };
+    process.stdout.write('\n');
+    console.log(JSON.stringify(errorResult));
+    process.exit(typeof errorResult.code === 'number' ? errorResult.code : 1);
   }
-  console.log('ADMIN_COMPLETE');
 }
 
 adminInit();
