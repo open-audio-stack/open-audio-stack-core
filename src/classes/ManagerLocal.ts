@@ -320,9 +320,9 @@ export class ManagerLocal extends Manager {
     }
 
     // Loop through all packages and install each one.
-    for (const [slug, pkg] of this.packages) {
+    for (const pkg of this.listPackages()) {
       const versionNum: string = pkg.latestVersion();
-      await this.install(slug, versionNum);
+      await this.install(pkg.slug, versionNum);
     }
     return this.listPackages();
   }
@@ -333,14 +333,16 @@ export class ManagerLocal extends Manager {
     await manager.sync();
     manager.scan();
     const pkg: Package | undefined = manager.getPackage(slug);
-    if (!pkg) return this.log(`Package ${slug} not found in registry`);
+    if (!pkg) throw new Error(`Package ${slug} not found in registry`);
     const versionNum: string = version || pkg.latestVersion();
     const pkgVersion: PackageVersion | undefined = pkg?.getVersion(versionNum);
-    if (!pkgVersion) return this.log(`Package ${slug} version ${versionNum} not found in registry`);
+    if (!pkgVersion) throw new Error(`Package ${slug} version ${versionNum} not found in registry`);
     // Get local package file.
     const pkgFile = packageLoadFile(filePath) as any;
     if (pkgFile[type] && pkgFile[type][slug] && pkgFile[type][slug] === versionNum) {
-      return this.log(`Package ${slug} version ${versionNum} is already a dependency`);
+      this.log(`Package ${slug} version ${versionNum} is already a dependency`);
+      pkgFile.installed = true;
+      return pkgFile;
     }
     // Install dependency.
     await manager.install(slug, version);
@@ -471,8 +473,8 @@ export class ManagerLocal extends Manager {
   async uninstallDependency(slug: string, version?: string, filePath?: string, type = RegistryType.Plugins) {
     // Get local package file.
     const pkgFile = packageLoadFile(filePath) as any;
-    if (!pkgFile[type]) return this.log(`Package ${type} is missing`);
-    if (!pkgFile[type][slug]) return this.log(`Package ${type} ${slug} is not a dependency`);
+    if (!pkgFile[type]) throw new Error(`Package ${type} is missing`);
+    if (!pkgFile[type][slug]) throw new Error(`Package ${type} ${slug} is not a dependency`);
 
     // Uninstall dependency.
     const manager = new ManagerLocal(type, this.config.config);

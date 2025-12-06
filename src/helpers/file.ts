@@ -277,13 +277,36 @@ export function fileMove(filePath: string, newPath: string): void | boolean {
 export function filesMove(dirSource: string, dirTarget: string, dirSub: string, formatDir: Record<string, string>) {
   const filesAndFolders: string[] = dirRead(`${dirSource}/**/*`);
   log('filesAndFolders', filesAndFolders);
+
+  // First pass: identify bundle directories (app, clap, vst3, lv2, etc.)
+  const bundleDirs: Set<string> = new Set();
+  filesAndFolders.forEach(f => {
+    if (dirIs(f)) {
+      // Check if this is a macOS application bundle or plugin bundle
+      if (fileExists(path.join(f, 'Contents', 'Info.plist'))) {
+        bundleDirs.add(f);
+      }
+      // Check if this is an LV2 plugin folder
+      if (fileExists(path.join(f, 'manifest.ttl'))) {
+        bundleDirs.add(f);
+      }
+    }
+  });
+
   const files = filesAndFolders.filter(f => {
-    // Include files.
+    // Exclude files/folders that are inside bundle directories
+    for (const bundleDir of bundleDirs) {
+      if (f.startsWith(bundleDir + path.sep)) {
+        return false; // This path is inside a bundle, exclude it
+      }
+    }
+
+    // Include regular files (not directories).
     if (!dirIs(f)) return true;
-    // Include macOS application bundles (directory of files presented as a single file).
-    if (fileExists(path.join(f, 'Contents', 'Info.plist'))) return true;
-    // Include LV2 plugin folders.
-    if (fileExists(path.join(f, 'manifest.ttl'))) return true;
+
+    // Include bundle directories themselves (already identified above).
+    if (bundleDirs.has(f)) return true;
+
     // Otherwise ignore.
     return false;
   });
@@ -423,17 +446,6 @@ export function runCliAsAdmin(args: string): Promise<void> {
       cmd,
       { name: 'Open Audio Stack' },
       (error?: Error | undefined, stdout?: string | Buffer | undefined, stderr?: string | Buffer | undefined) => {
-        // Prefer explicit error from sudo-prompt callback
-        if (error) {
-          const stderrStr = stderr ? (typeof stderr === 'string' ? stderr : stderr.toString()) : '';
-          const msg = `runCliAsAdmin: admin command failed: ${error && error.message ? error.message : String(error)}${
-            stderrStr ? `\nstderr: ${stderrStr}` : ''
-          }`;
-          const err: any = new Error(msg);
-          err.code = (error as any) && (error as any).code ? (error as any).code : undefined;
-          return reject(err);
-        }
-
         // Convert stdout/stderr buffers to strings for inspection
         const stdoutStr = stdout ? (typeof stdout === 'string' ? stdout : stdout.toString()) : '';
         const stderrStr = stderr ? (typeof stderr === 'string' ? stderr : stderr.toString()) : '';
@@ -456,6 +468,7 @@ export function runCliAsAdmin(args: string): Promise<void> {
           }
         }
 
+        // If we found JSON output from admin script, prioritize it over sudoPrompt error
         if (jsonPayload) {
           if (jsonPayload && (jsonPayload.status === 'ok' || jsonPayload.code === 0)) {
             return resolve();
@@ -463,6 +476,17 @@ export function runCliAsAdmin(args: string): Promise<void> {
           const errMsg = jsonPayload && jsonPayload.message ? jsonPayload.message : JSON.stringify(jsonPayload);
           return reject(new Error(`runCliAsAdmin: admin command reported error: ${errMsg}`));
         }
+
+        // If no JSON found, check for sudoPrompt error
+        if (error) {
+          const msg = `runCliAsAdmin: admin command failed: ${error && error.message ? error.message : String(error)}${
+            stderrStr ? `\nstderr: ${stderrStr}` : ''
+          }`;
+          const err: any = new Error(msg);
+          err.code = (error as any) && (error as any).code ? (error as any).code : undefined;
+          return reject(err);
+        }
+
         return reject(
           new Error(
             `runCliAsAdmin: admin command did not report completion. stdout: ${stdoutStr} stderr: ${stderrStr}`,
