@@ -32,10 +32,18 @@ import { fileURLToPath } from 'url';
 import sudoPrompt from '@vscode/sudo-prompt';
 import { getSystem } from './utilsLocal.js';
 import { log } from './utils.js';
+import mime from 'mime-types';
 
 export async function archiveExtract(filePath: string, dirPath: string) {
   log('⎋', dirPath);
+  const fileName = path.basename(filePath).toLowerCase();
   const ext = path.extname(filePath).trim().toLowerCase();
+
+  const tarExtensions = ['.tar', '.gz', '.tgz', '.xz', '.bz2', '.tbz2'];
+  const tarCompoundExtensions = ['.tar.gz', '.tar.xz', '.tar.bz2'];
+  const isTarFile =
+    tarExtensions.includes(ext) || tarCompoundExtensions.some(compoundExt => fileName.endsWith(compoundExt));
+
   if (ext === '.zip') {
     const zip: AdmZip = new AdmZip(filePath);
     try {
@@ -58,7 +66,7 @@ export async function archiveExtract(filePath: string, dirPath: string) {
         return;
       }
     }
-  } else if (ext === '.tar' || ext === '.gz' || ext === '.tgz') {
+  } else if (isTarFile) {
     return await tar.extract({
       file: filePath,
       cwd: dirPath,
@@ -316,7 +324,16 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
   // For each file, move to correct folder based on type
   files.forEach((fileSource: string) => {
     const fileExt: string = path.extname(fileSource).slice(1).toLowerCase();
-    const fileExtTarget = formatDir[fileExt];
+    let fileExtTarget = formatDir[fileExt];
+
+    // Use mime-type detection as fallback for unmapped extensions
+    if (!fileExtTarget) {
+      const mimeType = mime.lookup(fileSource) || '';
+      if (!mimeType || mimeType.startsWith('application/')) {
+        fileExtTarget = 'App';
+      }
+    }
+
     // If this is not a supported file format, then ignore.
     if (fileExtTarget === undefined)
       return log(`${fileSource} - ${fileExt || 'no extension'} not mapped to a installation folder, skipping.`);

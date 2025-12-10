@@ -7,6 +7,7 @@ import {
   dirCreate,
   dirDelete,
   dirEmpty,
+  dirIs,
   dirMove,
   dirRead,
   fileCreate,
@@ -297,12 +298,34 @@ export class ManagerLocal extends Manager {
           dirMove(dirSource, dirTarget);
           fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
         } else {
-          // Move only supported file extensions into their respective installation directories.
-          const filesMoved: string[] = filesMove(dirSource, this.typeDir, dirSub, formatDir);
-          filesMoved.forEach((fileMoved: string) => {
-            const fileJson: string = path.join(path.dirname(fileMoved), 'index.json');
-            fileCreateJson(fileJson, pkgVersion);
+          // Check if archive contains installer files (pkg, dmg) that should be run
+          const allFiles = dirRead(`${dirSource}/**/*`).filter(f => !dirIs(f));
+          const installerFiles = allFiles.filter(f => {
+            const ext = path.extname(f).toLowerCase();
+            return ext === '.pkg' || ext === '.dmg';
           });
+
+          if (installerFiles.length > 0) {
+            // Run installer files found in archive
+            for (const installerFile of installerFiles) {
+              if (isTests()) fileOpen(installerFile);
+              else fileInstall(installerFile);
+            }
+            // Create directory and save package info for installer
+            const dirTarget: string = path.join(this.typeDir, 'Installers', dirSub);
+            dirCreate(dirTarget);
+            fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
+          } else {
+            // Move only supported file extensions into their respective installation directories.
+            const filesMoved: string[] = filesMove(dirSource, this.typeDir, dirSub, formatDir);
+            if (filesMoved.length === 0) {
+              throw new Error(`No compatible files found to install for ${slug}`);
+            }
+            filesMoved.forEach((fileMoved: string) => {
+              const fileJson: string = path.join(path.dirname(fileMoved), 'index.json');
+              fileCreateJson(fileJson, pkgVersion);
+            });
+          }
         }
       }
     }
