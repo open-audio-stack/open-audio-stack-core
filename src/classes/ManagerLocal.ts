@@ -315,8 +315,8 @@ export class ManagerLocal extends Manager {
             const dirTarget: string = path.join(this.typeDir, 'Installers', dirSub);
             dirCreate(dirTarget);
             fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
-          } else {
-            // Move only supported file extensions into their respective installation directories.
+          } else if (this.type === RegistryType.Plugins) {
+            // For plugins, move files into type-specific subdirectories
             const filesMoved: string[] = filesMove(dirSource, this.typeDir, dirSub, formatDir);
             if (filesMoved.length === 0) {
               throw new Error(`No compatible files found to install for ${slug}`);
@@ -325,6 +325,12 @@ export class ManagerLocal extends Manager {
               const fileJson: string = path.join(path.dirname(fileMoved), 'index.json');
               fileCreateJson(fileJson, pkgVersion);
             });
+          } else {
+            // For apps/projects/presets, move entire directory without type subdirectories
+            const dirTarget: string = path.join(this.typeDir, dirSub);
+            dirCreate(dirTarget);
+            dirMove(dirSource, dirTarget);
+            fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
           }
         }
       }
