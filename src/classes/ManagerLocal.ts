@@ -33,8 +33,8 @@ import { PluginFormat, pluginFormatDir } from '../types/PluginFormat.js';
 import { ConfigInterface } from '../types/Config.js';
 import { ConfigLocal } from './ConfigLocal.js';
 import { packageCompatibleFiles } from '../helpers/package.js';
-import { PresetFormat, presetFormatDir } from '../types/PresetFormat.js';
-import { ProjectFormat, projectFormatDir } from '../types/ProjectFormat.js';
+import { presetFormatDir } from '../types/PresetFormat.js';
+import { projectFormatDir } from '../types/ProjectFormat.js';
 import { FileFormat } from '../types/FileFormat.js';
 import { licenses } from '../types/License.js';
 import { PluginType, PluginTypeOption, pluginTypes } from '../types/PluginType.js';
@@ -427,11 +427,16 @@ export class ManagerLocal extends Manager {
     try {
       const openPath = (openableFile as any).open;
       const fileExt: string = path.extname(openPath).slice(1).toLowerCase();
-      let formatDir: string = pluginFormatDir[fileExt as PluginFormat] || 'Plugin';
-      if (this.type === RegistryType.Apps) formatDir = pluginFormatDir[fileExt as PluginFormat] || 'App';
-      else if (this.type === RegistryType.Presets) formatDir = presetFormatDir[fileExt as PresetFormat] || 'Preset';
-      else if (this.type === RegistryType.Projects) formatDir = projectFormatDir[fileExt as ProjectFormat] || 'Project';
-      const packageDir = path.join(this.typeDir, formatDir, slug, versionNum);
+      let packageDir: string;
+
+      if (this.type === RegistryType.Plugins) {
+        // For plugins, use type-specific subdirectories
+        const formatDir: string = pluginFormatDir[fileExt as PluginFormat] || 'Plugin';
+        packageDir = path.join(this.typeDir, formatDir, slug, versionNum);
+      } else {
+        // For apps/projects/presets, files are in direct package directory
+        packageDir = path.join(this.typeDir, slug, versionNum);
+      }
       let fullPath: string;
       if (path.isAbsolute(openPath)) {
         fullPath = openPath;
