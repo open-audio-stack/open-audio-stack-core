@@ -29,7 +29,8 @@ export class Package extends Base {
       ...(recs.length > 0 && { recs }),
     };
     if (Object.keys(report).length > 0) this.reports.set(num, report);
-    if (errors.length > 0) return this.log(`Package ${version.name} version ${num} errors`, errors);
+    if (errors.length > 0)
+      throw new Error(`Package ${version.name} version ${num} has validation errors: ${JSON.stringify(errors)}`);
     version.verified = packageIsVerified(this.slug, version);
     this.versions.set(num, version);
     this.version = this.latestVersion();

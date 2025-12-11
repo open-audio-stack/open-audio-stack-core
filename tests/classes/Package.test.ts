@@ -26,7 +26,7 @@ test('Package add invalid version', () => {
   // @ts-expect-error this is intentionally bad data.
   delete PLUGIN_INVALID['image'];
   const pkg = new Package(PLUGIN_PACKAGE.slug);
-  pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN_INVALID);
+  expect(() => pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN_INVALID)).toThrow();
   expect(pkg.toJSON()).toEqual(PLUGIN_PACKAGE_EMPTY);
 });
 

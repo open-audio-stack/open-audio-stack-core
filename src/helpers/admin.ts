@@ -42,13 +42,13 @@ export function adminArguments(): Arguments {
 }
 
 export async function adminInit() {
-  const args: Arguments = adminArguments();
-  const manager = new ManagerLocal(args.type, { appDir: args.appDir });
-  if (args.log) manager.logEnable();
-  manager.log('adminInit', args);
-  await manager.sync();
-  manager.scan();
   try {
+    const args: Arguments = adminArguments();
+    const manager = new ManagerLocal(args.type, { appDir: args.appDir });
+    if (args.log) manager.logEnable();
+    manager.log('adminInit', args);
+    await manager.sync();
+    manager.scan();
     if (args.operation === 'install') {
       await manager.install(args.id, args.version);
     } else if (args.operation === 'uninstall') {
@@ -64,7 +64,7 @@ export async function adminInit() {
     const message = err && err.message ? err.message : String(err);
     const errorResult = { status: 'error', code: err && err.code ? err.code : 1, message };
     process.stdout.write('\n');
-    console.log(JSON.stringify(errorResult));
+    console.error(JSON.stringify(errorResult));
     process.exit(typeof errorResult.code === 'number' ? errorResult.code : 1);
   }
 }
