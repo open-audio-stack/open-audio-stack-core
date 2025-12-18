@@ -13,6 +13,7 @@ import {
   fileCreate,
   fileCreateJson,
   fileCreateYaml,
+  fileExec,
   fileExists,
   fileHash,
   fileInstall,
@@ -331,6 +332,43 @@ export class ManagerLocal extends Manager {
             dirCreate(dirTarget);
             dirMove(dirSource, dirTarget);
             fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
+            // Ensure executable permissions for likely executables inside moved app/project/preset
+            try {
+              const movedFiles = dirRead(path.join(dirTarget, '**', '*')).filter(f => !dirIs(f));
+              movedFiles.forEach((movedFile: string) => {
+                const ext = path.extname(movedFile).slice(1).toLowerCase();
+                if (['', 'elf', 'exe'].includes(ext)) {
+                  try {
+                    fileExec(movedFile);
+                  } catch (err) {
+                    this.log(`Failed to set exec on ${movedFile}:`, err);
+                  }
+                }
+              });
+            } catch (err) {
+              this.log('Error while setting executable permissions:', err);
+            }
+            // Also handle macOS .app bundles: set exec on binaries in Contents/MacOS
+            try {
+              const appDirs = dirRead(path.join(dirTarget, '**', '*.app')).filter(d => dirIs(d));
+              appDirs.forEach((appDir: string) => {
+                try {
+                  const macosBinPattern = path.join(appDir, 'Contents', 'MacOS', '**', '*');
+                  const macosFiles = dirRead(macosBinPattern).filter(f => !dirIs(f));
+                  macosFiles.forEach((binFile: string) => {
+                    try {
+                      fileExec(binFile);
+                    } catch (err) {
+                      this.log(`Failed to set exec on app binary ${binFile}:`, err);
+                    }
+                  });
+                } catch (err) {
+                  this.log(`Error scanning .app contents for ${appDir}:`, err);
+                }
+              });
+            } catch (err) {
+              this.log(err);
+            }
           }
         }
       }
