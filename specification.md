@@ -133,6 +133,14 @@ $ manager config get registries
 ]
 ```
 
+#### Registry versioning (optional)
+
+Registries can expose versioned endpoints to avoid breaking changes when introducing new features. When a registry is versioned, managers should append the version segment to the registry root when requesting resources.
+
+Example: Registry root `https://example.com/registry` with version `v1` → fetch plugin list at `https://example.com/registry/v1/plugins`.
+
+Versioning is optional — if Managers call the root url, they will get the latest version by default.
+
 ### App directory
 
 Defaults to manager installation directory.
@@ -437,13 +445,15 @@ Create new package metadata:
   - If package version not found return error
 - Check to see if package is installed:
   - If not installed, return error
-- Filter package files that match the current architecture and system
-- Find a file with an `open` field defined:
-  - If no compatible file with `open` field found, return error
-- Execute the file/command specified in the file's `open` field with any additional options
+- Filter package `files` entries that match the current architecture and system
+- Find a `files` entry that includes an `open` field and matches the system/architecture:
+  - If no compatible `files` entry with an `open` field is found, return error
+- Execute the file/command specified in that `files` entry's `open` field.
+
+Note: The manager will use the `open` field defined in the package metadata (per-file) to determine the correct entry point for the target system.
 
 Open any package by slug and version:
-`$ manager <registryType> open <slug>@<version> <options>`
+`$ manager <registryType> open <slug>@<version>`
 
 ## Project
 
