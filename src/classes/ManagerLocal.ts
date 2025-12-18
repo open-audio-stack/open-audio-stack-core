@@ -7,11 +7,13 @@ import {
   dirCreate,
   dirDelete,
   dirEmpty,
+  dirIs,
   dirMove,
   dirRead,
   fileCreate,
   fileCreateJson,
   fileCreateYaml,
+  fileExec,
   fileExists,
   fileHash,
   fileInstall,
@@ -32,8 +34,8 @@ import { PluginFormat, pluginFormatDir } from '../types/PluginFormat.js';
 import { ConfigInterface } from '../types/Config.js';
 import { ConfigLocal } from './ConfigLocal.js';
 import { packageCompatibleFiles } from '../helpers/package.js';
-import { PresetFormat, presetFormatDir } from '../types/PresetFormat.js';
-import { ProjectFormat, projectFormatDir } from '../types/ProjectFormat.js';
+import { presetFormatDir } from '../types/PresetFormat.js';
+import { projectFormatDir } from '../types/ProjectFormat.js';
 import { FileFormat } from '../types/FileFormat.js';
 import { licenses } from '../types/License.js';
 import { PluginType, PluginTypeOption, pluginTypes } from '../types/PluginType.js';
@@ -297,12 +299,77 @@ export class ManagerLocal extends Manager {
           dirMove(dirSource, dirTarget);
           fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
         } else {
-          // Move only supported file extensions into their respective installation directories.
-          const filesMoved: string[] = filesMove(dirSource, this.typeDir, dirSub, formatDir);
-          filesMoved.forEach((fileMoved: string) => {
-            const fileJson: string = path.join(path.dirname(fileMoved), 'index.json');
-            fileCreateJson(fileJson, pkgVersion);
+          // Check if archive contains installer files (pkg, dmg) that should be run
+          const allFiles = dirRead(`${dirSource}/**/*`).filter(f => !dirIs(f));
+          const installerFiles = allFiles.filter(f => {
+            const ext = path.extname(f).toLowerCase();
+            return ext === '.pkg' || ext === '.dmg';
           });
+
+          if (installerFiles.length > 0) {
+            // Run installer files found in archive
+            for (const installerFile of installerFiles) {
+              if (isTests()) fileOpen(installerFile);
+              else fileInstall(installerFile);
+            }
+            // Create directory and save package info for installer
+            const dirTarget: string = path.join(this.typeDir, 'Installers', dirSub);
+            dirCreate(dirTarget);
+            fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
+          } else if (this.type === RegistryType.Plugins) {
+            // For plugins, move files into type-specific subdirectories
+            const filesMoved: string[] = filesMove(dirSource, this.typeDir, dirSub, formatDir);
+            if (filesMoved.length === 0) {
+              throw new Error(`No compatible files found to install for ${slug}`);
+            }
+            filesMoved.forEach((fileMoved: string) => {
+              const fileJson: string = path.join(path.dirname(fileMoved), 'index.json');
+              fileCreateJson(fileJson, pkgVersion);
+            });
+          } else {
+            // For apps/projects/presets, move entire directory without type subdirectories
+            const dirTarget: string = path.join(this.typeDir, dirSub);
+            dirCreate(dirTarget);
+            dirMove(dirSource, dirTarget);
+            fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
+            // Ensure executable permissions for likely executables inside moved app/project/preset
+            try {
+              const movedFiles = dirRead(path.join(dirTarget, '**', '*')).filter(f => !dirIs(f));
+              movedFiles.forEach((movedFile: string) => {
+                const ext = path.extname(movedFile).slice(1).toLowerCase();
+                if (['', 'elf', 'exe'].includes(ext)) {
+                  try {
+                    fileExec(movedFile);
+                  } catch (err) {
+                    this.log(`Failed to set exec on ${movedFile}:`, err);
+                  }
+                }
+              });
+            } catch (err) {
+              this.log('Error while setting executable permissions:', err);
+            }
+            // Also handle macOS .app bundles: set exec on binaries in Contents/MacOS
+            try {
+              const appDirs = dirRead(path.join(dirTarget, '**', '*.app')).filter(d => dirIs(d));
+              appDirs.forEach((appDir: string) => {
+                try {
+                  const macosBinPattern = path.join(appDir, 'Contents', 'MacOS', '**', '*');
+                  const macosFiles = dirRead(macosBinPattern).filter(f => !dirIs(f));
+                  macosFiles.forEach((binFile: string) => {
+                    try {
+                      fileExec(binFile);
+                    } catch (err) {
+                      this.log(`Failed to set exec on app binary ${binFile}:`, err);
+                    }
+                  });
+                } catch (err) {
+                  this.log(`Error scanning .app contents for ${appDir}:`, err);
+                }
+              });
+            } catch (err) {
+              this.log(err);
+            }
+          }
         }
       }
     }
@@ -320,9 +387,9 @@ export class ManagerLocal extends Manager {
     }
 
     // Loop through all packages and install each one.
-    for (const [slug, pkg] of this.packages) {
+    for (const pkg of this.listPackages()) {
       const versionNum: string = pkg.latestVersion();
-      await this.install(slug, versionNum);
+      await this.install(pkg.slug, versionNum);
     }
     return this.listPackages();
   }
@@ -333,14 +400,16 @@ export class ManagerLocal extends Manager {
     await manager.sync();
     manager.scan();
     const pkg: Package | undefined = manager.getPackage(slug);
-    if (!pkg) return this.log(`Package ${slug} not found in registry`);
+    if (!pkg) throw new Error(`Package ${slug} not found in registry`);
     const versionNum: string = version || pkg.latestVersion();
     const pkgVersion: PackageVersion | undefined = pkg?.getVersion(versionNum);
-    if (!pkgVersion) return this.log(`Package ${slug} version ${versionNum} not found in registry`);
+    if (!pkgVersion) throw new Error(`Package ${slug} version ${versionNum} not found in registry`);
     // Get local package file.
     const pkgFile = packageLoadFile(filePath) as any;
     if (pkgFile[type] && pkgFile[type][slug] && pkgFile[type][slug] === versionNum) {
-      return this.log(`Package ${slug} version ${versionNum} is already a dependency`);
+      this.log(`Package ${slug} version ${versionNum} is already a dependency`);
+      pkgFile.installed = true;
+      return pkgFile;
     }
     // Install dependency.
     await manager.install(slug, version);
@@ -396,11 +465,16 @@ export class ManagerLocal extends Manager {
     try {
       const openPath = (openableFile as any).open;
       const fileExt: string = path.extname(openPath).slice(1).toLowerCase();
-      let formatDir: string = pluginFormatDir[fileExt as PluginFormat] || 'Plugin';
-      if (this.type === RegistryType.Apps) formatDir = pluginFormatDir[fileExt as PluginFormat] || 'App';
-      else if (this.type === RegistryType.Presets) formatDir = presetFormatDir[fileExt as PresetFormat] || 'Preset';
-      else if (this.type === RegistryType.Projects) formatDir = projectFormatDir[fileExt as ProjectFormat] || 'Project';
-      const packageDir = path.join(this.typeDir, formatDir, slug, versionNum);
+      let packageDir: string;
+
+      if (this.type === RegistryType.Plugins) {
+        // For plugins, use type-specific subdirectories
+        const formatDir: string = pluginFormatDir[fileExt as PluginFormat] || 'Plugin';
+        packageDir = path.join(this.typeDir, formatDir, slug, versionNum);
+      } else {
+        // For apps/projects/presets, files are in direct package directory
+        packageDir = path.join(this.typeDir, slug, versionNum);
+      }
       let fullPath: string;
       if (path.isAbsolute(openPath)) {
         fullPath = openPath;
@@ -471,8 +545,8 @@ export class ManagerLocal extends Manager {
   async uninstallDependency(slug: string, version?: string, filePath?: string, type = RegistryType.Plugins) {
     // Get local package file.
     const pkgFile = packageLoadFile(filePath) as any;
-    if (!pkgFile[type]) return this.log(`Package ${type} is missing`);
-    if (!pkgFile[type][slug]) return this.log(`Package ${type} ${slug} is not a dependency`);
+    if (!pkgFile[type]) throw new Error(`Package ${type} is missing`);
+    if (!pkgFile[type][slug]) throw new Error(`Package ${type} ${slug} is not a dependency`);
 
     // Uninstall dependency.
     const manager = new ManagerLocal(type, this.config.config);
