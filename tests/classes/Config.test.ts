@@ -83,7 +83,7 @@ test('Get licenses', () => {
 
 test('Get plugin category effect', () => {
   const config: Config = new Config();
-  expect(config.pluginCategoryEffect(PluginCategoryEffect.Compression)).toEqual(pluginCategoryEffects[1]);
+  expect(config.pluginCategoryEffect(PluginCategoryEffect.Distortion)).toEqual(pluginCategoryEffects[1]);
 });
 
 test('Get plugin category effects', () => {
@@ -93,7 +93,7 @@ test('Get plugin category effects', () => {
 
 test('Get plugin category instrument', () => {
   const config: Config = new Config();
-  expect(config.pluginCategoryInstrument(PluginCategoryInstrument.Guitar)).toEqual(pluginCategoryInstruments[1]);
+  expect(config.pluginCategoryInstrument(PluginCategoryInstrument.Brass)).toEqual(pluginCategoryInstruments[1]);
 });
 
 test('Get plugin category instruments', () => {
