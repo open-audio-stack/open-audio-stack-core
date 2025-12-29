@@ -91,6 +91,10 @@ export const PLUGIN: PluginInterface = {
 export const PLUGIN_INSTALLED: PluginInterface = structuredClone(PLUGIN);
 PLUGIN_INSTALLED.installed = true;
 
+export const PLUGIN_INCOMPATIBLE: PluginInterface = structuredClone(PLUGIN);
+// Remove the Windows-compatible file entry so this package is incompatible with Win.
+PLUGIN_INCOMPATIBLE.files.splice(4, 1);
+
 export const PLUGIN_PACKAGE: PackageInterface = {
   slug,
   version,
@@ -119,5 +123,13 @@ export const PLUGIN_PACKAGE_MULTIPLE: PackageInterface = {
   versions: {
     [version]: PLUGIN,
     '1.3.2': PLUGIN,
+  },
+};
+
+export const PLUGIN_PACKAGE_INCOMPATIBLE: PackageInterface = {
+  slug,
+  version,
+  versions: {
+    [version]: PLUGIN_INCOMPATIBLE,
   },
 };
