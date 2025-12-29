@@ -1,5 +1,12 @@
 import { expect, test } from 'vitest';
-import { PLUGIN, PLUGIN_PACKAGE, PLUGIN_PACKAGE_EMPTY, PLUGIN_PACKAGE_MULTIPLE } from '../data/Plugin';
+import {
+  PLUGIN,
+  PLUGIN_INCOMPATIBLE,
+  PLUGIN_PACKAGE,
+  PLUGIN_PACKAGE_EMPTY,
+  PLUGIN_PACKAGE_INCOMPATIBLE,
+  PLUGIN_PACKAGE_MULTIPLE,
+} from '../data/Plugin';
 import { Manager } from '../../src/classes/Manager';
 import { RegistryType } from '../../src/types/Registry';
 import { Package } from '../../src/classes/Package';
@@ -108,6 +115,15 @@ test('Manager list packages', () => {
   expect(manager.listPackages()).toEqual([pkg]);
   expect(manager.listPackages(true)).toEqual([]);
   expect(manager.listPackages(false)).toEqual([pkg]);
+});
+
+test('Manager list packages incompatible', () => {
+  const manager = new Manager(RegistryType.Plugins);
+  const pkgNoWin = new Package(PLUGIN_PACKAGE_INCOMPATIBLE.slug);
+  pkgNoWin.addVersion(PLUGIN_PACKAGE_INCOMPATIBLE.version, PLUGIN_INCOMPATIBLE);
+  manager.addPackage(pkgNoWin);
+  expect(manager.listPackages(undefined, Architecture.X64, SystemType.Win)).toEqual([]);
+  expect(manager.listPackages(undefined, Architecture.X64, SystemType.Linux)).toEqual([pkgNoWin]);
 });
 
 test('Manager filter packages', () => {

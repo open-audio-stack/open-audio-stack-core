@@ -6,7 +6,7 @@ import { ManagerReport, PackageVersion } from '../types/Package.js';
 import { RegistryInterface, RegistryPackages, RegistryType } from '../types/Registry.js';
 import { Base } from './Base.js';
 import { packageCompatibleFiles } from '../helpers/package.js';
-import { getArchitecture, getSystem } from '../helpers/utilsLocal.js';
+import { Architecture, SystemType } from '../index-browser.js';
 
 export class Manager extends Base {
   protected config: Config;
@@ -64,7 +64,7 @@ export class Manager extends Base {
     }
   }
 
-  listPackages(installed?: boolean, showAll = false) {
+  listPackages(installed?: boolean, architecture?: Architecture, system?: SystemType) {
     let packages = Array.from(this.packages.values());
 
     if (installed !== undefined) {
@@ -75,11 +75,13 @@ export class Manager extends Base {
       );
     }
 
-    if (!showAll) {
+    if (architecture || system) {
       packages = packages.filter(pkg => {
         const pkgVersion = pkg.getVersionLatest();
         if (!pkgVersion) return false;
-        const files = packageCompatibleFiles(pkgVersion, [getArchitecture()], [getSystem()], []);
+        const archArr = architecture ? [architecture] : [];
+        const sysArr = system ? [system] : [];
+        const files = packageCompatibleFiles(pkgVersion, archArr, sysArr, []);
         return files.length > 0;
       });
     }
