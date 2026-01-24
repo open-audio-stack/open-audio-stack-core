@@ -80,6 +80,8 @@ Open Audio Stack Core was built using:
 - prettier 3.x
 - vitest 1.x
 
+If using a coding agent point it at `AGENTS.md` to automate the process of making changes.
+
 ## Developer installation
 
 To install, build and run code locally, first install dependencies:
