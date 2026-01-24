@@ -78,7 +78,7 @@ Open Audio Stack Core was built using:
 - TypeScript 5.x
 - eslint 9.x
 - prettier 3.x
-- vitest 1.x
+- vitest 3.x
 
 If using a coding agent point it at `AGENTS.md` to automate the process of making changes.
 
