@@ -65,7 +65,7 @@ test('Config export', () => {
 
 test('Get architecture', () => {
   const config: ConfigLocal = new ConfigLocal(CONFIG);
-  expect(config.architecture(Architecture.X32)).toEqual(architectures[2]);
+  expect(config.architecture(Architecture.X32)).toEqual(architectures[3]);
 });
 
 test('Get architectures', () => {
