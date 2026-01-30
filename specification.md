@@ -245,6 +245,16 @@ Registries can contain different types of packages, more could be added in the f
 | Presets  | `presets`  |
 | Projects | `projects` |
 
+### Platform and Architecture Detection
+
+Managers should detect the current architecture as the default platform for installing plugins. However, users should be allowed to override this to install plugins from another architecture when necessary.
+
+The compatibility rules for plugin architectures depend entirely on the Host (DAW). Plugin Managers cannot always rely on the system's "Runtime Platform" (which would be ARM64 for a native app) because the user's DAW might be running in a different mode.
+
+For example, on Windows 11 on Arm devices supporting ARM64EC (Emulation Compatible), if the Plugin Manager is running natively as ARM64, but the DAW is running in emulated x64 mode, installing a native ARM64 plugin will result in the DAW failing to see or load the plugin. In this case, the user should set the Desired Platform to x64 to install x64-compatible plugins.
+
+The best practice is to allow users to manually set a Desired Platform in the manager's configuration, overriding the auto-detected architecture.
+
 ### Sync
 
 The purpose of remote syncing is to call multiple registries and aggregate remote packages into a precalculated index/cache, which speeds up any subsequent operations performed by the app. In most cases the manager will use this feature internally and the user will not need to use it directly.
