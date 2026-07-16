@@ -73,6 +73,43 @@ test('Package validate invalid type', () => {
   ]);
 });
 
+test('Package recommendations does not flag mixed-case extensions as unsupported', () => {
+  const PLUGIN_MIXED_CASE: PackageVersion = structuredClone(PLUGIN);
+  PLUGIN_MIXED_CASE.files = [
+    {
+      ...PLUGIN.files[0],
+      url: 'https://github.com/surge-synthesizer/releases-xt/releases/download/1.3.1/surge-xt-linux-x64-1.3.1.AppImage',
+    },
+  ];
+  const recs = packageRecommendations(PLUGIN_MIXED_CASE);
+  expect(recs).not.toContainEqual({ field: 'url', rec: 'not a supported format' });
+  expect(recs).toContainEqual({
+    field: 'url',
+    rec: 'requires manual installation steps, consider .deb and .rpm instead',
+  });
+});
+
+test('Package compatible files excludes formats regardless of extension case', () => {
+  const mixedCasePackage: PackageVersion = {
+    ...PLUGIN,
+    files: [
+      { ...PLUGIN.files[0] },
+      {
+        ...PLUGIN.files[1],
+        url: 'https://github.com/surge-synthesizer/releases-xt/releases/download/1.3.1/surge-xt-x86_64-1.3.1.RPM',
+      },
+    ],
+  };
+  const result = packageCompatibleFiles(
+    mixedCasePackage,
+    [Architecture.X64],
+    [SystemType.Linux],
+    [FileFormat.RedHatPackage],
+  );
+  expect(result).toHaveLength(1);
+  expect(result[0].url).toContain('.deb');
+});
+
 test('Package compatible files returns empty when only unsupported formats exist', () => {
   const rpmOnlyPackage: PackageVersion = {
     ...PLUGIN,
