@@ -30,7 +30,7 @@ export function packageCompatibleFiles(
       return sys.includes(system.type);
     });
     const formatAllowed =
-      excludedFormats && excludedFormats.includes(pathGetExt(file.url) as FileFormat) ? false : true;
+      excludedFormats && excludedFormats.includes(pathGetExt(file.url).toLowerCase() as FileFormat) ? false : true;
     return archMatches.length && sysMatches.length && formatAllowed;
   });
 }
@@ -134,7 +134,7 @@ export function packageRecommendations(pkgVersion: PackageVersion) {
       file.systems.forEach(system => {
         supportedSystems[system.type] = true;
       });
-      const ext: string = pathGetExt(file.url);
+      const ext: string = pathGetExt(file.url).toLowerCase();
       supportedFileFormats[ext] = true;
       packageRecommendationsUrl(file, recs, 'url', 'github');
 
