@@ -45,7 +45,6 @@ export function pathGetVersion(path: string, sep: string = '/') {
 }
 
 export function toSlug(val: string): string {
-  // @ts-expect-error slugify library issue with ESM modules
   return slugify(val, { lower: true, remove: URLSAFE_REGEX });
 }
 
