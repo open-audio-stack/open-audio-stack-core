@@ -19,6 +19,7 @@ import {
   dirRename,
   fileCreate,
   fileHash,
+  isSafeArchiveEntryPath,
   // fileCreateJson,
   // fileDate,
   // fileDelete,
@@ -64,6 +65,20 @@ test('Create existing directory', () => {
 test('Directory contains', () => {
   expect(dirContains('test', DIR_PATH)).toEqual(true);
   expect(dirContains(dirApp(), DIR_PATH)).toEqual(false);
+  // A sibling directory that merely shares a prefix must not count as contained.
+  expect(dirContains(path.join('test', 'new'), path.join('test', 'new-directory'))).toEqual(false);
+});
+
+test('Archive entry path is safe', () => {
+  const root = path.resolve('test', 'extract-root');
+  expect(isSafeArchiveEntryPath('plugin.vst3', root)).toEqual(true);
+  expect(isSafeArchiveEntryPath(path.join('nested', 'plugin.vst3'), root)).toEqual(true);
+});
+
+test('Archive entry path escapes extraction directory', () => {
+  const root = path.resolve('test', 'extract-root');
+  expect(isSafeArchiveEntryPath(path.join('..', '..', 'etc', 'passwd'), root)).toEqual(false);
+  expect(isSafeArchiveEntryPath(path.resolve('/etc/passwd'), root)).toEqual(false);
 });
 
 test('Directory is empty', () => {

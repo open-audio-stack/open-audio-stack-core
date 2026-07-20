@@ -24,7 +24,7 @@ import {
   isAdmin,
   runCliAsAdmin,
 } from '../helpers/file.js';
-import { isValidVersion, pathGetSlug, pathGetVersion, toSlug } from '../helpers/utils.js';
+import { isValidSlug, isValidVersion, pathGetSlug, pathGetVersion, toSlug } from '../helpers/utils.js';
 import { commandExists, getArchitecture, getSystem, isTests } from '../helpers/utilsLocal.js';
 import { apiBuffer } from '../helpers/api.js';
 import { FileInterface } from '../types/File.js';
@@ -192,6 +192,12 @@ export class ManagerLocal extends Manager {
 
   async install(slug: string, version?: string) {
     this.log('install', slug, version);
+    // slug/version can originate from remote registry JSON (via sync(), e.g. through
+    // installAll() iterating every synced package) or from a local project file - never from a
+    // value the caller has already validated. Reject anything malformed before it can reach the
+    // elevated command payload built below.
+    if (!isValidSlug(slug)) throw new Error(`Invalid package slug: ${slug}`);
+    if (version && !isValidVersion(version)) throw new Error(`Invalid package version: ${version}`);
     // Get package information from registry.
     const pkg: Package | undefined = this.getPackage(slug);
     if (!pkg) throw new Error(`Package ${slug} not found in registry`);
@@ -229,10 +235,14 @@ export class ManagerLocal extends Manager {
 
     // Elevate permissions if not running as admin.
     if (!isAdmin() && !isTests()) {
-      let command: string = `--appDir "${this.config.get('appDir')}" --operation "install" --type "${this.type}" --id "${slug}"`;
-      if (version) command += ` --ver "${version}"`;
-      if (this.debug) command += ` --log`;
-      await runCliAsAdmin(command);
+      await runCliAsAdmin({
+        appDir: this.config.get('appDir') as string,
+        operation: 'install',
+        type: this.type,
+        id: slug,
+        version,
+        log: this.debug,
+      });
       const returnedPkg = this.getPackage(slug)?.getVersion(versionNum);
       if (returnedPkg) {
         if (this.isPackageInstalled(slug, versionNum)) returnedPkg.installed = true;
@@ -380,9 +390,13 @@ export class ManagerLocal extends Manager {
   async installAll() {
     // Elevate permissions if not running as admin.
     if (!isAdmin() && !isTests()) {
-      let command: string = `--appDir "${this.config.get('appDir')}" --operation "installAll" --type "${this.type}"`;
-      if (this.debug) command += ` --log`;
-      await runCliAsAdmin(command);
+      await runCliAsAdmin({
+        appDir: this.config.get('appDir') as string,
+        operation: 'installAll',
+        type: this.type,
+        id: '',
+        log: this.debug,
+      });
       return this.listPackages();
     }
 
@@ -497,6 +511,8 @@ export class ManagerLocal extends Manager {
   }
 
   async uninstall(slug: string, version?: string) {
+    if (!isValidSlug(slug)) throw new Error(`Invalid package slug: ${slug}`);
+    if (version && !isValidVersion(version)) throw new Error(`Invalid package version: ${version}`);
     // Get package information from registry.
     const pkg: Package | undefined = this.getPackage(slug);
     if (!pkg) throw new Error(`Package ${slug} not found in registry`);
@@ -508,10 +524,14 @@ export class ManagerLocal extends Manager {
 
     // Elevate permissions if not running as admin.
     if (!isAdmin() && !isTests()) {
-      let command: string = `--appDir "${this.config.get('appDir')}" --operation "uninstall" --type "${this.type}" --id "${slug}"`;
-      if (version) command += ` --ver "${version}"`;
-      if (this.debug) command += ` --log`;
-      await runCliAsAdmin(command);
+      await runCliAsAdmin({
+        appDir: this.config.get('appDir') as string,
+        operation: 'uninstall',
+        type: this.type,
+        id: slug,
+        version,
+        log: this.debug,
+      });
       const returnedPkg = this.getPackage(slug)?.getVersion(versionNum);
       if (returnedPkg) {
         if (this.isPackageInstalled(slug, versionNum)) returnedPkg.installed = true;
