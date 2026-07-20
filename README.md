@@ -27,6 +27,14 @@
 
 Common package shared across Open Audio Stack compatible registries, command-line tools, apps and websites for handling installing DAW VST plugin dependencies.
 
+## Who is this for
+
+This library is built for **audio software developers**. If you are building a plugin manager, DAW, app, command-line tool or website, use `@open-audio-stack/core` to search a registry and download/install packages without writing the distribution and install logic yourself.
+
+The end beneficiaries are the audio software developers'  customers: **musicians and music producers**, who get a more consistent experience installing audio software.
+
+For the wider project context and strategy, see [Open Audio Stack](https://github.com/open-audio-stack).
+
 ## Features
 
 High-level classes enable use without writing business-logic:
