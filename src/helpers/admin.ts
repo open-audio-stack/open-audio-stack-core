@@ -1,6 +1,11 @@
 // Run when Electron needs elevated privileges
 // npm run build && node ./build/helpers/admin.js --operation install --type plugins --id surge-synthesizer/surge
 // npm run build && node ./build/helpers/admin.js --operation uninstall --type plugins --id surge-synthesizer/surge
+//
+// runCliAsAdmin() (helpers/file.ts) invokes this via `--payload <base64url JSON>` rather than
+// individual flags, since the values it carries (appDir/id/version) originate from registry
+// metadata or local project files and must never be interpolated into a shell command as text.
+// The individual --flag form above is still accepted for manual/developer invocation only.
 
 import { RegistryType } from '../types/Registry.js';
 import { ManagerLocal } from '../classes/ManagerLocal.js';
@@ -22,6 +27,11 @@ export function adminArguments(): Arguments {
     type: RegistryType.Plugins,
     id: 'surge-synthesizer/surge',
   };
+  const payloadIndex = process.argv.indexOf('--payload');
+  if (payloadIndex !== -1 && process.argv[payloadIndex + 1]) {
+    const decoded = JSON.parse(Buffer.from(process.argv[payloadIndex + 1], 'base64url').toString('utf8'));
+    return { ...args, ...decoded };
+  }
   for (let i = 0; i < process.argv.length; i++) {
     const arg = process.argv[i];
     if (arg === '--appDir') {

@@ -1,5 +1,5 @@
 import AdmZip from 'adm-zip';
-import { execFileSync, execSync, spawn } from 'child_process';
+import { execFileSync, spawn } from 'child_process';
 import {
   createReadStream,
   chmodSync,
@@ -132,13 +132,18 @@ export function dirMove(dir: string, dirNew: string): void | boolean {
 }
 
 export function dirOpen(dir: string) {
-  let command: string = '';
   if (process.env.CI) return Buffer.from('');
-  if (getSystem() === SystemType.Win) command = 'start ""';
-  else if (getSystem() === SystemType.Mac) command = 'open';
-  else command = 'xdg-open';
-  log('⎋', `${command} "${dir}"`);
-  return execSync(`${command} "${dir}"`);
+  // execFileSync never invokes a shell, so `dir` can't break out into a second command
+  // regardless of its contents.
+  if (getSystem() === SystemType.Win) {
+    log('⎋', `cmd.exe /c start "" "${dir}"`);
+    return execFileSync('cmd.exe', ['/c', 'start', '""', dir]);
+  } else if (getSystem() === SystemType.Mac) {
+    log('⎋', `open "${dir}"`);
+    return execFileSync('open', [dir]);
+  }
+  log('⎋', `xdg-open "${dir}"`);
+  return execFileSync('xdg-open', [dir]);
 }
 
 export function dirPackage(pkg: PackageInterface) {
@@ -243,34 +248,78 @@ export async function fileHash(filePath: string, algorithm = 'sha256'): Promise<
   return hash.digest('hex');
 }
 
+// Mounts to an explicit, freshly created mountpoint (rather than scanning /Volumes for
+// whatever showed up) so a concurrently mounted, unrelated disk image can't be picked up
+// instead, and so we know exactly what to detach afterwards.
+function installDmg(filePath: string) {
+  const mountPoint = path.join(os.tmpdir(), `oas-dmg-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  mkdirSync(mountPoint, { recursive: true });
+  try {
+    log('⎋', `hdiutil attach -nobrowse -mountpoint "${mountPoint}" "${filePath}"`);
+    execFileSync('hdiutil', ['attach', '-nobrowse', '-mountpoint', mountPoint, filePath]);
+    const pkgs = dirRead(path.join(mountPoint, '**', '*.pkg'));
+    if (pkgs.length === 0) throw new Error(`No .pkg found inside ${filePath}`);
+    log('⎋', `sudo installer -pkg "${pkgs[0]}" -target /`);
+    return execFileSync('sudo', ['installer', '-pkg', pkgs[0], '-target', '/'], { stdio: 'inherit' });
+  } finally {
+    try {
+      execFileSync('hdiutil', ['detach', mountPoint, '-force']);
+    } catch {
+      /* best-effort unmount */
+    }
+  }
+}
+
+// Every branch below uses execFileSync (no shell) rather than building a command string for
+// execSync. This is the actual fix, not just a hardening pass: file paths here are derived
+// from community-submitted registry metadata (file.url), so a shell string built via template
+// literal is a command injection vector regardless of how strictly the url is validated
+// upstream - execFileSync passes each argument as its own argv entry, so shell metacharacters
+// in filePath (`$(...)`, backticks, `;`, `|`, `&&`, ...) can never be interpreted.
 export function fileInstall(filePath: string) {
   if (process.env.CI) return Buffer.from('');
   const ext = path.extname(filePath).toLowerCase();
-  let command: string | null = null;
   switch (ext) {
     case '.dmg':
-      command = `hdiutil attach -nobrowse "${filePath}" && sudo installer -pkg "$(find /Volumes -name '*.pkg' -maxdepth 2 | head -n 1)" -target / && hdiutil detach "$(dirname "$(find /Volumes -name '*.pkg' -maxdepth 2 | head -n 1)")"`;
-      break;
+      return installDmg(filePath);
     case '.pkg':
-      command = `sudo installer -pkg "${filePath}" -target /`;
-      break;
+      log('⎋', `sudo installer -pkg "${filePath}" -target /`);
+      return execFileSync('sudo', ['installer', '-pkg', filePath, '-target', '/'], { stdio: 'inherit' });
     case '.deb':
-      command = `sudo dpkg -i "${filePath}" || sudo apt-get install -f -y`;
-      break;
+      log('⎋', `sudo dpkg -i "${filePath}" || sudo apt-get install -f -y`);
+      try {
+        return execFileSync('sudo', ['dpkg', '-i', filePath], { stdio: 'inherit' });
+      } catch {
+        return execFileSync('sudo', ['apt-get', 'install', '-f', '-y'], { stdio: 'inherit' });
+      }
     case '.rpm':
-      command = `sudo rpm -i --nodigest --nofiledigest --nosignature --force "${filePath}" || sudo dnf install -y "${filePath}" || sudo yum install -y "${filePath}"`;
-      break;
+      log(
+        '⎋',
+        `sudo rpm -i --nodigest --nofiledigest --nosignature --force "${filePath}" || sudo dnf install -y "${filePath}" || sudo yum install -y "${filePath}"`,
+      );
+      try {
+        return execFileSync(
+          'sudo',
+          ['rpm', '-i', '--nodigest', '--nofiledigest', '--nosignature', '--force', filePath],
+          { stdio: 'inherit' },
+        );
+      } catch {
+        try {
+          return execFileSync('sudo', ['dnf', 'install', '-y', filePath], { stdio: 'inherit' });
+        } catch {
+          return execFileSync('sudo', ['yum', 'install', '-y', filePath], { stdio: 'inherit' });
+        }
+      }
     case '.exe':
-      command = `start /wait "" "${filePath}" /quiet /norestart`;
-      break;
+      // Run the downloaded installer directly - no shell/`start` wrapper needed at all.
+      log('⎋', `"${filePath}" /quiet /norestart`);
+      return execFileSync(filePath, ['/quiet', '/norestart'], { stdio: 'inherit' });
     case '.msi':
-      command = `msiexec /i "${filePath}" /quiet /norestart`;
-      break;
+      log('⎋', `msiexec /i "${filePath}" /quiet /norestart`);
+      return execFileSync('msiexec', ['/i', filePath, '/quiet', '/norestart'], { stdio: 'inherit' });
     default:
       throw new Error(`Unsupported file format: ${ext}`);
   }
-  log('⎋', command);
-  return execSync(command, { stdio: 'inherit' });
 }
 
 export function fileMove(filePath: string, newPath: string): void | boolean {
@@ -356,6 +405,9 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
   return filesMoved;
 }
 
+// filePath (and, for the Windows/Linux branches, the surrounding options) ultimately come from
+// a package's `open` field in registry metadata, so this is the same command-injection surface
+// as fileInstall - execFileSync (no shell) rather than execSync everywhere below.
 export function fileOpen(filePath: string, options: string[] = []) {
   if (process.env.CI) return Buffer.from('');
 
@@ -368,15 +420,16 @@ export function fileOpen(filePath: string, options: string[] = []) {
       return child;
     } else {
       log('⎋', `open "${filePath}"`);
-      return execSync(`open "${filePath}"`);
+      return execFileSync('open', [filePath]);
     }
   }
 
-  let command: string = '';
-  if (getSystem() === SystemType.Win) command = 'start ""';
-  else command = 'xdg-open';
-  log('⎋', `${command} "${filePath}"`);
-  return execSync(`${command} "${filePath}"`);
+  if (getSystem() === SystemType.Win) {
+    log('⎋', `cmd.exe /c start "" "${filePath}"`);
+    return execFileSync('cmd.exe', ['/c', 'start', '""', filePath]);
+  }
+  log('⎋', `xdg-open "${filePath}"`);
+  return execFileSync('xdg-open', [filePath]);
 }
 
 export function fileRead(filePath: string) {
@@ -449,15 +502,31 @@ export function getPlatform() {
   return SystemType.Linux;
 }
 
-export function runCliAsAdmin(args: string): Promise<void> {
+export interface AdminPayload {
+  appDir: string;
+  operation: string;
+  type: string;
+  id: string;
+  version?: string;
+  log?: boolean;
+}
+
+// sudo-prompt's exec() only accepts a single command string run through a shell - there is no
+// argv-array form to escape into. `appDir`/`id`/`version` ultimately come from registry
+// metadata or local project files, so building `--flag "${value}"` text here would be the same
+// command-injection surface as fileInstall. Instead, base64url-encode the dynamic payload: its
+// alphabet is only [A-Za-z0-9_-], so whatever the payload contains, the shell only ever sees
+// characters that can't be interpreted as shell syntax.
+export function runCliAsAdmin(payload: AdminPayload): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     const filename: string = fileURLToPath(import.meta.url).replace('src/', 'build/');
     const dirPathClean: string = dirname(filename).replace('app.asar', 'app.asar.unpacked');
     const script: string = path.join(dirPathClean, 'admin.js');
+    const encodedPayload: string = Buffer.from(JSON.stringify(payload)).toString('base64url');
 
-    log(`Running as admin: node "${script}" ${args}`);
+    log(`Running as admin: node "${script}" --payload <encoded>`);
 
-    const cmd = `node "${script}" ${args}`;
+    const cmd = `node ${JSON.stringify(script)} --payload ${encodedPayload}`;
 
     sudoPrompt.exec(
       cmd,
