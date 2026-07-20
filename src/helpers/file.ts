@@ -13,7 +13,7 @@ import {
   writeFileSync,
 } from 'fs';
 import { createHash } from 'crypto';
-import { unpack } from '7zip-min';
+import { list, unpack } from '7zip-min';
 import stream from 'stream/promises';
 import { GlobOptionsWithFileTypesFalse, globSync } from 'glob';
 import { moveSync } from 'fs-extra/esm';
@@ -34,10 +34,17 @@ import { getSystem } from './utilsLocal.js';
 import { log } from './utils.js';
 import mime from 'mime-types';
 
+// Rejects the "zip slip" pattern: an archive entry name like `../../../etc/passwd` or an
+// absolute path that, once joined to the extraction directory, resolves outside of it.
+export function isSafeArchiveEntryPath(entryName: string, targetRoot: string): boolean {
+  return dirContains(targetRoot, path.resolve(targetRoot, entryName));
+}
+
 export async function archiveExtract(filePath: string, dirPath: string) {
   log('⎋', dirPath);
   const fileName = path.basename(filePath).toLowerCase();
   const ext = path.extname(filePath).trim().toLowerCase();
+  const targetRoot = path.resolve(dirPath);
 
   const tarExtensions = ['.tar', '.gz', '.tgz', '.xz', '.bz2', '.tbz2'];
   const tarCompoundExtensions = ['.tar.gz', '.tar.xz', '.tar.bz2'];
@@ -47,6 +54,9 @@ export async function archiveExtract(filePath: string, dirPath: string) {
   if (ext === '.zip') {
     const zip: AdmZip = new AdmZip(filePath);
     try {
+      // adm-zip's extractAllTo already guards against zip-slip internally (its sanitize()/
+      // canonical() helpers fall back to the entry's basename if it would otherwise resolve
+      // outside the target directory) - this is the normal, non-fallback path.
       return zip.extractAllTo(dirPath);
     } catch (error: any) {
       // Handle Windows special character issues by extracting files manually
@@ -55,23 +65,42 @@ export async function archiveExtract(filePath: string, dirPath: string) {
         const entries = zip.getEntries();
         entries.forEach(entry => {
           const sanitizedName: string = entry.entryName.replace(/[<>:"|?*]/g, '_').replace(/[\r\n]/g, '');
+          // This manual path builds destinations by hand instead of going through adm-zip's own
+          // sanitize(), so it must enforce the same containment itself - stripping `<>:"|?*` and
+          // newlines does nothing to stop a `..`-based traversal.
+          if (!isSafeArchiveEntryPath(sanitizedName, targetRoot)) {
+            throw new Error(`Archive entry escapes extraction directory: ${entry.entryName}`);
+          }
+          const outputPath = path.join(dirPath, sanitizedName);
           if (!entry.isDirectory) {
-            const outputPath = path.join(dirPath, sanitizedName);
             dirCreate(path.dirname(outputPath));
             writeFileSync(outputPath, entry.getData());
           } else {
-            dirCreate(path.join(dirPath, sanitizedName));
+            dirCreate(outputPath);
           }
         });
         return;
       }
     }
   } else if (isTarFile) {
+    // node-tar rejects '..' path segments and relativizes absolute paths by default
+    // (preservePaths is false unless explicitly opted into), so no extra check is needed here.
     return await tar.extract({
       file: filePath,
       cwd: dirPath,
     });
   } else if (ext === '.7z') {
+    // Unlike adm-zip/node-tar, 7zip-min just shells out to the 7za binary with no per-entry
+    // containment logic of its own, and there's no way to sanitize an entry's destination
+    // mid-extraction. List the archive's contents first and refuse to extract at all if any
+    // entry would escape the target directory.
+    const entries: Array<{ name?: string }> = await new Promise((resolve, reject) => {
+      list(filePath, (err: any, result: any) => (err ? reject(err) : resolve(result || [])));
+    });
+    const unsafeEntry = entries.find(entry => entry.name && !isSafeArchiveEntryPath(entry.name, targetRoot));
+    if (unsafeEntry) {
+      throw new Error(`Archive entry escapes extraction directory: ${unsafeEntry.name}`);
+    }
     return new Promise<void>((resolve, reject) => {
       unpack(filePath, dirPath, (err2: any) => {
         if (err2)
@@ -89,7 +118,12 @@ export function dirApp(dirName = 'open-audio-stack') {
 }
 
 export function dirContains(parentDir: string, childDir: string): boolean {
-  return path.normalize(childDir).startsWith(path.normalize(parentDir));
+  const normalizedParent = path.normalize(parentDir);
+  const normalizedChild = path.normalize(childDir);
+  // A trailing separator is required before the prefix check, otherwise a sibling directory
+  // that merely shares a prefix (e.g. parent "/foo/bar" vs child "/foo/barbaz") would
+  // incorrectly count as contained.
+  return normalizedChild === normalizedParent || normalizedChild.startsWith(normalizedParent + path.sep);
 }
 
 export function dirCreate(dir: string) {
