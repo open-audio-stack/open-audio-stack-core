@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import {
   packageCompatibleFiles,
+  packageDownloadsTotal,
   packageRecommendations,
   packageVersionLatest,
   PackageVersionValidator,
@@ -13,6 +14,19 @@ import { FileFormat } from '../../src/types/FileFormat.js';
 
 test('Package version latest', () => {
   expect(packageVersionLatest(PLUGIN_PACKAGE_MULTIPLE)).toEqual('1.3.2');
+});
+
+test('Package downloads total sums across files', () => {
+  const pluginWithDownloads: PackageVersion = {
+    ...PLUGIN,
+    files: PLUGIN.files.map((file, index) => ({ ...file, downloads: index === 0 ? undefined : (index + 1) * 10 })),
+  };
+  // files[0].downloads left undefined - missing/not-yet-fetched data must count as 0, not NaN.
+  expect(packageDownloadsTotal(pluginWithDownloads)).toEqual(20 + 30 + 40 + 50);
+});
+
+test('Package downloads total is zero when no files have downloads', () => {
+  expect(packageDownloadsTotal(PLUGIN)).toEqual(0);
 });
 
 test('Package recommendations pass', () => {

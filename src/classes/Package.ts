@@ -73,11 +73,26 @@ export class Package extends Base {
     return Array.from(this.versions.keys()).sort(semver.rcompare)[0] || '0.0.0';
   }
 
+  // Rollup across every published version's own downloads rollup (itself a sum of that
+  // version's files) - i.e. total downloads for this package, all-time. Pure aggregation over
+  // whatever `downloads` values are already present; does not fetch anything itself.
+  getTotalDownloads(): number {
+    let total = 0;
+    for (const [, pkgVersion] of this.versions) {
+      total += pkgVersion.downloads || 0;
+    }
+    return total;
+  }
+
   toJSON() {
+    const totalDownloads = this.getTotalDownloads();
     return {
       slug: this.slug,
       version: this.version,
       versions: Object.fromEntries(this.versions),
+      // Omit rather than write `downloads: 0` - keeps generated JSON smaller, and "0" wouldn't
+      // distinguish "genuinely zero downloads" from "not fetched yet" anyway.
+      ...(totalDownloads > 0 && { downloads: totalDownloads }),
     };
   }
 }
