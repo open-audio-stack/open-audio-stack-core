@@ -59,6 +59,14 @@ test('Package latest version', () => {
   expect(pkg.latestVersion()).toEqual('3.2.1');
 });
 
+test('Package total downloads rolls up across versions', () => {
+  const pkg = new Package(PLUGIN_PACKAGE.slug);
+  pkg.addVersion('1.3.0', { ...PLUGIN, downloads: 100 });
+  pkg.addVersion(PLUGIN_PACKAGE.version, { ...PLUGIN, downloads: 250 });
+  expect(pkg.getTotalDownloads()).toEqual(350);
+  expect((pkg.toJSON() as PackageInterface).downloads).toEqual(350);
+});
+
 test('Package get version or latest', () => {
   const PLUGIN_V2: PackageVersion = structuredClone(PLUGIN);
   PLUGIN_V2.name = 'Plugin V2';

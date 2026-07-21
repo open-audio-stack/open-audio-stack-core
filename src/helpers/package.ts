@@ -55,6 +55,13 @@ export function packageVersionLatest(pkg: PackageInterface) {
   return Array.from(Object.keys(pkg.versions)).sort(semver.rcompare)[0] || '0.0.0';
 }
 
+// Sums files[].downloads for a single version - pure aggregation, no network access. Callers
+// that have populated each file's `downloads` from an external source (e.g. the registry's
+// build-time GitHub fetch) use this to set the version-level rollup before export.
+export function packageDownloadsTotal(pkgVersion: PackageVersion): number {
+  return pkgVersion.files.reduce((total, file) => total + (file.downloads || 0), 0);
+}
+
 // This is a first version using zod library for validation.
 // If it works well, consider updating all types to infer from Zod objects.
 // This will remove duplication of code between types and validators.
@@ -67,6 +74,8 @@ export const PackageSystemValidator = z.object({
 
 export const PackageFileValidator = z.object({
   architectures: z.nativeEnum(Architecture).array().min(1).max(Object.keys(Architecture).length),
+  attested: z.boolean().optional(),
+  downloads: z.number().min(0).optional(),
   sha256: z.string().length(64),
   size: z.number().min(8).max(9999999999),
   systems: PackageSystemValidator.array().min(1).max(Object.keys(SystemType).length),

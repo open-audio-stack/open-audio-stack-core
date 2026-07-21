@@ -8,6 +8,10 @@ export interface PackageInterface {
   slug: string;
   version: string;
   versions: PackageVersions;
+  // Rollup of every version's `downloads` (itself a rollup of that version's files) - i.e.
+  // total downloads across all published versions of this package, all-time. Computed by
+  // Package.getTotalDownloads(), not authored/committed data.
+  downloads?: number;
 }
 
 export interface PackageVersions {
@@ -21,6 +25,9 @@ export interface PackageBase {
   date: string;
   description: string;
   donate?: string;
+  // Rollup of this version's files[].downloads (sum across all files for this release).
+  // Computed at registry build time - see packageDownloadsTotal() and downloads.ts.
+  downloads?: number;
   image: string;
   installed?: boolean;
   license: License;
