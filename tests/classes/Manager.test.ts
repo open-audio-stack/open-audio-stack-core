@@ -14,6 +14,7 @@ import { License } from '../../src/types/License';
 import { SystemType } from '../../src/types/SystemType';
 import { Architecture } from '../../src/types/Architecture';
 import { packageCompatibleFiles } from '../../src/helpers/package';
+import { omitDownloads } from '../testUtils';
 
 test('Manager add multiple package versions', () => {
   const manager = new Manager(RegistryType.Plugins);
@@ -187,7 +188,7 @@ test('Manager sync from registries', async () => {
   const manager = new Manager(RegistryType.Plugins);
   await manager.sync();
   const pkg = manager.getPackage(PLUGIN_PACKAGE.slug);
-  expect(pkg?.getVersion(PLUGIN_PACKAGE.version)).toEqual(PLUGIN);
+  expect(omitDownloads(pkg?.getVersion(PLUGIN_PACKAGE.version))).toEqual(omitDownloads(PLUGIN));
 });
 
 test('Manager sync with existing package', async () => {

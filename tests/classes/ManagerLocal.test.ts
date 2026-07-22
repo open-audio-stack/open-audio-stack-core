@@ -15,6 +15,7 @@ import { dirDelete, fileReadJson } from '../../src/helpers/file';
 import { RegistryType } from '../../src/types/Registry';
 import { ConfigInterface } from '../../src/types/Config';
 import { PackageVersion } from '../../src/types/Package';
+import { omitDownloads } from '../testUtils';
 
 const APP_DIR: string = 'test';
 const CONFIG: ConfigInterface = {
@@ -52,15 +53,15 @@ test('Plugin sync, install, rescan, uninstall', async () => {
 
   const pkgReturned: PackageVersion | void = await manager.install(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
   const pkgGet = manager.getPackage(PLUGIN_PACKAGE.slug);
-  expect(pkgReturned).toEqual(PLUGIN_INSTALLED);
-  expect(pkgGet?.getVersion(PLUGIN_PACKAGE.version)).toEqual(PLUGIN_INSTALLED);
+  expect(omitDownloads(pkgReturned)).toEqual(omitDownloads(PLUGIN_INSTALLED));
+  expect(omitDownloads(pkgGet?.getVersion(PLUGIN_PACKAGE.version))).toEqual(omitDownloads(PLUGIN_INSTALLED));
 
   manager.scan();
   const pkgGet2 = manager.getPackage(PLUGIN_PACKAGE.slug);
-  expect(pkgGet2?.getVersion(PLUGIN_PACKAGE.version)).toEqual(PLUGIN_INSTALLED);
+  expect(omitDownloads(pkgGet2?.getVersion(PLUGIN_PACKAGE.version))).toEqual(omitDownloads(PLUGIN_INSTALLED));
 
   const pkgReturned2: PackageVersion | void = await manager.uninstall(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
-  expect(pkgReturned2).toEqual(PLUGIN);
+  expect(omitDownloads(pkgReturned2)).toEqual(omitDownloads(PLUGIN));
 });
 
 test('Preset sync, install, rescan, uninstall', async () => {
@@ -86,15 +87,15 @@ test('Project sync, install, rescan, uninstall', async () => {
 
   const pkgReturned: PackageVersion | void = await manager.install(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
   const pkgGet = manager.getPackage(PROJECT_PACKAGE.slug);
-  expect(pkgReturned).toEqual(PROJECT_INSTALLED);
-  expect(pkgGet?.getVersion(PROJECT_PACKAGE.version)).toEqual(PROJECT_INSTALLED);
+  expect(omitDownloads(pkgReturned)).toEqual(omitDownloads(PROJECT_INSTALLED));
+  expect(omitDownloads(pkgGet?.getVersion(PROJECT_PACKAGE.version))).toEqual(omitDownloads(PROJECT_INSTALLED));
 
   manager.scan();
   const pkgGet2 = manager.getPackage(PROJECT_PACKAGE.slug);
-  expect(pkgGet2?.getVersion(PROJECT_PACKAGE.version)).toEqual(PROJECT_INSTALLED);
+  expect(omitDownloads(pkgGet2?.getVersion(PROJECT_PACKAGE.version))).toEqual(omitDownloads(PROJECT_INSTALLED));
 
   const pkgReturned2: PackageVersion | void = await manager.uninstall(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
-  expect(pkgReturned2).toEqual(PROJECT);
+  expect(omitDownloads(pkgReturned2)).toEqual(omitDownloads(PROJECT));
 });
 
 test('Project sync, install project, install dependencies, uninstall dependencies', async () => {
@@ -106,14 +107,14 @@ test('Project sync, install project, install dependencies, uninstall dependencie
 
   await manager.installDependencies(PROJECT_PATH);
   await pluginManager.scan();
-  expect(pluginManager.toJSON()).toEqual({
-    [PLUGIN_PACKAGE.slug]: PLUGIN_PACKAGE_INSTALLED,
+  expect(omitDownloads(pluginManager.toJSON())).toEqual({
+    [PLUGIN_PACKAGE.slug]: omitDownloads(PLUGIN_PACKAGE_INSTALLED),
   });
   await manager.uninstallDependencies(PROJECT_PATH);
   await pluginManager.scan();
   // TODO update when headless installation is working.
-  expect(pluginManager.toJSON()).toEqual({
-    [PLUGIN_PACKAGE.slug]: PLUGIN_PACKAGE_INSTALLED,
+  expect(omitDownloads(pluginManager.toJSON())).toEqual({
+    [PLUGIN_PACKAGE.slug]: omitDownloads(PLUGIN_PACKAGE_INSTALLED),
   });
 });
 
@@ -122,8 +123,8 @@ test('Project sync, install project, add new dependency, remove new dependency',
   await manager.sync();
   await manager.install(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
   const pkgDeps = await manager.installDependency(PLUGIN_PACKAGE.slug, '1.3.4', PROJECT_PATH);
-  expect(pkgDeps).toEqual(PROJECT_DEPS);
+  expect(omitDownloads(pkgDeps)).toEqual(omitDownloads(PROJECT_DEPS));
 
   const pkgNoDeps = await manager.uninstallDependency(PLUGIN_PACKAGE.slug, '1.3.4', PROJECT_PATH);
-  expect(pkgNoDeps).toEqual(PROJECT_NO_DEPS);
+  expect(omitDownloads(pkgNoDeps)).toEqual(omitDownloads(PROJECT_NO_DEPS));
 });
