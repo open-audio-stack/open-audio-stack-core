@@ -1,5 +1,5 @@
 import path from 'path';
-import { beforeAll, expect, test } from 'vitest';
+import { beforeAll, expect, test, vi } from 'vitest';
 import { PLUGIN, PLUGIN_INSTALLED, PLUGIN_PACKAGE, PLUGIN_PACKAGE_INSTALLED } from '../data/Plugin';
 import { PRESET, PRESET_INSTALLED, PRESET_PACKAGE } from '../data/Preset';
 import {
@@ -12,6 +12,8 @@ import {
 } from '../data/Project';
 import { ManagerLocal } from '../../src/classes/ManagerLocal';
 import { dirDelete, fileReadJson } from '../../src/helpers/file';
+import * as fileHelpers from '../../src/helpers/file';
+import * as utilsLocalHelpers from '../../src/helpers/utilsLocal';
 import { RegistryType } from '../../src/types/Registry';
 import { ConfigInterface } from '../../src/types/Config';
 import { PackageVersion } from '../../src/types/Package';
@@ -96,6 +98,44 @@ test('Project sync, install, rescan, uninstall', async () => {
 
   const pkgReturned2: PackageVersion | void = await manager.uninstall(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
   expect(omitDownloads(pkgReturned2)).toEqual(omitDownloads(PROJECT));
+});
+
+test('Install archive package does not elevate when unprivileged', async () => {
+  // Regression test for https://github.com/open-audio-stack/open-audio-stack-core/issues/83 -
+  // a package whose only compatible file is an archive must install without admin elevation,
+  // even in a headless environment with no polkit agent.
+  const isAdminSpy = vi.spyOn(fileHelpers, 'isAdmin').mockReturnValue(false);
+  const isTestsSpy = vi.spyOn(utilsLocalHelpers, 'isTests').mockReturnValue(false);
+  const runCliAsAdminSpy = vi.spyOn(fileHelpers, 'runCliAsAdmin').mockResolvedValue(undefined);
+
+  const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
+  await manager.sync();
+  const pkgReturned: PackageVersion | void = await manager.install(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
+  expect(runCliAsAdminSpy).not.toHaveBeenCalled();
+  expect(omitDownloads(pkgReturned)).toEqual(omitDownloads(PROJECT_INSTALLED));
+
+  isAdminSpy.mockRestore();
+  isTestsSpy.mockRestore();
+  runCliAsAdminSpy.mockRestore();
+
+  await manager.uninstall(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
+});
+
+test('Install installer-only package still elevates when unprivileged', async () => {
+  // Regression guard alongside the above - a package with no compatible archive (only
+  // installers) must still elevate, since there is no unprivileged install path available.
+  const isAdminSpy = vi.spyOn(fileHelpers, 'isAdmin').mockReturnValue(false);
+  const isTestsSpy = vi.spyOn(utilsLocalHelpers, 'isTests').mockReturnValue(false);
+  const runCliAsAdminSpy = vi.spyOn(fileHelpers, 'runCliAsAdmin').mockResolvedValue(undefined);
+
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  await manager.sync();
+  await manager.install(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
+  expect(runCliAsAdminSpy).toHaveBeenCalledTimes(1);
+
+  isAdminSpy.mockRestore();
+  isTestsSpy.mockRestore();
+  runCliAsAdminSpy.mockRestore();
 });
 
 test('Project sync, install project, install dependencies, uninstall dependencies', async () => {

@@ -225,7 +225,7 @@ export class ManagerLocal extends Manager {
         excludedFormats.push(FileFormat.RedHatPackage);
       }
     }
-    const files: FileInterface[] = packageCompatibleFiles(
+    let files: FileInterface[] = packageCompatibleFiles(
       pkgVersion,
       [getArchitecture()],
       [getSystem()],
@@ -233,21 +233,28 @@ export class ManagerLocal extends Manager {
     );
     if (!files.length) throw new Error(`No compatible files found for ${slug}`);
 
-    // Elevate permissions if not running as admin.
+    // Elevate permissions if not running as admin, unless a compatible archive is available -
+    // archives install into a user-owned pluginsDir without elevation, so only fall back to
+    // elevation when the only compatible files are installers.
     if (!isAdmin() && !isTests()) {
-      await runCliAsAdmin({
-        appDir: this.config.get('appDir') as string,
-        operation: 'install',
-        type: this.type,
-        id: slug,
-        version,
-        log: this.debug,
-      });
-      const returnedPkg = this.getPackage(slug)?.getVersion(versionNum);
-      if (returnedPkg) {
-        if (this.isPackageInstalled(slug, versionNum)) returnedPkg.installed = true;
-        else delete returnedPkg.installed;
-        return returnedPkg;
+      const archiveFiles: FileInterface[] = files.filter(file => file.type === FileType.Archive);
+      if (archiveFiles.length > 0) {
+        files = archiveFiles;
+      } else {
+        await runCliAsAdmin({
+          appDir: this.config.get('appDir') as string,
+          operation: 'install',
+          type: this.type,
+          id: slug,
+          version,
+          log: this.debug,
+        });
+        const returnedPkg = this.getPackage(slug)?.getVersion(versionNum);
+        if (returnedPkg) {
+          if (this.isPackageInstalled(slug, versionNum)) returnedPkg.installed = true;
+          else delete returnedPkg.installed;
+          return returnedPkg;
+        }
       }
     }
 
