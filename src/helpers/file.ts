@@ -384,6 +384,11 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
       if (fileExists(path.join(f, 'manifest.ttl'))) {
         bundleDirs.add(f);
       }
+      // VST3 bundles on Linux (and some Windows builds) are directories without a macOS
+      // Info.plist, so they must be recognized by extension alone.
+      if (path.extname(f).slice(1).toLowerCase() === 'vst3') {
+        bundleDirs.add(f);
+      }
     }
   });
 

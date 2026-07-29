@@ -20,7 +20,9 @@ import {
   dirRead,
   dirRename,
   fileCreate,
+  fileExists,
   fileHash,
+  filesMove,
   fileReadString,
   isSafeArchiveEntryPath,
   // fileCreateJson,
@@ -39,6 +41,7 @@ import {
   getPlatform,
 } from '../../src/helpers/file.js';
 import { PackageInterface } from '../../src/types/Package.js';
+import { pluginFormatDir } from '../../src/types/PluginFormat.js';
 import { apiText } from '../../src/helpers/api.js';
 
 const DIR_APP: string = 'open-audio-stack';
@@ -100,6 +103,36 @@ test('Archive extract creates missing tar target directory', async () => {
 
   dirDelete(sourceDir);
   dirDelete(path.join('test', 'nested'));
+});
+
+test('Files move installs Linux VST3 bundle without Info.plist', () => {
+  // Regression test for https://github.com/open-audio-stack/open-audio-stack-core/issues/82 -
+  // Linux (and some Windows) VST3 bundles are directories without a macOS Info.plist, so they
+  // must still be recognized and moved atomically rather than having their nested .so file
+  // extracted independently.
+  const sourceDir: string = path.join('test', 'vst3-source');
+  const targetDir: string = path.join('test', 'vst3-target');
+  const bundleDir: string = path.join(sourceDir, 'Dexed.vst3', 'Contents', 'x86_64-linux');
+  dirCreate(bundleDir);
+  fileCreate(path.join(bundleDir, 'Dexed.so'), 'fake shared library');
+
+  filesMove(sourceDir, targetDir, path.join('asb2m10', 'dexed', '1.0.1'), pluginFormatDir);
+
+  const installedSo: string = path.join(
+    targetDir,
+    'VST3',
+    'asb2m10',
+    'dexed',
+    '1.0.1',
+    'Dexed.vst3',
+    'Contents',
+    'x86_64-linux',
+    'Dexed.so',
+  );
+  expect(fileExists(installedSo)).toEqual(true);
+
+  dirDelete(sourceDir);
+  dirDelete(targetDir);
 });
 
 test('Directory is empty', () => {
