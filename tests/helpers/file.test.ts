@@ -1,7 +1,9 @@
 import os from 'os';
 import path from 'path';
+import * as tar from 'tar';
 import { expect, test } from 'vitest';
 import {
+  archiveExtract,
   dirApp,
   dirCreate,
   dirContains,
@@ -19,6 +21,7 @@ import {
   dirRename,
   fileCreate,
   fileHash,
+  fileReadString,
   isSafeArchiveEntryPath,
   // fileCreateJson,
   // fileDate,
@@ -79,6 +82,24 @@ test('Archive entry path escapes extraction directory', () => {
   const root = path.resolve('test', 'extract-root');
   expect(isSafeArchiveEntryPath(path.join('..', '..', 'etc', 'passwd'), root)).toEqual(false);
   expect(isSafeArchiveEntryPath(path.resolve('/etc/passwd'), root)).toEqual(false);
+});
+
+test('Archive extract creates missing tar target directory', async () => {
+  // Regression test for https://github.com/open-audio-stack/open-audio-stack-core/issues/85 -
+  // node-tar requires cwd to already exist, unlike AdmZip/7zip-min which create it themselves.
+  const sourceDir: string = path.join('test', 'tar-source');
+  const archivePath: string = path.join('test', 'archive.tgz');
+  const extractDir: string = path.join('test', 'nested', 'missing', 'target');
+  dirCreate(sourceDir);
+  fileCreate(path.join(sourceDir, 'plugin.vst3'), 'plugin contents');
+  await tar.create({ file: archivePath, cwd: sourceDir }, ['plugin.vst3']);
+
+  expect(dirExists(extractDir)).toEqual(false);
+  await archiveExtract(archivePath, extractDir);
+  expect(fileReadString(path.join(extractDir, 'plugin.vst3'))).toEqual('plugin contents');
+
+  dirDelete(sourceDir);
+  dirDelete(path.join('test', 'nested'));
 });
 
 test('Directory is empty', () => {

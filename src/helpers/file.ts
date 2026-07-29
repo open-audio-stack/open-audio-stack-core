@@ -83,6 +83,9 @@ export async function archiveExtract(filePath: string, dirPath: string) {
       }
     }
   } else if (isTarFile) {
+    // node-tar requires cwd to already exist, unlike AdmZip/7zip-min which create their
+    // own target directory.
+    dirCreate(dirPath);
     // node-tar rejects '..' path segments and relativizes absolute paths by default
     // (preservePaths is false unless explicitly opted into), so no extra check is needed here.
     return await tar.extract({
