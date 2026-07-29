@@ -10,6 +10,7 @@ import {
   PROJECT_NO_DEPS,
   PROJECT_PATH,
 } from '../data/Project';
+import { CONFIG_LOCAL_TEST } from '../data/Config';
 import { ManagerLocal } from '../../src/classes/ManagerLocal';
 import { dirDelete, fileReadJson } from '../../src/helpers/file';
 import * as fileHelpers from '../../src/helpers/file';
@@ -20,9 +21,11 @@ import { PackageVersion } from '../../src/types/Package';
 import { omitDownloads } from '../testUtils';
 
 const APP_DIR: string = 'test';
-const CONFIG: ConfigInterface = {
-  appDir: APP_DIR,
-};
+// Explicitly test-scoped rather than relying on Config.test.ts/ConfigLocal.test.ts to have
+// already persisted these overrides into the shared test/config.json - appDir alone does not
+// redirect pluginsDir/presetsDir/projectsDir, which otherwise default to real OS directories
+// (see configDefaultsLocal in src/helpers/configLocal.ts) regardless of cross-file test order.
+const CONFIG: ConfigInterface = CONFIG_LOCAL_TEST;
 
 beforeAll(() => {
   dirDelete(path.join(APP_DIR, 'archive'));
