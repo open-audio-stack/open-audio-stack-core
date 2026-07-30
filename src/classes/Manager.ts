@@ -11,24 +11,31 @@ import { Architecture, SystemType } from '../index-browser.js';
 export class Manager extends Base {
   protected config: Config;
   protected packages: Map<string, Package>;
+  protected syncErrors: string[];
   type: RegistryType;
 
   constructor(type: RegistryType, config?: ConfigInterface) {
     super();
     this.config = new Config(config);
     this.packages = new Map();
+    this.syncErrors = [];
     this.type = type;
   }
 
   addPackage(pkg: Package) {
     let pkgExisting = this.packages.get(pkg.slug);
+    const isNewPackage: boolean = !pkgExisting;
     if (!pkgExisting) {
       pkgExisting = new Package(pkg.slug);
-      this.packages.set(pkg.slug, pkgExisting);
     }
     for (const [version, pkgVersion] of pkg.versions) {
+      // addVersion() throws on an invalid version - only register a brand-new package once its
+      // versions have been added successfully, so a caller that catches this (e.g. sync()
+      // isolating one bad version) doesn't end up with an orphaned, empty Package left behind
+      // in the index for a package that was never actually added.
       pkgExisting.addVersion(version, pkgVersion);
     }
+    if (isNewPackage) this.packages.set(pkg.slug, pkgExisting);
   }
 
   filter(method: (pkgVersion: PackageVersion, pkg: Package) => boolean): Package[] {
@@ -44,6 +51,10 @@ export class Manager extends Base {
 
   getPackage(slug: string) {
     return this.packages.get(slug);
+  }
+
+  getSyncErrors(): string[] {
+    return this.syncErrors;
   }
 
   getReport() {
@@ -96,6 +107,7 @@ export class Manager extends Base {
 
   reset() {
     this.packages.clear();
+    this.syncErrors = [];
   }
 
   search(query: string): Package[] {
@@ -118,13 +130,32 @@ export class Manager extends Base {
   }
 
   async sync() {
+    // Reset on each call - stale errors from a previous sync() shouldn't linger.
+    this.syncErrors = [];
     const registries: ConfigRegistry[] = this.config.get('registries') as ConfigRegistry[];
+    const type: RegistryType = this.type;
     for (const index in registries) {
-      const json: RegistryInterface = await apiJson(registries[index].url);
-      const type: RegistryType = this.type;
+      let json: RegistryInterface;
+      try {
+        json = await apiJson(registries[index].url);
+      } catch (err) {
+        // One unreachable/misconfigured registry shouldn't stop the others from being synced -
+        // record the failure and move on, matching the spec's goal of combining packages from
+        // multiple registries into a single index.
+        this.syncErrors.push(`${registries[index].name}: ${(err as Error).message}`);
+        continue;
+      }
       for (const slug in json[type]) {
-        const pkg = new Package(slug, json[type][slug].versions);
-        this.addPackage(pkg);
+        for (const version in json[type][slug].versions) {
+          try {
+            // Add one version at a time (rather than the whole package via addPackage() in one
+            // call) so a single malformed version - from a registry this manager doesn't
+            // control - can't abort every other version/package still left to sync.
+            this.addPackage(new Package(slug, { [version]: json[type][slug].versions[version] }));
+          } catch (err) {
+            this.syncErrors.push(`${slug}@${version}: ${(err as Error).message}`);
+          }
+        }
       }
     }
   }

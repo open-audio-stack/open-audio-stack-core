@@ -304,7 +304,9 @@ The purpose of remote syncing is to call multiple registries and aggregate remot
 
 1. For each Registry in the configuration
 2. Call the API to load the list of package metadata
+   1. If the registry cannot be reached, or its response is invalid, record the failure and continue with the remaining registries rather than aborting the whole sync
 3. Combine packages from multiple registries into a single index
+   1. Run Package Validation (see [Scan logic](#scan-logic)) on each package version; if a version is invalid, record the failure and skip just that version, rather than aborting the rest of the sync
 4. Store package metadata in-memory as a read-only cache to speed up the app instead of making API requests constantly. Manager Local can store the aggregated registry on disk.
 
 #### Sync example
