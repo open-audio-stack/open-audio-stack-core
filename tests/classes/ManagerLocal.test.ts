@@ -12,7 +12,7 @@ import {
 } from '../data/Project';
 import { CONFIG_LOCAL_TEST } from '../data/Config';
 import { ManagerLocal } from '../../src/classes/ManagerLocal';
-import { dirDelete, fileReadJson } from '../../src/helpers/file';
+import { dirDelete, dirEmpty, dirExists, fileReadJson } from '../../src/helpers/file';
 import * as fileHelpers from '../../src/helpers/file';
 import * as utilsLocalHelpers from '../../src/helpers/utilsLocal';
 import { RegistryType } from '../../src/types/Registry';
@@ -34,6 +34,7 @@ beforeAll(() => {
   dirDelete(path.join(APP_DIR, 'export'));
   dirDelete(path.join(APP_DIR, 'installed'));
   dirDelete(path.join(APP_DIR, 'plugins'));
+  dirDelete(path.join(APP_DIR, 'templates'));
 });
 
 test('Manager Local scan local directory', () => {
@@ -170,4 +171,33 @@ test('Project sync, install project, add new dependency, remove new dependency',
 
   const pkgNoDeps = await manager.uninstallDependency(PLUGIN_PACKAGE.slug, '1.3.4', PROJECT_PATH);
   expect(omitDownloads(pkgNoDeps)).toEqual(omitDownloads(PROJECT_NO_DEPS));
+});
+
+test('Clone package from GitHub template', async () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  const dirTarget: string = await manager.clone('template-org/template-plugin', 'octocat/Hello-World');
+  expect(dirExists(dirTarget)).toEqual(true);
+  expect(dirEmpty(dirTarget)).toEqual(false);
+});
+
+test('Clone throws when target directory already exists', async () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  await expect(manager.clone('template-org/template-plugin', 'octocat/Hello-World')).rejects.toThrow('already exists');
+});
+
+test('Clone throws for invalid package slug', async () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  await expect(manager.clone('Invalid Slug', 'octocat/Hello-World')).rejects.toThrow('Invalid package slug');
+});
+
+test('Clone throws for invalid template repo', async () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  await expect(manager.clone('template-org/template-plugin-2', 'not a repo')).rejects.toThrow('Invalid template repo');
+});
+
+test('Clone throws for nonexistent template repo', async () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  await expect(
+    manager.clone('template-org/template-plugin-3', 'open-audio-stack/this-repo-does-not-exist-xyz123'),
+  ).rejects.toThrow('not found on GitHub');
 });

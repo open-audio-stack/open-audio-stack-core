@@ -62,3 +62,11 @@ export function isValidSlug(slug: string): boolean {
 export function isValidVersion(version: string): boolean {
   return semver.valid(version) !== null;
 }
+
+// Matches a GitHub "owner/repo" slug, e.g. as used by clone() to identify a template repo to
+// download. Deliberately stricter than GitHub's own username rules (which allow leading/
+// trailing/consecutive hyphens in some legacy cases) since this value is used to build a
+// download URL - reject anything ambiguous rather than pass it through.
+export function isValidGithubRepo(repo: string): boolean {
+  return /^[\w.-]+\/[\w.-]+$/.test(repo);
+}

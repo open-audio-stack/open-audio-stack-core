@@ -24,6 +24,7 @@ const CONFIG: ConfigInterface = {
   pluginsDir: path.join(APP_DIR, 'installed', 'plugins'),
   presetsDir: path.join(APP_DIR, 'installed', 'presets'),
   projectsDir: path.join(APP_DIR, 'installed', 'projects'),
+  templatesDir: path.join(APP_DIR, 'templates'),
 };
 
 beforeAll(() => {
@@ -52,6 +53,8 @@ test('Set and get value', () => {
   expect(config.get('pluginsDir')).toEqual(CONFIG_LOCAL_TEST.pluginsDir);
   config.set('presetsDir', CONFIG_LOCAL_TEST.presetsDir);
   config.set('projectsDir', CONFIG_LOCAL_TEST.projectsDir);
+  config.set('templatesDir', CONFIG_LOCAL_TEST.templatesDir);
+  expect(config.get('templatesDir')).toEqual(CONFIG_LOCAL_TEST.templatesDir);
 });
 
 test('Config export', () => {

@@ -2,6 +2,7 @@ import path from 'path';
 import { expect, test } from 'vitest';
 import {
   inputGetParts,
+  isValidGithubRepo,
   pathGetDirectory,
   pathGetExt,
   pathGetFilename,
@@ -47,6 +48,15 @@ test('Path get slug', () => {
   expect(pathGetSlug(path.join(PLUGIN_ORG, PLUGIN_ID, PLUGIN_VERSION, 'suffix-dir', 'surge.vst3'), path.sep)).toEqual(
     PLUGIN_SLUG,
   );
+});
+
+test('Is valid GitHub repo', () => {
+  expect(isValidGithubRepo('octocat/Hello-World')).toEqual(true);
+  expect(isValidGithubRepo('surge-synthesizer/surge')).toEqual(true);
+  expect(isValidGithubRepo('open-audio-stack')).toEqual(false);
+  expect(isValidGithubRepo('too/many/slashes')).toEqual(false);
+  expect(isValidGithubRepo('')).toEqual(false);
+  expect(isValidGithubRepo('org/repo name')).toEqual(false);
 });
 
 test('Path get version', () => {
