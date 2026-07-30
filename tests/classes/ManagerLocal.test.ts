@@ -12,7 +12,7 @@ import {
 } from '../data/Project';
 import { CONFIG_LOCAL_TEST } from '../data/Config';
 import { ManagerLocal } from '../../src/classes/ManagerLocal';
-import { dirDelete, dirEmpty, dirExists, fileReadJson } from '../../src/helpers/file';
+import { dirDelete, dirEmpty, dirExists, fileExists, fileReadJson } from '../../src/helpers/file';
 import * as fileHelpers from '../../src/helpers/file';
 import * as utilsLocalHelpers from '../../src/helpers/utilsLocal';
 import { RegistryType } from '../../src/types/Registry';
@@ -34,6 +34,7 @@ beforeAll(() => {
   dirDelete(path.join(APP_DIR, 'export'));
   dirDelete(path.join(APP_DIR, 'installed'));
   dirDelete(path.join(APP_DIR, 'plugins'));
+  dirDelete(path.join(APP_DIR, 'create'));
   dirDelete(path.join(APP_DIR, 'templates'));
 });
 
@@ -171,6 +172,39 @@ test('Project sync, install project, add new dependency, remove new dependency',
 
   const pkgNoDeps = await manager.uninstallDependency(PLUGIN_PACKAGE.slug, '1.3.4', PROJECT_PATH);
   expect(omitDownloads(pkgNoDeps)).toEqual(omitDownloads(PROJECT_NO_DEPS));
+});
+
+test('Create save persists an incomplete package without throwing', () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  const pkgVersion: PackageVersion = { ...PLUGIN, files: [] };
+  const dirTarget: string = path.join(APP_DIR, 'create', 'test-org', 'test-plugin');
+
+  const filePath: string = manager.createSave('test-org/test-plugin', pkgVersion, dirTarget);
+
+  expect(filePath).toEqual(path.join(dirTarget, 'index.json'));
+  expect(fileExists(filePath)).toEqual(true);
+  const saved = fileReadJson(filePath);
+  expect(saved.files).toEqual([]);
+  expect(saved.name).toEqual(PLUGIN.name);
+});
+
+test('Create save defaults to index.json in the given directory root', () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  const pkgVersion: PackageVersion = { ...PLUGIN, files: [] };
+  const dirTarget: string = path.join(APP_DIR, 'create', 'no-nested-version');
+
+  const filePath: string = manager.createSave('test-org/no-nested-version', pkgVersion, dirTarget);
+
+  expect(filePath).toEqual(path.join(dirTarget, 'index.json'));
+  expect(fileExists(filePath)).toEqual(true);
+});
+
+test('Create save throws for invalid package slug', () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  const pkgVersion: PackageVersion = { ...PLUGIN, files: [] };
+  expect(() => manager.createSave('Invalid Slug', pkgVersion, path.join(APP_DIR, 'create', 'invalid'))).toThrow(
+    'Invalid package slug',
+  );
 });
 
 test('Clone package from GitHub template', async () => {
