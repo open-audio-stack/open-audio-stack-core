@@ -190,9 +190,13 @@ export function dirPackage(pkg: PackageInterface) {
 }
 
 export function dirPlugins() {
-  if (getSystem() === SystemType.Win) return path.join('Program Files', 'Common Files');
+  if (getSystem() === SystemType.Win)
+    return process.env['ProgramFiles(x86)'] || path.join('C:', 'Program Files (x86)', 'Common Files');
   else if (getSystem() === SystemType.Mac) return path.join(os.homedir(), 'Library', 'Audio', 'Plug-ins');
-  return path.join('usr', 'local', 'lib');
+  // Under $HOME rather than the system-wide /usr/local/lib, matching the spec - this keeps the
+  // default writable without elevation, consistent with the unprivileged archive-install path
+  // (see ManagerLocal.install()).
+  return path.join(os.homedir(), 'usr', 'local', 'lib');
 }
 
 export function dirPresets() {

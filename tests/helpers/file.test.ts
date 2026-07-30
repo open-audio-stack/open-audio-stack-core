@@ -174,11 +174,11 @@ test('Directory package', () => {
 
 test('Directory plugins', () => {
   if (process.platform === 'win32') {
-    expect(dirPlugins()).toEqual('Program Files\\Common Files');
+    expect(dirPlugins()).toEqual(process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)\\Common Files');
   } else if (process.platform === 'darwin') {
     expect(dirPlugins()).toEqual(`${os.homedir()}/Library/Audio/Plug-ins`);
   } else {
-    expect(dirPlugins()).toEqual('usr/local/lib');
+    expect(dirPlugins()).toEqual(`${os.homedir()}/usr/local/lib`);
   }
 });
 
