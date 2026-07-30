@@ -426,7 +426,22 @@ Clone a new package from a template.
 
 ### Create
 
-Create new package metadata:  
+Create new package metadata. Prompts the developer for package details, then writes them to `<path>/index.json`.
+
+`<path>` is optional:
+
+- `<path>` — write `index.json` into this directory
+- None — use the current directory
+
+#### Create logic
+
+1. Prompt for and collect the package fields listed below.
+2. `files` (and, for Presets/Projects, `plugins`) start empty — there is no built/published release yet for a package that's just been created. Populating them is a separate, later step, once a release has been built (see [Install package](#install-package) for the metadata shape a release's `files` entries must have).
+3. Validate the collected fields and report any errors/recommendations to the developer (e.g. missing `files`) — these are informational, not fatal. A newly created package is expected to be incomplete.
+4. Write the metadata to `<path>/index.json`, creating `<path>` if it doesn't already exist.
+
+#### Create example
+
 `$ manager <registryType> create <path>`
 
 #### Project fields to populate

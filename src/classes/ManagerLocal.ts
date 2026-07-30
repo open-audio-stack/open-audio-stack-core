@@ -33,7 +33,7 @@ import { RegistryType } from '../types/Registry.js';
 import { PluginFormat, pluginFormatDir } from '../types/PluginFormat.js';
 import { ConfigInterface } from '../types/Config.js';
 import { ConfigLocal } from './ConfigLocal.js';
-import { packageCompatibleFiles } from '../helpers/package.js';
+import { packageCompatibleFiles, packageErrors, packageRecommendations } from '../helpers/package.js';
 import { presetFormatDir } from '../types/PresetFormat.js';
 import { projectFormatDir } from '../types/ProjectFormat.js';
 import { FileFormat } from '../types/FileFormat.js';
@@ -59,7 +59,7 @@ export class ManagerLocal extends Manager {
     return versionDirs.length > 0;
   }
 
-  async create() {
+  async create(dirPath?: string) {
     // TODO Rewrite this code after prototype is proven.
     const pkgQuestions = [
       {
@@ -137,16 +137,32 @@ export class ManagerLocal extends Manager {
     ];
 
     const pkgVersionAnswers = await inquirer.prompt(pkgVersionQuestions as any);
-    // TODO prompt for each file.
+    // TODO prompt for each file. Left empty here deliberately - a freshly created package has no
+    // built/published release yet, so there's nothing to fill `files` with. createSave() reports
+    // this as a recommendation rather than treating it as a fatal validation error.
     pkgVersionAnswers.files = [];
     if (this.type === RegistryType.Presets || this.type === RegistryType.Projects) {
       pkgVersionAnswers.plugins = [];
     }
-    this.log(pkgVersionAnswers);
-    const pkg = new Package(`${pkgAnswers.org}/${pkgAnswers.package}`);
-    pkg.addVersion(pkgAnswers.version, pkgVersionAnswers as PackageVersion);
-    this.log(JSON.stringify(pkg.getReport(), null, 2));
-    this.addPackage(pkg);
+    return this.createSave(`${pkgAnswers.org}/${pkgAnswers.package}`, pkgVersionAnswers as PackageVersion, dirPath);
+  }
+
+  // Split out from create() so package persistence is testable without driving inquirer's
+  // interactive prompts. A freshly created package is expected to be incomplete (e.g. `files`
+  // stays empty until a release is built and published) so, unlike Package.addVersion() which
+  // throws on any validation error, this only logs errors/recommendations as a report and always
+  // persists - the point of `create` is to scaffold the metadata file for a developer to fill in
+  // over time, not to produce a fully valid, publishable package on the first pass.
+  createSave(slug: string, pkgVersion: PackageVersion, dirPath?: string) {
+    if (!isValidSlug(slug)) throw new Error(`Invalid package slug: ${slug}`);
+    const errors = packageErrors(pkgVersion);
+    const recs = packageRecommendations(pkgVersion);
+    this.logReport(slug, errors, recs);
+
+    const filePath: string = path.join(dirPath || '.', 'index.json');
+    dirCreate(path.dirname(filePath));
+    packageSaveFile(pkgVersion, filePath);
+    return filePath;
   }
 
   scan(ext = 'json', installable = true) {
