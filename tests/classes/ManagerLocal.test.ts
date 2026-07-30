@@ -26,6 +26,8 @@ import * as utilsLocalHelpers from '../../src/helpers/utilsLocal';
 import { RegistryType } from '../../src/types/Registry';
 import { ConfigInterface } from '../../src/types/Config';
 import { PackageVersion } from '../../src/types/Package';
+import { Architecture } from '../../src/types/Architecture';
+import { SystemType } from '../../src/types/SystemType';
 import { omitDownloads } from '../testUtils';
 
 const APP_DIR: string = 'test';
@@ -91,6 +93,11 @@ test('Scan identifies a package with no metadata via a prior sync', async () => 
   const pkgVersion = manager.getPackage(PLUGIN_PACKAGE.slug)?.getVersion(PLUGIN_PACKAGE.version);
   expect(pkgVersion?.installed).toEqual(true);
   expect(manager.getUnsupported()).not.toContain(dirTarget);
+
+  // Clean up - this directory was created directly on disk (not through install()/uninstall()),
+  // so it must be removed explicitly or later tests that check isPackageInstalled() for this
+  // same slug/version would incorrectly see it as already installed.
+  dirDelete(dirTarget);
 });
 
 test('Manager Local export', async () => {
@@ -101,6 +108,42 @@ test('Manager Local export', async () => {
   expect(pkg).toEqual(manager.getPackage('surge-synthesizer/surge')?.toJSON());
   const pkgVersion = fileReadJson('test/export/plugins/surge-synthesizer/surge/1.3.1/index.json');
   expect(pkgVersion).toEqual(manager.getPackage('surge-synthesizer/surge')?.getVersion('1.3.1'));
+});
+
+test('Desired architecture and system use a configured override', () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, {
+    ...CONFIG,
+    architecture: Architecture.Arm64,
+    system: SystemType.Win,
+  });
+  expect(manager.getDesiredArchitecture()).toEqual(Architecture.Arm64);
+  expect(manager.getDesiredSystem()).toEqual(SystemType.Win);
+});
+
+test('Desired architecture and system fall back to auto-detection when not configured', () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  expect(manager.getDesiredArchitecture()).toEqual(utilsLocalHelpers.getArchitecture());
+  expect(manager.getDesiredSystem()).toEqual(utilsLocalHelpers.getSystem());
+});
+
+test('Desired architecture and system fall back to auto-detection for an unrecognized override', () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, {
+    ...CONFIG,
+    architecture: 'bogus-arch' as Architecture,
+    system: 'bogus-system' as SystemType,
+  });
+  expect(manager.getDesiredArchitecture()).toEqual(utilsLocalHelpers.getArchitecture());
+  expect(manager.getDesiredSystem()).toEqual(utilsLocalHelpers.getSystem());
+});
+
+test('Install throws when the desired architecture has no compatible files', async () => {
+  // PLUGIN's files never target arm32 on any system, so forcing this architecture guarantees
+  // zero compatible files regardless of which platform actually runs this test.
+  const manager = new ManagerLocal(RegistryType.Plugins, { ...CONFIG, architecture: Architecture.Arm32 });
+  await manager.sync();
+  await expect(manager.install(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version)).rejects.toThrow(
+    'No compatible files found',
+  );
 });
 
 test('Plugin sync, install, rescan, uninstall', async () => {

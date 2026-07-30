@@ -253,6 +253,24 @@ $ manager config get templatesDir
 /Users/username/Documents/Audio Templates
 ```
 
+### Desired platform
+
+Overrides the manager's auto-detected architecture and/or system, so users can install packages for a different platform than the one the manager is actually running as (see [Platform and Architecture Detection](#platform-and-architecture-detection)). Unset by default — the manager falls back to auto-detection. An unrecognized value is treated the same as unset, rather than causing every package to be filtered out as incompatible.
+
+| Field        | Type   | Description                              | Example |
+| :----------- | :----- | :--------------------------------------- | :------ |
+| architecture | string | Overrides the auto-detected architecture | `"x64"` |
+| system       | string | Overrides the auto-detected system       | `"win"` |
+
+#### Set and get desired platform
+
+```
+$ manager config set architecture x64
+$ manager config set system win
+$ manager config get architecture
+x64
+```
+
 ## Manager
 
 These functions can be run in a browser as part of a website or app. They do not rely on access to the local machine. ManagerLocal extends this with methods to install and manage plugins locally.
@@ -276,7 +294,7 @@ The compatibility rules for plugin architectures depend entirely on the Host (DA
 
 For example, on Windows 11 on Arm devices supporting ARM64EC (Emulation Compatible), if the Plugin Manager is running natively as ARM64, but the DAW is running in emulated x64 mode, installing a native ARM64 plugin will result in the DAW failing to see or load the plugin. In this case, the user should set the Desired Platform to x64 to install x64-compatible plugins.
 
-The best practice is to allow users to manually set a Desired Platform in the manager's configuration, overriding the auto-detected architecture.
+The best practice is to allow users to manually set a Desired Platform in the manager's configuration, overriding the auto-detected architecture — see [Desired platform](#desired-platform).
 
 ### Sync
 

@@ -2,6 +2,7 @@ import path from 'path';
 import { Package } from './Package.js';
 import { PackageVersion } from '../types/Package.js';
 import { Manager } from './Manager.js';
+import { Architecture } from '../types/Architecture.js';
 import {
   archiveExtract,
   dirCreate,
@@ -34,7 +35,7 @@ import {
   toSlug,
 } from '../helpers/utils.js';
 import { commandExists, getArchitecture, getSystem, isTests } from '../helpers/utilsLocal.js';
-import { apiBuffer, apiJson } from '../helpers/api.js';
+import { apiBuffer } from '../helpers/api.js';
 import { FileInterface } from '../types/File.js';
 import { FileType } from '../types/FileType.js';
 import { RegistryType } from '../types/Registry.js';
@@ -69,6 +70,23 @@ export class ManagerLocal extends Manager {
     return versionDirs.length > 0;
   }
 
+  // Desired Platform override (see specification.md "Platform and Architecture Detection") -
+  // the runtime's auto-detected architecture doesn't always match what the user actually needs
+  // (e.g. a native ARM64 manager running alongside a DAW under x64 emulation), so a configured
+  // value always wins over auto-detection. Falls back to auto-detection if the configured value
+  // isn't a recognized Architecture, rather than silently filtering out every package.
+  getDesiredArchitecture(): Architecture {
+    const configured = this.config.get('architecture') as Architecture | undefined;
+    if (configured && Object.values(Architecture).includes(configured)) return configured;
+    return getArchitecture();
+  }
+
+  getDesiredSystem(): SystemType {
+    const configured = this.config.get('system') as SystemType | undefined;
+    if (configured && Object.values(SystemType).includes(configured)) return configured;
+    return getSystem();
+  }
+
   async clone(slug: string, template: string) {
     this.log('clone', slug, template);
     if (!isValidSlug(slug)) throw new Error(`Invalid package slug: ${slug}`);
@@ -80,20 +98,26 @@ export class ManagerLocal extends Manager {
     const dirTarget: string = path.join(this.config.get('templatesDir') as string, this.type, slug);
     if (dirExists(dirTarget)) throw new Error(`Package ${slug} already exists at ${dirTarget}`);
 
-    // Resolve the template repo's default branch via the GitHub API rather than guessing
-    // main vs master, and use the same lookup to give a clear error for a nonexistent repo.
-    const repoInfo: { default_branch?: string } = await apiJson(`https://api.github.com/repos/${template}`);
-    if (!repoInfo.default_branch) throw new Error(`Template ${template} not found on GitHub`);
-    const branch: string = repoInfo.default_branch;
-    const templateUrl = `https://github.com/${template}/archive/refs/heads/${branch}.zip`;
+    // Download the template repo's default branch directly via GitHub's content-delivery
+    // archive route - "HEAD" resolves to whatever the default branch is, the same trick tools
+    // like degit use - rather than first resolving the branch name through the REST API
+    // (api.github.com). That endpoint has a strict unauthenticated rate limit (60 requests/hour,
+    // shared across a CI runner's IP pool), which a single clone() call has no business burning
+    // just to look up a branch name; this route has no such limit.
+    const templateUrl = `https://github.com/${template}/archive/HEAD.zip`;
 
     // Download to a template-scoped cache dir so repeat clones of the same template reuse it,
     // matching the download-caching pattern used by install().
     const dirDownloads: string = path.join(this.config.get('appDir') as string, 'downloads', 'templates', template);
     dirCreate(dirDownloads);
-    const zipPath: string = path.join(dirDownloads, `${branch}.zip`);
+    const zipPath: string = path.join(dirDownloads, 'HEAD.zip');
     if (!fileExists(zipPath)) {
-      const fileBuffer: ArrayBuffer = await apiBuffer(templateUrl);
+      let fileBuffer: ArrayBuffer;
+      try {
+        fileBuffer = await apiBuffer(templateUrl);
+      } catch {
+        throw new Error(`Template ${template} not found on GitHub`);
+      }
       fileCreate(zipPath, Buffer.from(fileBuffer));
     }
 
@@ -101,7 +125,9 @@ export class ManagerLocal extends Manager {
     dirDelete(dirExtract);
     await archiveExtract(zipPath, dirExtract);
 
-    // GitHub codeload zips always contain exactly one top-level "<repo>-<branch>" folder.
+    // GitHub codeload zips always contain exactly one top-level folder (named "<repo>-<branch>"
+    // for a branch/tag ref, or "<repo>-<short-sha>" for the "HEAD" ref used above) - found by
+    // path rather than assumed by name, since the exact name isn't otherwise knowable here.
     const extractedDirs: string[] = dirRead(path.join(dirExtract, '*')).filter(dirIs);
     const dirSource: string = extractedDirs[0] || dirExtract;
 
@@ -326,7 +352,7 @@ export class ManagerLocal extends Manager {
 
     // Check for compatible files before running admin command
     const excludedFormats: FileFormat[] = [];
-    const system = getSystem();
+    const system = this.getDesiredSystem();
     if (system === SystemType.Linux) {
       const hasDpkg = await commandExists('dpkg');
       const hasRpm = await commandExists('rpm');
@@ -341,8 +367,8 @@ export class ManagerLocal extends Manager {
     }
     let files: FileInterface[] = packageCompatibleFiles(
       pkgVersion,
-      [getArchitecture()],
-      [getSystem()],
+      [this.getDesiredArchitecture()],
+      [system],
       excludedFormats,
     );
     if (!files.length) throw new Error(`No compatible files found for ${slug}`);
@@ -590,7 +616,12 @@ export class ManagerLocal extends Manager {
     }
 
     // Filter compatible files and find one with open field
-    const files: FileInterface[] = packageCompatibleFiles(pkgVersion, [getArchitecture()], [getSystem()], []);
+    const files: FileInterface[] = packageCompatibleFiles(
+      pkgVersion,
+      [this.getDesiredArchitecture()],
+      [this.getDesiredSystem()],
+      [],
+    );
 
     const openableFile = files.find(file => (file as any).open);
     if (!openableFile) {
