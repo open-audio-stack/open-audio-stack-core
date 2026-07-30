@@ -2,6 +2,7 @@ import path from 'path';
 import { Package } from './Package.js';
 import { PackageVersion } from '../types/Package.js';
 import { Manager } from './Manager.js';
+import { Architecture } from '../types/Architecture.js';
 import {
   archiveExtract,
   dirCreate,
@@ -67,6 +68,23 @@ export class ManagerLocal extends Manager {
   isPackageInstalled(slug: string, version: string): boolean {
     const versionDirs: string[] = dirRead(path.join(this.typeDir, '**', slug, version));
     return versionDirs.length > 0;
+  }
+
+  // Desired Platform override (see specification.md "Platform and Architecture Detection") -
+  // the runtime's auto-detected architecture doesn't always match what the user actually needs
+  // (e.g. a native ARM64 manager running alongside a DAW under x64 emulation), so a configured
+  // value always wins over auto-detection. Falls back to auto-detection if the configured value
+  // isn't a recognized Architecture, rather than silently filtering out every package.
+  getDesiredArchitecture(): Architecture {
+    const configured = this.config.get('architecture') as Architecture | undefined;
+    if (configured && Object.values(Architecture).includes(configured)) return configured;
+    return getArchitecture();
+  }
+
+  getDesiredSystem(): SystemType {
+    const configured = this.config.get('system') as SystemType | undefined;
+    if (configured && Object.values(SystemType).includes(configured)) return configured;
+    return getSystem();
   }
 
   async clone(slug: string, template: string) {
@@ -326,7 +344,7 @@ export class ManagerLocal extends Manager {
 
     // Check for compatible files before running admin command
     const excludedFormats: FileFormat[] = [];
-    const system = getSystem();
+    const system = this.getDesiredSystem();
     if (system === SystemType.Linux) {
       const hasDpkg = await commandExists('dpkg');
       const hasRpm = await commandExists('rpm');
@@ -341,8 +359,8 @@ export class ManagerLocal extends Manager {
     }
     let files: FileInterface[] = packageCompatibleFiles(
       pkgVersion,
-      [getArchitecture()],
-      [getSystem()],
+      [this.getDesiredArchitecture()],
+      [system],
       excludedFormats,
     );
     if (!files.length) throw new Error(`No compatible files found for ${slug}`);
@@ -590,7 +608,12 @@ export class ManagerLocal extends Manager {
     }
 
     // Filter compatible files and find one with open field
-    const files: FileInterface[] = packageCompatibleFiles(pkgVersion, [getArchitecture()], [getSystem()], []);
+    const files: FileInterface[] = packageCompatibleFiles(
+      pkgVersion,
+      [this.getDesiredArchitecture()],
+      [this.getDesiredSystem()],
+      [],
+    );
 
     const openableFile = files.find(file => (file as any).open);
     if (!openableFile) {
