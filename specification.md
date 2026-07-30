@@ -334,19 +334,19 @@ The purpose of directory scanning is to aggregate all locally installed packages
 
 #### Scan logic
 
-1. Load package directories which match the following patterns:
+1. Load package directories: any directory under the type directory (e.g. `$plugin_dir`) whose name is a valid semantic version, regardless of the format-specific subdirectory nesting above it. For example, both of the following are discovered as version directories for `surge-synthesizer/surge` `1.3.1`:
    1. `$plugin_dir/VST/surge-synthesizer/surge/1.3.1`
    2. `$plugin_dir/VST3/surge-synthesizer/surge/1.3.1`
 2. For each directory check to see if an `index.json` metadata file exists.
-   1. If `index.json` does not exist, search for package in Registry API
-      1. If package not found in Registry, add to list of unsupported packages
-      2. If package found in Registry, download metadata.json as `index.json` file and add to list of supported packages
+   1. If `index.json` does not exist, look up the package in the manager's already-synced registry index (populated by a prior [Sync](#sync) call — scan does not itself call the Registry API)
+      1. If the package/version is not found in the synced index, add the directory to the list of unsupported packages
+      2. If found, write its metadata to `index.json` in that directory and add it to the list of supported packages
    2. If `index.json` does exist, run Package Validation to ensure it is a valid package file. This checks the json is in the correct structure, with the required attributes and valid values.
-      1. If not valid, add to list of unsupported packages
+      1. If not valid, add the directory to the list of unsupported packages (this does not abort scanning the remaining directories)
       2. If valid, add to list of supported packages
-3. Store package metadata either in-memory or on disk. For example a file can serve as a read-only cache to speed up the app, instead of syncing the files/folders constantly.
+3. Store package metadata either in-memory or on disk. For example a file can serve as a read-only cache to speed up the app, instead of syncing the files/folders constantly. The list of unsupported package directories is available separately (not persisted as part of the package index).
 
-#### Sync example
+#### Scan example
 
 `$ manager <registryType> scan`
 
