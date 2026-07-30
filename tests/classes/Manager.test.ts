@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import {
   PLUGIN,
   PLUGIN_INCOMPATIBLE,
@@ -13,8 +13,10 @@ import { Package } from '../../src/classes/Package';
 import { License } from '../../src/types/License';
 import { SystemType } from '../../src/types/SystemType';
 import { Architecture } from '../../src/types/Architecture';
+import { PackageVersion } from '../../src/types/Package';
 import { packageCompatibleFiles } from '../../src/helpers/package';
 import { omitDownloads } from '../testUtils';
+import * as apiHelpers from '../../src/helpers/api';
 
 test('Manager add multiple package versions', () => {
   const manager = new Manager(RegistryType.Plugins);
@@ -189,6 +191,55 @@ test('Manager sync from registries', async () => {
   await manager.sync();
   const pkg = manager.getPackage(PLUGIN_PACKAGE.slug);
   expect(omitDownloads(pkg?.getVersion(PLUGIN_PACKAGE.version))).toEqual(omitDownloads(PLUGIN));
+});
+
+test('Manager sync skips an unreachable registry instead of throwing', async () => {
+  // example.invalid is reserved by RFC 2606 specifically for cases like this - guaranteed to
+  // never resolve, so this doesn't depend on some third-party service happening to be down.
+  const manager = new Manager(RegistryType.Plugins, {
+    registries: [
+      { name: 'Unreachable Registry', url: 'https://example.invalid/registry' },
+      { name: 'Open Audio Registry', url: 'https://open-audio-stack.github.io/open-audio-stack-registry' },
+    ],
+  });
+  await expect(manager.sync()).resolves.not.toThrow();
+  expect(manager.getSyncErrors().length).toBeGreaterThan(0);
+
+  // The other, reachable registry should still have synced successfully.
+  const pkg = manager.getPackage(PLUGIN_PACKAGE.slug);
+  expect(omitDownloads(pkg?.getVersion(PLUGIN_PACKAGE.version))).toEqual(omitDownloads(PLUGIN));
+});
+
+test('Manager sync isolates a malformed package version instead of throwing', async () => {
+  const pluginInvalid: PackageVersion = structuredClone(PLUGIN);
+  delete (pluginInvalid as any).image;
+
+  const apiJsonSpy = vi.spyOn(apiHelpers, 'apiJson').mockResolvedValue({
+    name: 'Mock Registry',
+    url: 'https://example.invalid/mock',
+    version: '1.0.0',
+    [RegistryType.Plugins]: {
+      'test-org/good-plugin': { slug: 'test-org/good-plugin', version: '1.0.0', versions: { '1.0.0': PLUGIN } },
+      'test-org/bad-plugin': {
+        slug: 'test-org/bad-plugin',
+        version: '1.0.0',
+        versions: { '1.0.0': pluginInvalid },
+      },
+    },
+  });
+
+  const manager = new Manager(RegistryType.Plugins, {
+    registries: [{ name: 'Mock Registry', url: 'https://example.invalid/mock' }],
+  });
+  await expect(manager.sync()).resolves.not.toThrow();
+
+  expect(omitDownloads(manager.getPackage('test-org/good-plugin')?.getVersion('1.0.0'))).toEqual(omitDownloads(PLUGIN));
+  expect(manager.getPackage('test-org/bad-plugin')).toBeUndefined();
+  expect(manager.getSyncErrors()).toEqual(
+    expect.arrayContaining([expect.stringContaining('test-org/bad-plugin@1.0.0')]),
+  );
+
+  apiJsonSpy.mockRestore();
 });
 
 test('Manager sync with existing package', async () => {
