@@ -230,6 +230,29 @@ $ manager config get projectsDir
 /Users/username/Documents/Audio
 ```
 
+### Templates directory
+
+Default destination for packages cloned from a template via the `clone` command (see [Clone](#clone)). Same path across all platforms. Users are able to change the path via settings.
+
+| Platform         | Path                              |
+| :--------------- | :-------------------------------- |
+| Mac platform     | `$HOME/Documents/Audio Templates` |
+| Linux platform   | `$HOME/Documents/Audio Templates` |
+| Windows platform | `$HOME\Documents\Audio Templates` |
+
+Recommended sub-directory hierarchy to keep cloned packages separate and easier to manage:  
+`$templates_dir/$registryType/$package_slug/`
+
+For example:  
+`$templates_dir/plugins/kmt/banwer/`
+
+#### Get templates directory
+
+```
+$ manager config get templatesDir
+/Users/username/Documents/Audio Templates
+```
+
 ## Manager
 
 These functions can be run in a browser as part of a website or app. They do not rely on access to the local machine. ManagerLocal extends this with methods to install and manage plugins locally.
@@ -394,21 +417,29 @@ Uninstall a package by slug. Optionally including a version.
 
 ### Clone
 
-Clone a new package from a template.
+Clone a new package from a template hosted as a GitHub repository. This is intended for local plugin/preset/project development: starting a new package from a template, customizing an existing plugin's build, or packaging a plugin whose binaries require manual installation.
+
+Any public `owner/repo` on GitHub can be used as a template — there is no curated template registry. This keeps the feature generic: it works for official Open Audio Stack starter templates as well as a developer's own fork or an unrelated repository they want a local working copy of.
 
 #### Clone logic
 
-1. Check to see if package is already installed
-   1. If installed, return package already installed message
-   2. If not installed, proceed to next step
-2. Download package template to temporary directory and extract contents
-3. Clone package target directory, move template contents into package directory.
+1. Check to see if the package target directory already exists (`$templates_dir/$registryType/$slug`, see [Templates directory](#templates-directory))
+   1. If it exists, return a "package already exists" error
+   2. If not, proceed to next step
+2. Resolve the template repository's default branch, download it as an archive to a temporary directory, and extract its contents
+   1. If the template repository cannot be found, return an error
+3. Move the extracted template contents into the package target directory
 
 #### Clone example
 
 `$ manager <registryType> clone <slug> <template>`
 
+- `<slug>` — the org/package slug for the new package being created, e.g. `kmt/banwer`
+- `<template>` — a GitHub `owner/repo` slug identifying the template repository to clone, e.g. `open-audio-stack/open-audio-stack-template-plugin`
+
 #### Packages fields to populate
+
+Once cloned, the following fields should be populated by hand in the package's own metadata file:
 
 - `audio`
 - `author`
