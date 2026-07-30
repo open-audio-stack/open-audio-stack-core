@@ -4,6 +4,7 @@ export interface ConfigInterface {
   pluginsDir?: string;
   presetsDir?: string;
   projectsDir?: string;
+  templatesDir?: string;
   registries?: ConfigRegistry[];
   version?: string;
 }

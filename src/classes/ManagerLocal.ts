@@ -7,6 +7,7 @@ import {
   dirCreate,
   dirDelete,
   dirEmpty,
+  dirExists,
   dirIs,
   dirMove,
   dirRead,
@@ -24,9 +25,16 @@ import {
   isAdmin,
   runCliAsAdmin,
 } from '../helpers/file.js';
-import { isValidSlug, isValidVersion, pathGetSlug, pathGetVersion, toSlug } from '../helpers/utils.js';
+import {
+  isValidGithubRepo,
+  isValidSlug,
+  isValidVersion,
+  pathGetSlug,
+  pathGetVersion,
+  toSlug,
+} from '../helpers/utils.js';
 import { commandExists, getArchitecture, getSystem, isTests } from '../helpers/utilsLocal.js';
-import { apiBuffer } from '../helpers/api.js';
+import { apiBuffer, apiJson } from '../helpers/api.js';
 import { FileInterface } from '../types/File.js';
 import { FileType } from '../types/FileType.js';
 import { RegistryType } from '../types/Registry.js';
@@ -57,6 +65,49 @@ export class ManagerLocal extends Manager {
   isPackageInstalled(slug: string, version: string): boolean {
     const versionDirs: string[] = dirRead(path.join(this.typeDir, '**', slug, version));
     return versionDirs.length > 0;
+  }
+
+  async clone(slug: string, template: string) {
+    this.log('clone', slug, template);
+    if (!isValidSlug(slug)) throw new Error(`Invalid package slug: ${slug}`);
+    if (!isValidGithubRepo(template)) throw new Error(`Invalid template repo: ${template}`);
+
+    // "Package already installed" (per spec) doesn't apply to authoring a new package from a
+    // template - there's no runtime install to check. The equivalent guard here is: don't
+    // clobber a package that's already been scaffolded at the target directory.
+    const dirTarget: string = path.join(this.config.get('templatesDir') as string, this.type, slug);
+    if (dirExists(dirTarget)) throw new Error(`Package ${slug} already exists at ${dirTarget}`);
+
+    // Resolve the template repo's default branch via the GitHub API rather than guessing
+    // main vs master, and use the same lookup to give a clear error for a nonexistent repo.
+    const repoInfo: { default_branch?: string } = await apiJson(`https://api.github.com/repos/${template}`);
+    if (!repoInfo.default_branch) throw new Error(`Template ${template} not found on GitHub`);
+    const branch: string = repoInfo.default_branch;
+    const templateUrl = `https://github.com/${template}/archive/refs/heads/${branch}.zip`;
+
+    // Download to a template-scoped cache dir so repeat clones of the same template reuse it,
+    // matching the download-caching pattern used by install().
+    const dirDownloads: string = path.join(this.config.get('appDir') as string, 'downloads', 'templates', template);
+    dirCreate(dirDownloads);
+    const zipPath: string = path.join(dirDownloads, `${branch}.zip`);
+    if (!fileExists(zipPath)) {
+      const fileBuffer: ArrayBuffer = await apiBuffer(templateUrl);
+      fileCreate(zipPath, Buffer.from(fileBuffer));
+    }
+
+    const dirExtract: string = path.join(this.config.get('appDir') as string, 'temp', 'templates', template);
+    dirDelete(dirExtract);
+    await archiveExtract(zipPath, dirExtract);
+
+    // GitHub codeload zips always contain exactly one top-level "<repo>-<branch>" folder.
+    const extractedDirs: string[] = dirRead(path.join(dirExtract, '*')).filter(dirIs);
+    const dirSource: string = extractedDirs[0] || dirExtract;
+
+    dirCreate(path.dirname(dirTarget));
+    dirMove(dirSource, dirTarget);
+    dirDelete(dirExtract);
+
+    return dirTarget;
   }
 
   async create(dirPath?: string) {

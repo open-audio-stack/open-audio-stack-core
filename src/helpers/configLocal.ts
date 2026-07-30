@@ -1,6 +1,6 @@
 import { ConfigInterface } from '../types/Config.js';
 import { configDefaults } from './config.js';
-import { dirApp, dirApps, dirPlugins, dirPresets, dirProjects } from './file.js';
+import { dirApp, dirApps, dirPlugins, dirPresets, dirProjects, dirTemplates } from './file.js';
 
 export function configDefaultsLocal(): ConfigInterface {
   return {
@@ -10,5 +10,6 @@ export function configDefaultsLocal(): ConfigInterface {
     pluginsDir: dirPlugins(),
     presetsDir: dirPresets(),
     projectsDir: dirProjects(),
+    templatesDir: dirTemplates(),
   };
 }

@@ -209,6 +209,10 @@ export function dirProjects() {
   return path.join(os.homedir(), 'Documents', 'Audio');
 }
 
+export function dirTemplates() {
+  return path.join(os.homedir(), 'Documents', 'Audio Templates');
+}
+
 export function dirApps() {
   if (getSystem() === SystemType.Win) return path.join(os.homedir(), 'AppData', 'Local', 'Programs');
   else if (getSystem() === SystemType.Mac) return path.join('/Applications');

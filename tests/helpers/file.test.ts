@@ -19,6 +19,7 @@ import {
   dirProjects,
   dirRead,
   dirRename,
+  dirTemplates,
   fileCreate,
   fileExists,
   fileHash,
@@ -198,6 +199,14 @@ test('Directory projects', () => {
     expect(dirProjects()).toEqual(`${os.homedir()}/Documents/Audio`);
   } else {
     expect(dirProjects()).toEqual(`${os.homedir()}/Documents/Audio`);
+  }
+});
+
+test('Directory templates', () => {
+  if (process.platform === 'win32') {
+    expect(dirTemplates()).toEqual(`${os.homedir()}\\Documents\\Audio Templates`);
+  } else {
+    expect(dirTemplates()).toEqual(`${os.homedir()}/Documents/Audio Templates`);
   }
 });
 
