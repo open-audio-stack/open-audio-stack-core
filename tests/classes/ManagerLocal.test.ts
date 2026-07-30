@@ -12,7 +12,15 @@ import {
 } from '../data/Project';
 import { CONFIG_LOCAL_TEST } from '../data/Config';
 import { ManagerLocal } from '../../src/classes/ManagerLocal';
-import { dirDelete, dirEmpty, dirExists, fileExists, fileReadJson } from '../../src/helpers/file';
+import {
+  dirCreate,
+  dirDelete,
+  dirEmpty,
+  dirExists,
+  fileCreateJson,
+  fileExists,
+  fileReadJson,
+} from '../../src/helpers/file';
 import * as fileHelpers from '../../src/helpers/file';
 import * as utilsLocalHelpers from '../../src/helpers/utilsLocal';
 import { RegistryType } from '../../src/types/Registry';
@@ -42,6 +50,47 @@ test('Manager Local scan local directory', () => {
   const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
   manager.scan();
   expect(manager.toJSON()).toEqual({});
+});
+
+test('Scan reports a package with invalid metadata as unsupported instead of throwing', () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  const dirTarget: string = path.join(APP_DIR, 'installed', 'plugins', 'VST3', 'scan-org', 'invalid-plugin', '1.0.0');
+  dirCreate(dirTarget);
+  fileCreateJson(path.join(dirTarget, 'index.json'), { name: 'Missing required fields' });
+
+  expect(() => manager.scan()).not.toThrow();
+  expect(manager.getPackage('scan-org/invalid-plugin')).toBeUndefined();
+  expect(manager.getUnsupported()).toContain(dirTarget);
+});
+
+test('Scan reports a package with no metadata and no registry match as unsupported', () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  const dirTarget: string = path.join(APP_DIR, 'installed', 'plugins', 'VST3', 'scan-org', 'unknown-plugin', '2.0.0');
+  dirCreate(dirTarget);
+
+  manager.scan();
+  expect(manager.getPackage('scan-org/unknown-plugin')).toBeUndefined();
+  expect(manager.getUnsupported()).toContain(dirTarget);
+});
+
+test('Scan identifies a package with no metadata via a prior sync', async () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  await manager.sync();
+  const dirTarget: string = path.join(
+    APP_DIR,
+    'installed',
+    'plugins',
+    'VST3',
+    PLUGIN_PACKAGE.slug,
+    PLUGIN_PACKAGE.version,
+  );
+  dirCreate(dirTarget);
+
+  manager.scan();
+  expect(fileExists(path.join(dirTarget, 'index.json'))).toEqual(true);
+  const pkgVersion = manager.getPackage(PLUGIN_PACKAGE.slug)?.getVersion(PLUGIN_PACKAGE.version);
+  expect(pkgVersion?.installed).toEqual(true);
+  expect(manager.getUnsupported()).not.toContain(dirTarget);
 });
 
 test('Manager Local export', async () => {

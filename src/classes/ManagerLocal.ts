@@ -55,11 +55,13 @@ import inquirer from 'inquirer';
 
 export class ManagerLocal extends Manager {
   protected typeDir: string;
+  protected unsupported: string[];
 
   constructor(type: RegistryType, config?: ConfigInterface) {
     super(type, config);
     this.config = new ConfigLocal(config);
     this.typeDir = this.config.get(`${type}Dir`) as string;
+    this.unsupported = [];
   }
 
   isPackageInstalled(slug: string, version: string): boolean {
@@ -217,17 +219,62 @@ export class ManagerLocal extends Manager {
   }
 
   scan(ext = 'json', installable = true) {
-    const filePaths: string[] = dirRead(path.join(this.typeDir, '**', `index.${ext}`));
-    filePaths.forEach((filePath: string) => {
-      const subPath: string = filePath.replace(`${this.typeDir}${path.sep}`, '');
-      const pkgJson =
-        ext === 'yaml' ? (fileReadYaml(filePath) as PackageVersion) : (fileReadJson(filePath) as PackageVersion);
-      if (installable) pkgJson.installed = true;
-      const pkg = new Package(pathGetSlug(subPath, path.sep));
-      const version = pathGetVersion(subPath, path.sep);
+    // Reset on each call - a package that was unsupported on a previous scan may have since
+    // been identified (e.g. after a sync()), and stale entries shouldn't linger.
+    this.unsupported = [];
+
+    // Walk every directory under typeDir rather than only globbing for existing index.$ext
+    // files, so packages installed by another manager (or by hand, with no metadata file at
+    // all) are still discovered instead of silently invisible to scan(). A directory is treated
+    // as a package version directory purely by its basename being a valid semver version - the
+    // same convention pathGetSlug()/pathGetVersion() already rely on - so this works regardless
+    // of the format-specific subdirectory nesting used by install() (e.g. VST vs VST3, or no
+    // format subdirectory at all for apps/presets/projects).
+    const versionDirs: string[] = dirRead(path.join(this.typeDir, '**'))
+      .filter(dirIs)
+      .filter(dir => isValidVersion(path.basename(dir)));
+
+    versionDirs.forEach((versionDir: string) => {
+      const subPath: string = versionDir.replace(`${this.typeDir}${path.sep}`, '');
+      const slug: string = pathGetSlug(subPath, path.sep);
+      const version: string = pathGetVersion(subPath, path.sep);
+      const filePath: string = path.join(versionDir, `index.${ext}`);
+
+      if (fileExists(filePath)) {
+        // Package Validation: check the file is structurally valid before trusting it, rather
+        // than letting Package.addVersion() throw and abort the rest of the scan over one bad
+        // package.
+        const pkgJson =
+          ext === 'yaml' ? (fileReadYaml(filePath) as PackageVersion) : (fileReadJson(filePath) as PackageVersion);
+        if (packageErrors(pkgJson).length > 0) {
+          this.unsupported.push(versionDir);
+          return;
+        }
+        if (installable) pkgJson.installed = true;
+        const pkg = new Package(slug);
+        pkg.addVersion(version, pkgJson);
+        this.addPackage(pkg);
+        return;
+      }
+
+      // No metadata file - most likely installed by another manager, or by hand. Fall back to
+      // whatever this manager already knows about the registry (from a prior sync()) to
+      // identify the package, and write its metadata alongside the files for next time.
+      const registryVersion: PackageVersion | undefined = this.getPackage(slug)?.getVersion(version);
+      if (!registryVersion) {
+        this.unsupported.push(versionDir);
+        return;
+      }
+      const pkgJson: PackageVersion = { ...registryVersion, ...(installable && { installed: true }) };
+      fileCreateJson(filePath, pkgJson);
+      const pkg = new Package(slug);
       pkg.addVersion(version, pkgJson);
       this.addPackage(pkg);
     });
+  }
+
+  getUnsupported(): string[] {
+    return this.unsupported;
   }
 
   export(dir: string, ext = 'json') {
