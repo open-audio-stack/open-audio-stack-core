@@ -3,8 +3,8 @@ import { Package } from './Package.js';
 import { PackageVersion } from '../types/Package.js';
 import { Manager } from './Manager.js';
 import { Architecture } from '../types/Architecture.js';
+import { archiveExtract, filesMove } from '../helpers/archive.js';
 import {
-  archiveExtract,
   dirCreate,
   dirDelete,
   dirEmpty,
@@ -18,14 +18,11 @@ import {
   fileExec,
   fileExists,
   fileHash,
-  fileInstall,
   fileOpen,
   fileReadJson,
   fileReadYaml,
-  filesMove,
-  isAdmin,
-  runCliAsAdmin,
-} from '../helpers/file.js';
+} from '../helpers/fs.js';
+import { fileInstall, isAdmin, runCliAsAdmin } from '../helpers/installer.js';
 import { isValidGithubRepo, isValidSlug, isValidVersion, pathGetSlug, pathGetVersion } from '../helpers/utils.js';
 import { commandExists, getArchitecture, getSystem, isTests } from '../helpers/utilsLocal.js';
 import { apiBuffer } from '../helpers/api.js';

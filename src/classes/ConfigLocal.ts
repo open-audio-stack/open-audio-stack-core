@@ -1,6 +1,6 @@
 import path from 'path';
 import { Config } from './Config.js';
-import { dirCreate, fileCreateJson, fileCreateYaml, fileDelete, fileExists, fileReadJson } from '../helpers/file.js';
+import { dirCreate, fileCreateJson, fileCreateYaml, fileDelete, fileExists, fileReadJson } from '../helpers/fs.js';
 import { ConfigInterface } from '../types/Config.js';
 import { configDefaultsLocal } from '../helpers/configLocal.js';
 
