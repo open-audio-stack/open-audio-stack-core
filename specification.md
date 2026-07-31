@@ -309,6 +309,15 @@ For example, on Windows 11 on Arm devices supporting ARM64EC (Emulation Compatib
 
 The best practice is to allow users to manually set a Desired Platform in the manager's configuration, overriding the auto-detected architecture — see [Desired platform](#desired-platform).
 
+### Network requests
+
+Every network request a manager makes — syncing a registry, downloading a package file, downloading a clone template — should apply a request timeout and a limited retry policy, rather than waiting indefinitely for a response:
+
+1. Apply a timeout (a default in the 10-30 second range is reasonable) to each request. If it elapses, abort the request and treat it as a failed attempt.
+2. Retry failed attempts a small, bounded number of times (once is sufficient) with a short backoff between attempts, but only for failures that are plausibly transient: the request couldn't be sent/receive a response at all (including a timeout as in step 1), or the server responded with a 5xx status.
+3. Do not retry a 4xx response — it will fail identically on every attempt (e.g. a template repository that doesn't exist, or a malformed registry URL), so retrying only delays surfacing a real, permanent error to the caller.
+4. Once retries are exhausted, treat the request as failed for the purposes of the calling operation's own error handling — e.g. a registry that never responds within its retry budget is "unreachable" for [Sync logic](#sync-logic) step 2.1 just as if the connection had been refused immediately.
+
 ### Sync
 
 The purpose of remote syncing is to call multiple registries and aggregate remote packages into a precalculated index/cache, which speeds up any subsequent operations performed by the app. In most cases the manager will use this feature internally and the user will not need to use it directly.
