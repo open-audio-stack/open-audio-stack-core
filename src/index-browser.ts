@@ -18,6 +18,7 @@ export * from './classes/Registry.js';
 export * from './helpers/api.js';
 export * from './helpers/config.js';
 // export * from './helpers/configLocal.js';
+export * from './helpers/createQuestions.js';
 // export * from './helpers/file.js';
 export * from './helpers/package.js';
 // export * from './helpers/packageLocal.js';

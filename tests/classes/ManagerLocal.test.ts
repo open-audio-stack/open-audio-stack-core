@@ -328,6 +328,45 @@ test('Project sync, install project, add new dependency, remove new dependency',
   expect(omitDownloads(pkgNoDepsAgain)).toEqual(omitDownloads(PROJECT_NO_DEPS));
 });
 
+test('createQuestions returns the org/package/version questions needed before createVersionQuestions', () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  const questions = manager.createQuestions();
+  expect(questions.map(q => q.name)).toEqual(['org', 'package', 'version']);
+});
+
+test('createVersionQuestions returns type-appropriate choices and org/package-derived defaults', () => {
+  const pluginManager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  const pluginQuestions = pluginManager.createVersionQuestions('test-org', 'test-plugin');
+  const pluginUrlQuestion = pluginQuestions.find(q => q.name === 'url');
+  expect(pluginUrlQuestion?.default).toEqual('https://github.com/test-org/test-plugin');
+  const pluginTypeQuestion = pluginQuestions.find(q => q.name === 'type');
+  expect(pluginTypeQuestion?.choices?.length).toBeGreaterThan(0);
+
+  const presetManager = new ManagerLocal(RegistryType.Presets, CONFIG);
+  const presetQuestions = presetManager.createVersionQuestions('test-org', 'test-preset');
+  const presetTypeQuestion = presetQuestions.find(q => q.name === 'type');
+  // Preset and Plugin types are different enums - a Presets manager must offer preset-specific
+  // choices, not fall through to the Plugins default.
+  expect(presetTypeQuestion?.choices).not.toEqual(pluginTypeQuestion?.choices);
+});
+
+test('Create save defaults files to an empty array and, for Presets/Projects, plugins to an empty object', () => {
+  const presetManager = new ManagerLocal(RegistryType.Presets, CONFIG);
+  const dirTarget: string = path.join(APP_DIR, 'create', 'test-org', 'test-preset-defaults');
+  // Deliberately omit `files`/`plugins` entirely, as a CLI assembling answers from
+  // createQuestions()/createVersionQuestions() would - createSave() must fill both in rather
+  // than requiring every caller to remember this.
+  const pkgVersion = { ...PRESET } as Partial<PackageVersion> as PackageVersion;
+  delete (pkgVersion as any).files;
+  delete (pkgVersion as any).plugins;
+
+  const filePath: string = presetManager.createSave('test-org/test-preset-defaults', pkgVersion, dirTarget);
+
+  const saved = fileReadJson(filePath);
+  expect(saved.files).toEqual([]);
+  expect(saved.plugins).toEqual({});
+});
+
 test('Create save persists an incomplete package without throwing', () => {
   const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
   const pkgVersion: PackageVersion = { ...PLUGIN, files: [] };
