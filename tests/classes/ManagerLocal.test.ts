@@ -1,5 +1,5 @@
 import path from 'path';
-import { beforeAll, expect, test, vi } from 'vitest';
+import { afterEach, beforeAll, expect, test, vi } from 'vitest';
 import { PLUGIN, PLUGIN_INSTALLED, PLUGIN_PACKAGE, PLUGIN_PACKAGE_INSTALLED } from '../data/Plugin';
 import { PRESET, PRESET_INSTALLED, PRESET_PACKAGE } from '../data/Preset';
 import {
@@ -10,6 +10,7 @@ import {
   PROJECT_NO_DEPS,
   PROJECT_PATH,
 } from '../data/Project';
+import { REGISTRY_PACKAGE_TYPES } from '../data/Registry';
 import { CONFIG_LOCAL_TEST } from '../data/Config';
 import { ManagerLocal } from '../../src/classes/ManagerLocal';
 import { Package } from '../../src/classes/Package';
@@ -29,7 +30,7 @@ import { ConfigInterface } from '../../src/types/Config';
 import { PackageVersion } from '../../src/types/Package';
 import { Architecture } from '../../src/types/Architecture';
 import { SystemType } from '../../src/types/SystemType';
-import { omitDownloads } from '../testUtils';
+import { mockRegistrySync, omitDownloads } from '../testUtils';
 
 const APP_DIR: string = 'test';
 // Explicitly test-scoped rather than relying on Config.test.ts/ConfigLocal.test.ts to have
@@ -37,6 +38,10 @@ const APP_DIR: string = 'test';
 // redirect pluginsDir/presetsDir/projectsDir, which otherwise default to real OS directories
 // (see configDefaultsLocal in src/helpers/configLocal.ts) regardless of cross-file test order.
 const CONFIG: ConfigInterface = CONFIG_LOCAL_TEST;
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 beforeAll(() => {
   dirDelete(path.join(APP_DIR, 'archive'));
@@ -77,6 +82,7 @@ test('Scan reports a package with no metadata and no registry match as unsupport
 });
 
 test('Scan identifies a package with no metadata via a prior sync', async () => {
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
   const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
   await manager.sync();
   const dirTarget: string = path.join(
@@ -102,6 +108,7 @@ test('Scan identifies a package with no metadata via a prior sync', async () => 
 });
 
 test('Manager Local export', async () => {
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
   const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
   await manager.sync();
   manager.export(`test/export/${RegistryType.Plugins}`);
@@ -140,6 +147,7 @@ test('Desired architecture and system fall back to auto-detection for an unrecog
 test('Install throws when the desired architecture has no compatible files', async () => {
   // PLUGIN's files never target arm32 on any system, so forcing this architecture guarantees
   // zero compatible files regardless of which platform actually runs this test.
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
   const manager = new ManagerLocal(RegistryType.Plugins, { ...CONFIG, architecture: Architecture.Arm32 });
   await manager.sync();
   await expect(manager.install(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version)).rejects.toThrow(
@@ -148,6 +156,7 @@ test('Install throws when the desired architecture has no compatible files', asy
 });
 
 test('Plugin sync, install, rescan, uninstall', async () => {
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
   const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
   await manager.sync();
 
@@ -165,6 +174,7 @@ test('Plugin sync, install, rescan, uninstall', async () => {
 });
 
 test('Preset sync, install, rescan, uninstall', async () => {
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
   const manager = new ManagerLocal(RegistryType.Presets, CONFIG);
   await manager.sync();
 
@@ -182,6 +192,7 @@ test('Preset sync, install, rescan, uninstall', async () => {
 });
 
 test('Project sync, install, rescan, uninstall', async () => {
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
   const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
   await manager.sync();
 
@@ -205,6 +216,7 @@ test('Install archive package does not elevate when unprivileged', async () => {
   const isAdminSpy = vi.spyOn(fileHelpers, 'isAdmin').mockReturnValue(false);
   const isTestsSpy = vi.spyOn(utilsLocalHelpers, 'isTests').mockReturnValue(false);
   const runCliAsAdminSpy = vi.spyOn(fileHelpers, 'runCliAsAdmin').mockResolvedValue(undefined);
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
 
   const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
   await manager.sync();
@@ -225,6 +237,7 @@ test('Install installer-only package still elevates when unprivileged', async ()
   const isAdminSpy = vi.spyOn(fileHelpers, 'isAdmin').mockReturnValue(false);
   const isTestsSpy = vi.spyOn(utilsLocalHelpers, 'isTests').mockReturnValue(false);
   const runCliAsAdminSpy = vi.spyOn(fileHelpers, 'runCliAsAdmin').mockResolvedValue(undefined);
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
 
   const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
   await manager.sync();
@@ -268,6 +281,7 @@ test('Install all elevates when unprivileged', async () => {
 });
 
 test('Project sync, install project, install dependencies, uninstall dependencies', async () => {
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
   const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
   await manager.sync();
   await manager.install(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
@@ -288,6 +302,12 @@ test('Project sync, install project, install dependencies, uninstall dependencie
 });
 
 test('Project sync, install project, add new dependency, remove new dependency', async () => {
+  // Deliberately not mocked (unlike the other sync()-driving tests in this file): this test adds
+  // a dependency on surge-synthesizer/surge@1.3.4, a second real published version beyond the
+  // 1.3.1 covered by the static Plugin fixture/REGISTRY_PACKAGE_TYPES. installDependency() then
+  // downloads and sha256-verifies a real file for that version regardless of where the version
+  // metadata came from, so mocking just the registry JSON here wouldn't remove the live-network
+  // dependency, only relocate it - this stays a genuine end-to-end integration test.
   const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
   await manager.sync();
   await manager.install(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
@@ -376,12 +396,14 @@ test('Open throws for a package not found in the registry', () => {
 });
 
 test('Open throws for a package version not found in the registry', async () => {
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
   const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
   await manager.sync();
   expect(() => manager.open(PROJECT_PACKAGE.slug, '99.99.99')).toThrow('version 99.99.99 not found');
 });
 
 test('Open throws for a package that is not installed', async () => {
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
   const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
   await manager.sync();
   // Earlier tests in this file install PROJECT_PACKAGE and don't always uninstall it
@@ -394,6 +416,7 @@ test('Open throws for a package that is not installed', async () => {
 });
 
 test('Open runs the compatible file and propagates errors instead of swallowing them', async () => {
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
   const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
   await manager.sync();
   await manager.install(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);

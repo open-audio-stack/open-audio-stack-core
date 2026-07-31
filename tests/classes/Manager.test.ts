@@ -1,4 +1,4 @@
-import { expect, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import {
   PLUGIN,
   PLUGIN_INCOMPATIBLE,
@@ -7,6 +7,7 @@ import {
   PLUGIN_PACKAGE_INCOMPATIBLE,
   PLUGIN_PACKAGE_MULTIPLE,
 } from '../data/Plugin';
+import { REGISTRY_PLUGIN_VER } from '../data/Registry';
 import { Manager } from '../../src/classes/Manager';
 import { RegistryType } from '../../src/types/Registry';
 import { Package } from '../../src/classes/Package';
@@ -15,8 +16,12 @@ import { SystemType } from '../../src/types/SystemType';
 import { Architecture } from '../../src/types/Architecture';
 import { PackageVersion } from '../../src/types/Package';
 import { packageCompatibleFiles } from '../../src/helpers/package';
-import { omitDownloads } from '../testUtils';
+import { mockRegistrySync, omitDownloads } from '../testUtils';
 import * as apiHelpers from '../../src/helpers/api';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 test('Manager add multiple package versions', () => {
   const manager = new Manager(RegistryType.Plugins);
@@ -187,6 +192,7 @@ test('Manager search packages without versions', () => {
 });
 
 test('Manager sync from registries', async () => {
+  mockRegistrySync(REGISTRY_PLUGIN_VER);
   const manager = new Manager(RegistryType.Plugins);
   await manager.sync();
   const pkg = manager.getPackage(PLUGIN_PACKAGE.slug);
@@ -194,12 +200,18 @@ test('Manager sync from registries', async () => {
 });
 
 test('Manager sync skips an unreachable registry instead of throwing', async () => {
-  // example.invalid is reserved by RFC 2606 specifically for cases like this - guaranteed to
-  // never resolve, so this doesn't depend on some third-party service happening to be down.
+  // Simulate one registry that can't be reached (rather than depending on example.invalid's
+  // RFC 2606 guarantee to actually fail DNS resolution over a real network round trip) and one
+  // that responds normally, so this stays deterministic and network-free either way.
+  const apiJsonSpy = vi.spyOn(apiHelpers, 'apiJson').mockImplementation(async (url: string) => {
+    if (url.startsWith('https://example.invalid')) throw new Error('getaddrinfo ENOTFOUND example.invalid');
+    return REGISTRY_PLUGIN_VER;
+  });
+
   const manager = new Manager(RegistryType.Plugins, {
     registries: [
       { name: 'Unreachable Registry', url: 'https://example.invalid/registry' },
-      { name: 'Open Audio Registry', url: 'https://open-audio-stack.github.io/open-audio-stack-registry' },
+      { name: 'Reachable Registry', url: 'https://example.com/registry' },
     ],
   });
   await expect(manager.sync()).resolves.not.toThrow();
@@ -207,14 +219,16 @@ test('Manager sync skips an unreachable registry instead of throwing', async () 
 
   // The other, reachable registry should still have synced successfully.
   const pkg = manager.getPackage(PLUGIN_PACKAGE.slug);
-  expect(omitDownloads(pkg?.getVersion(PLUGIN_PACKAGE.version))).toEqual(omitDownloads(PLUGIN));
+  expect(pkg?.getVersion(PLUGIN_PACKAGE.version)).toEqual(PLUGIN);
+
+  apiJsonSpy.mockRestore();
 });
 
 test('Manager sync isolates a malformed package version instead of throwing', async () => {
   const pluginInvalid: PackageVersion = structuredClone(PLUGIN);
   delete (pluginInvalid as any).image;
 
-  const apiJsonSpy = vi.spyOn(apiHelpers, 'apiJson').mockResolvedValue({
+  vi.spyOn(apiHelpers, 'apiJson').mockResolvedValue({
     name: 'Mock Registry',
     url: 'https://example.invalid/mock',
     version: '1.0.0',
@@ -233,13 +247,11 @@ test('Manager sync isolates a malformed package version instead of throwing', as
   });
   await expect(manager.sync()).resolves.not.toThrow();
 
-  expect(omitDownloads(manager.getPackage('test-org/good-plugin')?.getVersion('1.0.0'))).toEqual(omitDownloads(PLUGIN));
+  expect(manager.getPackage('test-org/good-plugin')?.getVersion('1.0.0')).toEqual(PLUGIN);
   expect(manager.getPackage('test-org/bad-plugin')).toBeUndefined();
   expect(manager.getSyncErrors()).toEqual(
     expect.arrayContaining([expect.stringContaining('test-org/bad-plugin@1.0.0')]),
   );
-
-  apiJsonSpy.mockRestore();
 });
 
 test('Manager sync appends a configured registry version to the request url', async () => {
@@ -256,11 +268,10 @@ test('Manager sync appends a configured registry version to the request url', as
   await manager.sync();
 
   expect(apiJsonSpy).toHaveBeenCalledWith('https://example.invalid/registry/v1');
-
-  apiJsonSpy.mockRestore();
 });
 
 test('Manager sync with existing package', async () => {
+  mockRegistrySync(REGISTRY_PLUGIN_VER);
   const manager = new Manager(RegistryType.Plugins);
   const pkg = new Package(PLUGIN_PACKAGE.slug);
   pkg.addVersion(PLUGIN_PACKAGE.version, { ...PLUGIN, name: 'Surge modified' });

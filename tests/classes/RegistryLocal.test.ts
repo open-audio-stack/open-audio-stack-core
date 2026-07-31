@@ -1,4 +1,4 @@
-import { beforeEach, expect, test } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { RegistryLocal } from '../../src/classes/RegistryLocal.js';
 import { RegistryType } from '../../src/types/Registry.js';
 import {
@@ -16,6 +16,7 @@ import { ManagerLocal } from '../../src/classes/ManagerLocal.js';
 import { Package } from '../../src/classes/Package.js';
 import { ConfigInterface } from '../../src/types/Config.js';
 import { fileReadJson } from '../../src/helpers/file.js';
+import { mockRegistrySync } from '../testUtils.js';
 
 const APP_DIR: string = 'test';
 const CONFIG: ConfigInterface = {
@@ -29,6 +30,10 @@ beforeEach(() => {
   registry = new RegistryLocal(REGISTRY.name, REGISTRY.url, REGISTRY.version);
   manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
   registry.addManager(manager);
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 test('Create new Registry', () => {
@@ -144,9 +149,14 @@ test('Sync managers', async () => {
   const pkgProject = new Package(PROJECT_PACKAGE.slug);
   pkgProject.addVersion(PROJECT_PACKAGE.version, PROJECT);
   projectManager.addPackage(pkgProject);
-  // Sync managers
+  // Sync managers - one mocked response covers all three managers, since each only reads its
+  // own key (plugins/presets/projects) out of the combined payload.
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
   await registry.sync();
-  expect(registry.toJSON()).toBeDefined();
+  // The synced data is identical to what was already added above, so the merged result should
+  // be unchanged - this is a stronger assertion than the previous `toBeDefined()`, which passed
+  // regardless of what sync() actually did.
+  expect(registry.toJSON()).toEqual(REGISTRY_PACKAGE_TYPES);
 });
 
 test('Registry scan', async () => {
@@ -176,6 +186,7 @@ test('Registry export', async () => {
   registry.addManager(presetManager);
   const projectManager = new ManagerLocal(RegistryType.Projects, CONFIG);
   registry.addManager(projectManager);
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
   await registry.sync();
   registry.export(`test/export`);
   const report = fileReadJson('test/export/plugins/report.json');
