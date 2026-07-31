@@ -43,15 +43,16 @@ export async function archiveExtract(filePath: string, dirPath: string) {
       if (getSystem() === SystemType.Win && error.message?.includes('ENOENT')) {
         log('⚠️', 'Extracting files manually due to special characters in filenames');
         const entries = zip.getEntries();
-        entries.forEach(entry => {
+        // This manual path builds destinations by hand instead of going through adm-zip's own
+        // sanitize(), so it must enforce the same containment itself - stripping `<>:"|?*` and
+        // newlines does nothing to stop a `..`-based traversal. Checked inline against outputPath
+        // itself (the exact value passed to writeFileSync/dirCreate below), in a plain for-loop
+        // rather than a .forEach() callback, so the guard sits in this function's own direct
+        // control flow - static analysis (CodeQL) can't verify a path-traversal guard through a
+        // call indirection several functions deep, or reliably across a callback boundary, only a
+        // containment check written directly ahead of the sink that uses its result.
+        for (const entry of entries) {
           const sanitizedName: string = entry.entryName.replace(/[<>:"|?*]/g, '_').replace(/[\r\n]/g, '');
-          // This manual path builds destinations by hand instead of going through adm-zip's own
-          // sanitize(), so it must enforce the same containment itself - stripping `<>:"|?*` and
-          // newlines does nothing to stop a `..`-based traversal. Checked inline against
-          // outputPath itself (the exact value passed to writeFileSync/dirCreate below), rather
-          // than through isSafeArchiveEntryPath()/dirContains() - static analysis (CodeQL) can't
-          // verify a path-traversal guard through a call indirection several functions deep, only
-          // a containment check written directly ahead of the sink that uses its result.
           const outputPath = path.resolve(dirPath, sanitizedName);
           if (outputPath !== targetRoot && !outputPath.startsWith(targetRoot + path.sep)) {
             throw new Error(`Archive entry escapes extraction directory: ${entry.entryName}`);
@@ -62,7 +63,7 @@ export async function archiveExtract(filePath: string, dirPath: string) {
           } else {
             dirCreate(outputPath);
           }
-        });
+        }
         return;
       }
     }
