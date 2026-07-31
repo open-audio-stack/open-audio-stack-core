@@ -1,7 +1,7 @@
 import path from 'path';
 import { ManagerLocal } from './ManagerLocal.js';
 import { Registry } from './Registry.js';
-import { dirCreate, fileCreateJson, fileCreateYaml } from '../helpers/file.js';
+import { dirCreate, fileCreateJson, fileCreateYaml } from '../helpers/fs.js';
 
 export class RegistryLocal extends Registry {
   protected override managers: Record<string, ManagerLocal>;

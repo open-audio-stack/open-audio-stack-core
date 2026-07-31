@@ -23,7 +23,8 @@ import {
   fileExists,
   fileReadJson,
 } from '../../src/helpers/file';
-import * as fileHelpers from '../../src/helpers/file';
+import * as fsHelpers from '../../src/helpers/fs';
+import * as installerHelpers from '../../src/helpers/installer';
 import * as utilsLocalHelpers from '../../src/helpers/utilsLocal';
 import { RegistryType } from '../../src/types/Registry';
 import { ConfigInterface } from '../../src/types/Config';
@@ -215,9 +216,16 @@ test('Install archive package does not elevate when unprivileged', async () => {
   // Regression test for https://github.com/open-audio-stack/open-audio-stack-core/issues/83 -
   // a package whose only compatible file is an archive must install without admin elevation,
   // even in a headless environment with no polkit agent.
-  const isAdminSpy = vi.spyOn(fileHelpers, 'isAdmin').mockReturnValue(false);
+  //
+  // isAdmin/runCliAsAdmin/fileOpen below are spied on the specific module ManagerLocal.ts
+  // actually imports them from (installer.js/fs.js), not the helpers/file.js barrel - vi.spyOn
+  // patches a property on the exact namespace object you give it, and a re-exporting barrel is a
+  // *different* namespace object even though `export *` makes the same underlying binding
+  // reachable through it. Spying on the barrel here would silently fail to intercept the call,
+  // letting a real, unmocked elevation/admin-prompt flow run during tests.
+  const isAdminSpy = vi.spyOn(installerHelpers, 'isAdmin').mockReturnValue(false);
   const isTestsSpy = vi.spyOn(utilsLocalHelpers, 'isTests').mockReturnValue(false);
-  const runCliAsAdminSpy = vi.spyOn(fileHelpers, 'runCliAsAdmin').mockResolvedValue(undefined);
+  const runCliAsAdminSpy = vi.spyOn(installerHelpers, 'runCliAsAdmin').mockResolvedValue(undefined);
   mockRegistrySync(REGISTRY_PACKAGE_TYPES);
 
   const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
@@ -236,9 +244,9 @@ test('Install archive package does not elevate when unprivileged', async () => {
 test('Install installer-only package still elevates when unprivileged', async () => {
   // Regression guard alongside the above - a package with no compatible archive (only
   // installers) must still elevate, since there is no unprivileged install path available.
-  const isAdminSpy = vi.spyOn(fileHelpers, 'isAdmin').mockReturnValue(false);
+  const isAdminSpy = vi.spyOn(installerHelpers, 'isAdmin').mockReturnValue(false);
   const isTestsSpy = vi.spyOn(utilsLocalHelpers, 'isTests').mockReturnValue(false);
-  const runCliAsAdminSpy = vi.spyOn(fileHelpers, 'runCliAsAdmin').mockResolvedValue(undefined);
+  const runCliAsAdminSpy = vi.spyOn(installerHelpers, 'runCliAsAdmin').mockResolvedValue(undefined);
   mockRegistrySync(REGISTRY_PACKAGE_TYPES);
 
   const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
@@ -327,9 +335,9 @@ test('Install all installs every listed package', async () => {
 });
 
 test('Install all elevates when unprivileged', async () => {
-  const isAdminSpy = vi.spyOn(fileHelpers, 'isAdmin').mockReturnValue(false);
+  const isAdminSpy = vi.spyOn(installerHelpers, 'isAdmin').mockReturnValue(false);
   const isTestsSpy = vi.spyOn(utilsLocalHelpers, 'isTests').mockReturnValue(false);
-  const runCliAsAdminSpy = vi.spyOn(fileHelpers, 'runCliAsAdmin').mockResolvedValue(undefined);
+  const runCliAsAdminSpy = vi.spyOn(installerHelpers, 'runCliAsAdmin').mockResolvedValue(undefined);
 
   const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
   await manager.installAll();
@@ -521,7 +529,7 @@ test('Open runs the compatible file and propagates errors instead of swallowing 
   await manager.sync();
   await manager.install(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
 
-  const fileOpenSpy = vi.spyOn(fileHelpers, 'fileOpen').mockReturnValue(undefined as any);
+  const fileOpenSpy = vi.spyOn(fsHelpers, 'fileOpen').mockReturnValue(undefined as any);
   expect(manager.open(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version)).toEqual(true);
   expect(fileOpenSpy).toHaveBeenCalled();
 

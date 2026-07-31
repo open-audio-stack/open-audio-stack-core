@@ -9,7 +9,7 @@
 
 import { RegistryType } from '../types/Registry.js';
 import { ManagerLocal } from '../classes/ManagerLocal.js';
-import { dirApp } from './file.js';
+import { dirApp } from './paths.js';
 
 export interface Arguments {
   appDir: string;

@@ -1,5 +1,5 @@
 import path from 'path';
-import { fileCreateJson, fileReadJson } from './file.js';
+import { fileCreateJson, fileReadJson } from './fs.js';
 import { Package } from '../classes/Package.js';
 import { log, pathGetSlug, pathGetVersion } from './utils.js';
 import { PackageVersion } from '../index-browser.js';
