@@ -15,17 +15,15 @@ import {
   fileCreate,
   fileCreateJson,
   fileCreateYaml,
-  fileExec,
   fileExists,
   fileHash,
-  fileInstall,
   fileOpen,
   fileReadJson,
   fileReadYaml,
-  filesMove,
   isAdmin,
   runCliAsAdmin,
 } from '../helpers/file.js';
+import { installArchiveFile, installInstallerFile } from '../helpers/installTargets.js';
 import { isValidGithubRepo, isValidSlug, isValidVersion, pathGetSlug, pathGetVersion } from '../helpers/utils.js';
 import { commandExists, getArchitecture, getSystem, isTests } from '../helpers/utilsLocal.js';
 import { apiBuffer } from '../helpers/api.js';
@@ -38,11 +36,8 @@ import { ConfigInterface } from '../types/Config.js';
 import { ConfigLocal } from './ConfigLocal.js';
 import { packageCompatibleFiles, packageErrors, packageRecommendations } from '../helpers/package.js';
 import { PresetInterface } from '../types/Preset.js';
-import { presetFormatDir } from '../types/PresetFormat.js';
 import { ProjectInterface } from '../types/Project.js';
-import { projectFormatDir } from '../types/ProjectFormat.js';
 import { FileFormat } from '../types/FileFormat.js';
-import { PluginType } from '../types/PluginType.js';
 import { SystemType } from '../types/SystemType.js';
 import { packageLoadFile, packageSaveFile } from '../helpers/packageLocal.js';
 
@@ -354,16 +349,14 @@ export class ManagerLocal extends Manager {
 
         // If installer, run the installer headless (without the user interface).
         if (file.type === FileType.Installer) {
-          // Test time out if installing during tests.
-          if (isTests()) fileOpen(filePath);
-          else fileInstall(filePath);
-          // Currently we don't get a list of paths from the installer.
-          // Create empty directory and save package version information.
-          // Installers have to be manually uninstalled for now.
-          const dirTarget: string = path.join(this.typeDir, 'Installers', slug, versionNum);
-          dirCreate(dirTarget);
-          fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
-          installedDirs.add(dirTarget);
+          installInstallerFile({
+            typeDir: this.typeDir,
+            slug,
+            versionNum,
+            pkgVersion,
+            filePath,
+            isTestsFn: isTests,
+          }).forEach(dir => installedDirs.add(dir));
         }
 
         // If archive, extract the archive to temporary directory, then move individual files.
@@ -375,98 +368,18 @@ export class ManagerLocal extends Manager {
             slug,
             versionNum,
           );
-          const dirSub: string = path.join(slug, versionNum);
-          let formatDir: Record<string, string> = pluginFormatDir;
-          if (this.type === RegistryType.Apps) formatDir = pluginFormatDir;
-          else if (this.type === RegistryType.Presets) formatDir = presetFormatDir;
-          else if (this.type === RegistryType.Projects) formatDir = projectFormatDir;
-          await archiveExtract(filePath, dirSource);
-
-          // Move entire directory, maintaining the same folder structure.
-          if (pkgVersion.type === PluginType.Sampler) {
-            const dirTarget: string = path.join(this.typeDir, 'Samplers', dirSub);
-            dirCreate(dirTarget);
-            dirMove(dirSource, dirTarget);
-            fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
-            installedDirs.add(dirTarget);
-          } else {
-            // Check if archive contains installer files (pkg, dmg) that should be run
-            const allFiles = dirRead(`${dirSource}/**/*`).filter(f => !dirIs(f));
-            const installerFiles = allFiles.filter(f => {
-              const ext = path.extname(f).toLowerCase();
-              return ext === '.pkg' || ext === '.dmg';
-            });
-
-            if (installerFiles.length > 0) {
-              // Run installer files found in archive
-              for (const installerFile of installerFiles) {
-                if (isTests()) fileOpen(installerFile);
-                else fileInstall(installerFile);
-              }
-              // Create directory and save package info for installer
-              const dirTarget: string = path.join(this.typeDir, 'Installers', dirSub);
-              dirCreate(dirTarget);
-              fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
-              installedDirs.add(dirTarget);
-            } else if (this.type === RegistryType.Plugins) {
-              // For plugins, move files into type-specific subdirectories
-              const filesMoved: string[] = filesMove(dirSource, this.typeDir, dirSub, formatDir);
-              if (filesMoved.length === 0) {
-                throw new Error(`No compatible files found to install for ${slug}`);
-              }
-              filesMoved.forEach((fileMoved: string) => {
-                const fileJson: string = path.join(path.dirname(fileMoved), 'index.json');
-                fileCreateJson(fileJson, pkgVersion);
-                // A single archive can contain multiple formats (e.g. VST3 and CLAP), moved into
-                // different formatDir subdirectories - track each one, not just the first.
-                installedDirs.add(path.dirname(fileMoved));
-              });
-            } else {
-              // For apps/projects/presets, move entire directory without type subdirectories
-              const dirTarget: string = path.join(this.typeDir, dirSub);
-              dirCreate(dirTarget);
-              dirMove(dirSource, dirTarget);
-              fileCreateJson(path.join(dirTarget, 'index.json'), pkgVersion);
-              installedDirs.add(dirTarget);
-              // Ensure executable permissions for likely executables inside moved app/project/preset
-              try {
-                const movedFiles = dirRead(path.join(dirTarget, '**', '*')).filter(f => !dirIs(f));
-                movedFiles.forEach((movedFile: string) => {
-                  const ext = path.extname(movedFile).slice(1).toLowerCase();
-                  if (['', 'elf', 'exe'].includes(ext)) {
-                    try {
-                      fileExec(movedFile);
-                    } catch (err) {
-                      this.log(`Failed to set exec on ${movedFile}:`, err);
-                    }
-                  }
-                });
-              } catch (err) {
-                this.log('Error while setting executable permissions:', err);
-              }
-              // Also handle macOS .app bundles: set exec on binaries in Contents/MacOS
-              try {
-                const appDirs = dirRead(path.join(dirTarget, '**', '*.app')).filter(d => dirIs(d));
-                appDirs.forEach((appDir: string) => {
-                  try {
-                    const macosBinPattern = path.join(appDir, 'Contents', 'MacOS', '**', '*');
-                    const macosFiles = dirRead(macosBinPattern).filter(f => !dirIs(f));
-                    macosFiles.forEach((binFile: string) => {
-                      try {
-                        fileExec(binFile);
-                      } catch (err) {
-                        this.log(`Failed to set exec on app binary ${binFile}:`, err);
-                      }
-                    });
-                  } catch (err) {
-                    this.log(`Error scanning .app contents for ${appDir}:`, err);
-                  }
-                });
-              } catch (err) {
-                this.log(err);
-              }
-            }
-          }
+          const dirs = await installArchiveFile({
+            typeDir: this.typeDir,
+            type: this.type,
+            slug,
+            versionNum,
+            pkgVersion,
+            filePath,
+            dirSource,
+            isTestsFn: isTests,
+            log: (...args: any) => this.log(...args),
+          });
+          dirs.forEach(dir => installedDirs.add(dir));
         }
       }
     } catch (err) {
