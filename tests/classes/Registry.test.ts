@@ -1,4 +1,4 @@
-import { beforeEach, expect, test } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { Registry } from '../../src/classes/Registry.js';
 import { RegistryType } from '../../src/types/Registry.js';
 import {
@@ -14,6 +14,7 @@ import { PRESET, PRESET_PACKAGE } from '../data/Preset.js';
 import { PROJECT, PROJECT_PACKAGE } from '../data/Project.js';
 import { Manager } from '../../src/classes/Manager.js';
 import { Package } from '../../src/classes/Package.js';
+import { mockRegistrySync } from '../testUtils.js';
 
 let registry: Registry;
 let manager: Manager;
@@ -22,6 +23,10 @@ beforeEach(() => {
   registry = new Registry(REGISTRY.name, REGISTRY.url, REGISTRY.version);
   manager = new Manager(RegistryType.Plugins);
   registry.addManager(manager);
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 test('Create new Registry', () => {
@@ -137,9 +142,14 @@ test('Sync managers', async () => {
   const pkgProject = new Package(PROJECT_PACKAGE.slug);
   pkgProject.addVersion(PROJECT_PACKAGE.version, PROJECT);
   projectManager.addPackage(pkgProject);
-  // Sync managers
+  // Sync managers - one mocked response covers all three managers, since each only reads its
+  // own key (plugins/presets/projects) out of the combined payload.
+  mockRegistrySync(REGISTRY_PACKAGE_TYPES);
   await registry.sync();
-  expect(registry.toJSON()).toBeDefined();
+  // The synced data is identical to what was already added above, so the merged result should
+  // be unchanged - this is a stronger assertion than the previous `toBeDefined()`, which passed
+  // regardless of what sync() actually did.
+  expect(registry.toJSON()).toEqual(REGISTRY_PACKAGE_TYPES);
 });
 
 test('Get registry name', () => {
