@@ -146,11 +146,13 @@ Versioning is optional — if Managers call the root url, they will get the late
 
 Defaults to manager installation directory.
 
-| Platform         | Path                                 |
-| :--------------- | :----------------------------------- |
-| Linux platform   | `$HOME/.local/share/$manager`        |
-| Mac platform     | `$HOME/Library/Preferences/$manager` |
-| Windows platform | `$HOME\$manager`                     |
+| Platform         | Path                                                           |
+| :--------------- | :------------------------------------------------------------- |
+| Linux platform   | `$HOME/.local/share/$manager`                                  |
+| Mac platform     | `$HOME/Library/Preferences/$manager`                           |
+| Windows platform | `%AppData%\$manager` (falls back to `$HOME\$manager` if unset) |
+
+The Windows path uses the `%AppData%` environment variable (typically `$HOME\AppData\Roaming`) rather than `$HOME` directly, matching the platform-idiomatic location for per-user application data on Windows.
 
 ### Apps directory
 
@@ -287,6 +289,16 @@ Registries can contain different types of packages, more could be added in the f
 | Presets  | `presets`  |
 | Projects | `projects` |
 
+### Computed package fields
+
+In addition to the author-supplied fields (see [Packages fields to populate](#packages-fields-to-populate)), managers add the following read-only fields to package version metadata. These are computed by the manager or registry build process, not authored by the package developer, and should not be included when creating or cloning a new package.
+
+| Field       | Type    | Description                                                                                                                                                                                                                                                         |
+| :---------- | :------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `installed` | boolean | Set by [Manager Local](#manager-local) commands (install/uninstall/scan) to indicate whether this version is currently installed. Omitted rather than `false` when not installed.                                                                                   |
+| `verified`  | boolean | Set when every one of the version's `files[].url` entries resolves to a domain matching the package's org (e.g. `github.com/<org>/...` or `<org>.<tld>`), as a signal that the files are actually published by the package's own author rather than a third party.  |
+| `downloads` | number  | Rollup of `files[].downloads` (itself sourced from the hosting platform's download counts, e.g. GitHub Releases), recomputed at registry build time. Omitted when zero/not yet fetched, rather than `0`, so it doesn't need to be confused with "no downloads yet." |
+
 ### Platform and Architecture Detection
 
 Managers should detect the current architecture as the default platform for installing plugins. However, users should be allowed to override this to install plugins from another architecture when necessary.
@@ -367,6 +379,8 @@ The purpose of directory scanning is to aggregate all locally installed packages
       2. If valid, add to list of supported packages
 3. Store package metadata either in-memory or on disk. For example a file can serve as a read-only cache to speed up the app, instead of syncing the files/folders constantly. The list of unsupported package directories is available separately (not persisted as part of the package index).
 
+Package Validation has two tiers: structural errors (missing/invalid required fields - these determine supported vs unsupported, as above) and non-fatal recommendations (e.g. "should support arm64", "should use the jpg format", "requires manual installation steps, consider .deb and .rpm instead"). Recommendations don't affect whether a package is treated as supported - they're surfaced to package authors (e.g. via a report/lint command) as suggestions for improving a package's compatibility and metadata quality.
+
 #### Scan example
 
 `$ manager <registryType> scan`
@@ -382,17 +396,18 @@ Install a package by slug. Optionally including a version.
    2. If package version not found return error
 2. Check to see if package is already installed:
    1. If installed, return package information
-3. Check to see program has Admin privileges:
-   1. If not ask for elevated privileges to filesystem
-4. Filter package files that match the current architecture and system:
+3. Filter package files that match the current architecture and system:
    1. If Linux, check whether `dpkg` or `rpm` command is supported
    2. If the system does not support the command, filter out those file formats
    3. If no files match, return error
+4. Check to see program has Admin privileges:
+   1. If a compatible archive-type file is available, elevated privileges are not required - archives can be extracted into a user-owned plugin directory. Skip to step 5.
+   2. Otherwise (only installer-type files are available), if the program does not have Admin privileges, ask for elevated privileges to the filesystem before continuing
 5. Download each matching file to a temporary directory.
 6. Check the hash against the metadata sha256.
    1. If hash and sha256 do not match, return error
 7. Check if the file type is installer
-   1. Run the process in a separate thread
+   1. Run the installer process and wait for it to complete before continuing
    2. When the process ends, run a local package scan to see if the installation finished correctly.
 8. Check if the file type is archive:
    1. Extract the archive to a temporary directory
