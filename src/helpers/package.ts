@@ -244,14 +244,9 @@ export function packageYamlToJs(pkgYaml: string) {
 
 export function packageIsVerified(slug: string, pkgVersion: PackageVersion) {
   const org: string = slug.split('/')[0];
-  let verified: boolean = true;
-  pkgVersion.files.forEach(file => {
+  return pkgVersion.files.every(file => {
     const url: string = file.url.toLowerCase();
     const root: string = url.startsWith('https://github.com/') ? 'https://github.com/' + org + '/' : `https://${org}.`;
-    if (!url.startsWith(root)) {
-      verified = false;
-      return;
-    }
+    return url.startsWith(root);
   });
-  return verified;
 }
