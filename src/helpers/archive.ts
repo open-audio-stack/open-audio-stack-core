@@ -43,23 +43,19 @@ export async function archiveExtract(filePath: string, dirPath: string) {
       if (getSystem() === SystemType.Win && error.message?.includes('ENOENT')) {
         log('⚠️', 'Extracting files manually due to special characters in filenames');
         const entries = zip.getEntries();
-        // This manual path builds destinations by hand instead of going through adm-zip's own
-        // sanitize(), so it must enforce the same containment itself - stripping `<>:"|?*` and
-        // newlines does nothing to stop a `..`-based traversal. Validate every entry up front
-        // (mirroring the .7z branch below) and refuse to extract anything at all if any entry is
-        // unsafe, rather than validating and writing one entry at a time in the same loop.
-        const sanitizedEntries = entries.map(entry => ({
-          entry,
-          sanitizedName: entry.entryName.replace(/[<>:"|?*]/g, '_').replace(/[\r\n]/g, ''),
-        }));
-        const unsafeEntry = sanitizedEntries.find(
-          ({ sanitizedName }) => !isSafeArchiveEntryPath(sanitizedName, targetRoot),
-        );
-        if (unsafeEntry) {
-          throw new Error(`Archive entry escapes extraction directory: ${unsafeEntry.entry.entryName}`);
-        }
-        sanitizedEntries.forEach(({ entry, sanitizedName }) => {
-          const outputPath = path.join(dirPath, sanitizedName);
+        entries.forEach(entry => {
+          const sanitizedName: string = entry.entryName.replace(/[<>:"|?*]/g, '_').replace(/[\r\n]/g, '');
+          // This manual path builds destinations by hand instead of going through adm-zip's own
+          // sanitize(), so it must enforce the same containment itself - stripping `<>:"|?*` and
+          // newlines does nothing to stop a `..`-based traversal. Checked inline against
+          // outputPath itself (the exact value passed to writeFileSync/dirCreate below), rather
+          // than through isSafeArchiveEntryPath()/dirContains() - static analysis (CodeQL) can't
+          // verify a path-traversal guard through a call indirection several functions deep, only
+          // a containment check written directly ahead of the sink that uses its result.
+          const outputPath = path.resolve(dirPath, sanitizedName);
+          if (outputPath !== targetRoot && !outputPath.startsWith(targetRoot + path.sep)) {
+            throw new Error(`Archive entry escapes extraction directory: ${entry.entryName}`);
+          }
           if (!entry.isDirectory) {
             dirCreate(path.dirname(outputPath));
             writeFileSync(outputPath, entry.getData());
