@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { getArchitecture, getSystem, isTests } from '../../src/helpers/utilsLocal';
+import { commandExists, getArchitecture, getSystem, isTests } from '../../src/helpers/utilsLocal';
 
 test('Get Architecture', () => {
   if (process.arch === 'arm') {
@@ -25,4 +25,13 @@ test('Get System', () => {
 
 test('Is tests', () => {
   expect(isTests()).toEqual(true);
+});
+
+test('Command exists', async () => {
+  // `which` isn't available as a standalone command on plain Windows (unlike Linux/Mac, which
+  // is the only place commandExists() is actually used - ManagerLocal.install()'s dpkg/rpm
+  // check).
+  if (process.platform === 'win32') return;
+  expect(await commandExists('node')).toEqual(true);
+  expect(await commandExists('this-command-should-not-exist-xyz123')).toEqual(false);
 });
