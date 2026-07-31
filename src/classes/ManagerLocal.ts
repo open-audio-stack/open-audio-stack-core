@@ -717,8 +717,14 @@ export class ManagerLocal extends Manager {
   async uninstallDependency(slug: string, version?: string, filePath?: string, type = RegistryType.Plugins) {
     // Get local package file.
     const pkgFile = packageLoadFile(filePath) as any;
-    if (!pkgFile[type]) throw new Error(`Package ${type} is missing`);
-    if (!pkgFile[type][slug]) throw new Error(`Package ${type} ${slug} is not a dependency`);
+    if (!pkgFile[type] || !pkgFile[type][slug]) {
+      // Mirrors installDependency()'s "already a dependency" no-op: the requested end state
+      // (this dependency is gone) is already true, so this is idempotent success rather than an
+      // error - matches how most package managers treat "already removed"/"already installed".
+      this.log(`Package ${type} ${slug} is not a dependency`);
+      pkgFile.installed = true;
+      return pkgFile;
+    }
 
     // Uninstall dependency.
     const manager = new ManagerLocal(type, this.config.config);

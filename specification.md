@@ -549,8 +549,8 @@ For all project commands the \<`path`\> option is optional:
   - If not valid json, return error.
 - Validate local package json file structure, fields and values.
   - If not validate structure, fields or values, return error.
-- Check whether the dependency has already been added.
-  - If already added, then return error.
+- Check whether the dependency has already been added at the requested version.
+  - If already added, the requested end state already holds - return the local package file as-is without error (idempotent success), rather than re-installing or re-adding it.
 - Install dependency using same logic as package install
 - Add dependency to the local package file and save.
 
@@ -586,7 +586,7 @@ Install existing dependencies listed inside a package json file.
 - Validate local package json file structure, fields and values.
   - If not validate structure, fields or values, return error.
 - Check whether the dependency exists in the local package json file.
-  - If not a dependency, then return error.
+  - If not a dependency, the requested end state already holds - return the local package file as-is without error (idempotent success, mirroring [Install and add dependency logic](#install-and-add-dependency-logic)), rather than treating it as a failure.
 - Uninstall dependency using same logic as package uninstall
 - Remove dependency from the local package file and save.
 

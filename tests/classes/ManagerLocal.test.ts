@@ -262,8 +262,18 @@ test('Project sync, install project, add new dependency, remove new dependency',
   const pkgDeps = await manager.installDependency(PLUGIN_PACKAGE.slug, '1.3.4', PROJECT_PATH);
   expect(omitDownloads(pkgDeps)).toEqual(omitDownloads(PROJECT_DEPS));
 
+  // Adding the same dependency again is idempotent success, not an error - the requested end
+  // state (dependency present at this version) already holds.
+  const pkgDepsAgain = await manager.installDependency(PLUGIN_PACKAGE.slug, '1.3.4', PROJECT_PATH);
+  expect(omitDownloads(pkgDepsAgain)).toEqual(omitDownloads(PROJECT_DEPS));
+
   const pkgNoDeps = await manager.uninstallDependency(PLUGIN_PACKAGE.slug, '1.3.4', PROJECT_PATH);
   expect(omitDownloads(pkgNoDeps)).toEqual(omitDownloads(PROJECT_NO_DEPS));
+
+  // Removing a dependency that's already gone is likewise idempotent success, mirroring
+  // installDependency() above, rather than throwing "not a dependency".
+  const pkgNoDepsAgain = await manager.uninstallDependency(PLUGIN_PACKAGE.slug, '1.3.4', PROJECT_PATH);
+  expect(omitDownloads(pkgNoDepsAgain)).toEqual(omitDownloads(PROJECT_NO_DEPS));
 });
 
 test('Create save persists an incomplete package without throwing', () => {
