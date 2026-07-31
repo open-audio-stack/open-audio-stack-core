@@ -22,4 +22,9 @@ export interface ConfigInterface {
 export interface ConfigRegistry {
   name: string;
   url: string;
+  // Optional versioned endpoint (see specification.md "Registry versioning (optional)") - when
+  // set, appended as a path segment onto `url` when requesting resources, so a registry can
+  // introduce breaking changes on a new version without affecting managers still pointed at the
+  // root (which always resolves to the latest version).
+  version?: string;
 }
