@@ -45,14 +45,18 @@ export async function archiveExtract(filePath: string, dirPath: string) {
         const entries = zip.getEntries();
         // This manual path builds destinations by hand instead of going through adm-zip's own
         // sanitize(), so it must enforce the same containment itself - stripping `<>:"|?*` and
-        // newlines does nothing to stop a `..`-based traversal. Checked inline against outputPath
-        // itself (the exact value passed to writeFileSync/dirCreate below), in a plain for-loop
-        // rather than a .forEach() callback, so the guard sits in this function's own direct
-        // control flow - static analysis (CodeQL) can't verify a path-traversal guard through a
-        // call indirection several functions deep, or reliably across a callback boundary, only a
-        // containment check written directly ahead of the sink that uses its result.
+        // newlines does nothing to stop a `..`-based traversal.
         for (const entry of entries) {
           const sanitizedName: string = entry.entryName.replace(/[<>:"|?*]/g, '_').replace(/[\r\n]/g, '');
+          // Reject any ".." path segment directly on the untrusted name - CodeQL's own
+          // documentation for this exact check (js/zipslip) recommends this pattern, and its
+          // guard-recognition doesn't reliably verify a resolved-path containment check on its
+          // own. The containment check right below is the actually load-bearing defense (it also
+          // catches absolute-path entries and platform path-separator edge cases this substring
+          // check alone would miss) - this is a belt-and-suspenders addition, not a replacement.
+          if (sanitizedName.includes('..')) {
+            throw new Error(`Archive entry escapes extraction directory: ${entry.entryName}`);
+          }
           const outputPath = path.resolve(dirPath, sanitizedName);
           if (outputPath !== targetRoot && !outputPath.startsWith(targetRoot + path.sep)) {
             throw new Error(`Archive entry escapes extraction directory: ${entry.entryName}`);
