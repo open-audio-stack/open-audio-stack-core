@@ -414,7 +414,7 @@ Install a package by slug. Optionally including a version.
    2. Otherwise (only installer-type files are available), if the program does not have Admin privileges, ask for elevated privileges to the filesystem before continuing
 5. Download each matching file to a temporary directory.
 6. Check the hash against the metadata sha256.
-   1. If hash and sha256 do not match, return error
+   1. If hash and sha256 do not match, remove any files/directories already moved into their final destination by an earlier iteration of steps 5-9 for this same install call, then return error. A package version's files should install as a single unit - a manager should never leave a package version partially installed (e.g. some of its files present in the final plugin/preset/project directory, others missing), since a later [scan](#scan-logic) would otherwise have no way to tell a partial, broken install apart from a complete one.
 7. Check if the file type is installer
    1. Run the installer process and wait for it to complete before continuing
    2. When the process ends, run a local package scan to see if the installation finished correctly.

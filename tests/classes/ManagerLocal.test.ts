@@ -30,7 +30,9 @@ import { ConfigInterface } from '../../src/types/Config';
 import { PackageVersion } from '../../src/types/Package';
 import { Architecture } from '../../src/types/Architecture';
 import { SystemType } from '../../src/types/SystemType';
+import { FileType } from '../../src/types/FileType';
 import { mockRegistrySync, omitDownloads } from '../testUtils';
+import * as apiHelpers from '../../src/helpers/api';
 
 const APP_DIR: string = 'test';
 // Explicitly test-scoped rather than relying on Config.test.ts/ConfigLocal.test.ts to have
@@ -247,6 +249,65 @@ test('Install installer-only package still elevates when unprivileged', async ()
   isAdminSpy.mockRestore();
   isTestsSpy.mockRestore();
   runCliAsAdminSpy.mockRestore();
+});
+
+test('Install rolls back already-installed files when a later file in the same version fails', async () => {
+  // Regression test for the "partial install" failure mode identified in review.md: a package
+  // version with two files, where the first installs successfully (creating and populating its
+  // target directory under typeDir) before the second fails its hash check. Without rollback,
+  // the first file's directory would be left behind, and isPackageInstalled()/scan() would treat
+  // this version as installed despite it actually being incomplete.
+  const slug = 'test-org/rollback-project';
+  const versionNum = '1.0.0';
+  const compatibleFile = {
+    architectures: [Architecture.Arm32, Architecture.Arm64, Architecture.X32, Architecture.X64],
+    size: 10,
+    systems: [{ type: SystemType.Linux }, { type: SystemType.Mac }, { type: SystemType.Win }],
+    type: FileType.Archive,
+  };
+  const pkgVersion: PackageVersion = {
+    ...PROJECT,
+    files: [
+      { ...compatibleFile, sha256: 'a'.repeat(64), url: 'https://example.invalid/rollback/file-one.zip' },
+      { ...compatibleFile, sha256: 'b'.repeat(64), url: 'https://example.invalid/rollback/file-two.zip' },
+    ],
+  };
+  const pkg = new Package(slug);
+  pkg.addVersion(versionNum, pkgVersion);
+
+  const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
+  manager.addPackage(pkg);
+
+  const apiBufferSpy = vi.spyOn(apiHelpers, 'apiBuffer').mockResolvedValue(new Uint8Array([1, 2, 3]).buffer);
+  // The first file's hash matches what's configured above, so it clears the check and proceeds
+  // to install; the second never will, regardless of content - this forces the failure to land
+  // on the *second* file, after the first has already been fully installed.
+  const fileHashSpy = vi
+    .spyOn(fileHelpers, 'fileHash')
+    .mockResolvedValueOnce('a'.repeat(64))
+    .mockResolvedValueOnce('mismatched-hash');
+  // archiveExtract() itself isn't under test here - stub it to just produce a small real
+  // directory, so the real (unmocked) dirMove()/dirRead() logic downstream has something genuine
+  // to move for the first file.
+  const archiveExtractSpy = vi
+    .spyOn(fileHelpers, 'archiveExtract')
+    .mockImplementation(async (_filePath: string, dirPath: string) => {
+      dirCreate(dirPath);
+      fileCreateJson(path.join(dirPath, 'dummy.json'), { ok: true });
+    });
+
+  const dirTarget: string = path.join(CONFIG.projectsDir as string, slug, versionNum);
+
+  try {
+    await expect(manager.install(slug, versionNum)).rejects.toThrow('hash mismatch');
+
+    expect(dirExists(dirTarget)).toEqual(false);
+    expect(manager.isPackageInstalled(slug, versionNum)).toEqual(false);
+  } finally {
+    apiBufferSpy.mockRestore();
+    fileHashSpy.mockRestore();
+    archiveExtractSpy.mockRestore();
+  }
 });
 
 test('Install all installs every listed package', async () => {
