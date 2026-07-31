@@ -6,6 +6,7 @@ import { ManagerReport, PackageVersion } from '../types/Package.js';
 import { RegistryInterface, RegistryPackages, RegistryType } from '../types/Registry.js';
 import { Base } from './Base.js';
 import { packageCompatibleFiles } from '../helpers/package.js';
+import { registryUrl } from '../helpers/registry.js';
 import { Architecture, SystemType } from '../index-browser.js';
 
 export class Manager extends Base {
@@ -137,7 +138,7 @@ export class Manager extends Base {
     for (const index in registries) {
       let json: RegistryInterface;
       try {
-        json = await apiJson(registries[index].url);
+        json = await apiJson(registryUrl(registries[index]));
       } catch (err) {
         // One unreachable/misconfigured registry shouldn't stop the others from being synced -
         // record the failure and move on, matching the spec's goal of combining packages from

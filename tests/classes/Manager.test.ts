@@ -242,6 +242,24 @@ test('Manager sync isolates a malformed package version instead of throwing', as
   apiJsonSpy.mockRestore();
 });
 
+test('Manager sync appends a configured registry version to the request url', async () => {
+  const apiJsonSpy = vi.spyOn(apiHelpers, 'apiJson').mockResolvedValue({
+    name: 'Mock Registry',
+    url: 'https://example.invalid/registry',
+    version: '1.0.0',
+    [RegistryType.Plugins]: {},
+  });
+
+  const manager = new Manager(RegistryType.Plugins, {
+    registries: [{ name: 'Mock Registry', url: 'https://example.invalid/registry', version: 'v1' }],
+  });
+  await manager.sync();
+
+  expect(apiJsonSpy).toHaveBeenCalledWith('https://example.invalid/registry/v1');
+
+  apiJsonSpy.mockRestore();
+});
+
 test('Manager sync with existing package', async () => {
   const manager = new Manager(RegistryType.Plugins);
   const pkg = new Package(PLUGIN_PACKAGE.slug);

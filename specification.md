@@ -119,10 +119,11 @@ $ manager config get <key>
 
 List of registries which will be searched for packages. This allows brands/companies to each own a package list, but registries are combined for the user consuming the list.
 
-| Field | Type   | Description   | Example                                                          |
-| :---- | :----- | :------------ | :--------------------------------------------------------------- |
-| name  | string | Registry name | `"Open Audio Registry"`                                          |
-| url   | string | Registry url  | `"https://open-audio-stack.github.io/open-audio-stack-registry"` |
+| Field   | Type   | Description                                                         | Example                                                          |
+| :------ | :----- | :------------------------------------------------------------------ | :--------------------------------------------------------------- |
+| name    | string | Registry name                                                       | `"Open Audio Registry"`                                          |
+| url     | string | Registry url                                                        | `"https://open-audio-stack.github.io/open-audio-stack-registry"` |
+| version | string | Optional - see [Registry versioning](#registry-versioning-optional) | `"v1"`                                                           |
 
 #### Get registries
 
