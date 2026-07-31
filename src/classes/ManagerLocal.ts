@@ -26,16 +26,10 @@ import {
   isAdmin,
   runCliAsAdmin,
 } from '../helpers/file.js';
-import {
-  isValidGithubRepo,
-  isValidSlug,
-  isValidVersion,
-  pathGetSlug,
-  pathGetVersion,
-  toSlug,
-} from '../helpers/utils.js';
+import { isValidGithubRepo, isValidSlug, isValidVersion, pathGetSlug, pathGetVersion } from '../helpers/utils.js';
 import { commandExists, getArchitecture, getSystem, isTests } from '../helpers/utilsLocal.js';
 import { apiBuffer } from '../helpers/api.js';
+import { CreateQuestion, createPackageQuestions, createPackageVersionQuestions } from '../helpers/createQuestions.js';
 import { FileInterface } from '../types/File.js';
 import { FileType } from '../types/FileType.js';
 import { RegistryType } from '../types/Registry.js';
@@ -43,16 +37,14 @@ import { PluginFormat, pluginFormatDir } from '../types/PluginFormat.js';
 import { ConfigInterface } from '../types/Config.js';
 import { ConfigLocal } from './ConfigLocal.js';
 import { packageCompatibleFiles, packageErrors, packageRecommendations } from '../helpers/package.js';
+import { PresetInterface } from '../types/Preset.js';
 import { presetFormatDir } from '../types/PresetFormat.js';
+import { ProjectInterface } from '../types/Project.js';
 import { projectFormatDir } from '../types/ProjectFormat.js';
 import { FileFormat } from '../types/FileFormat.js';
-import { licenses } from '../types/License.js';
-import { PluginType, PluginTypeOption, pluginTypes } from '../types/PluginType.js';
-import { PresetTypeOption, presetTypes } from '../types/PresetType.js';
-import { ProjectTypeOption, projectTypes } from '../types/ProjectType.js';
+import { PluginType } from '../types/PluginType.js';
 import { SystemType } from '../types/SystemType.js';
 import { packageLoadFile, packageSaveFile } from '../helpers/packageLocal.js';
-import inquirer from 'inquirer';
 
 export class ManagerLocal extends Manager {
   protected typeDir: string;
@@ -138,102 +130,33 @@ export class ManagerLocal extends Manager {
     return dirTarget;
   }
 
-  async create(dirPath?: string) {
-    // TODO Rewrite this code after prototype is proven.
-    const pkgQuestions = [
-      {
-        name: 'org',
-        type: 'input',
-        message: 'Org id',
-        default: 'org-name',
-        validate: (value: string) => value === toSlug(value),
-      },
-      {
-        name: 'package',
-        type: 'input',
-        message: 'Package id',
-        default: 'package-name',
-        validate: (value: string) => value === toSlug(value),
-      },
-      {
-        name: 'version',
-        type: 'input',
-        message: 'Package version',
-        default: '1.0.0',
-        validate: (value: string) => isValidVersion(value),
-      },
-    ];
-    const pkgAnswers = await inquirer.prompt(pkgQuestions as any);
-    let types: PluginTypeOption[] | PresetTypeOption[] | ProjectTypeOption[] = pluginTypes;
-    if (this.type === RegistryType.Apps) {
-      types = pluginTypes;
-    } else if (this.type === RegistryType.Presets) {
-      types = presetTypes;
-    } else if (this.type === RegistryType.Projects) {
-      types = projectTypes;
-    }
-    const pkgVersionQuestions = [
-      { name: 'name', type: 'input', message: 'Package name' },
-      { name: 'author', type: 'input', message: 'Author name' },
-      { name: 'description', type: 'input', message: 'Description' },
-      { name: 'license', type: 'list', message: 'License', choices: licenses },
-      { name: 'type', type: 'list', message: 'Type', choices: types },
-      {
-        name: 'tags',
-        type: 'input',
-        message: 'Tags (comma-separated)',
-        filter: (input: string) =>
-          input
-            .split(',')
-            .map(tag => tag.trim())
-            .filter(tag => tag.length > 0),
-      },
-      {
-        name: 'url',
-        type: 'input',
-        message: 'Website url',
-        default: `https://github.com/${pkgAnswers.org}/${pkgAnswers.package}`,
-      },
-      {
-        name: 'donate',
-        type: 'input',
-        message: 'Donation url',
-      },
-      {
-        name: 'audio',
-        type: 'input',
-        message: 'Audio preview url',
-        default: `https://open-audio-stack.github.io/open-audio-stack-registry/${this.type}/${pkgAnswers.org}/${pkgAnswers.package}/${pkgAnswers.package}.flac`,
-      },
-      {
-        name: 'image',
-        type: 'input',
-        message: 'Image preview url',
-        default: `https://open-audio-stack.github.io/open-audio-stack-registry/${this.type}/${pkgAnswers.org}/${pkgAnswers.package}/${pkgAnswers.package}.jpg`,
-      },
-      { name: 'date', type: 'input', message: 'Date released', default: new Date().toISOString() },
-      { name: 'changes', type: 'input', message: 'List of changes' },
-    ];
+  // Interactive prompting (previously driven by the `inquirer` package directly from this
+  // method) doesn't belong in an isomorphic browser/server library - see review.md item 5. The
+  // question metadata below is what a CLI needs to drive its own prompt library; createSave()
+  // then persists whatever it collects. createQuestions() first, to obtain org/package (needed
+  // to compute createVersionQuestions()'s own defaults), then createVersionQuestions(org, pkg).
 
-    const pkgVersionAnswers = await inquirer.prompt(pkgVersionQuestions as any);
-    // TODO prompt for each file. Left empty here deliberately - a freshly created package has no
-    // built/published release yet, so there's nothing to fill `files` with. createSave() reports
-    // this as a recommendation rather than treating it as a fatal validation error.
-    pkgVersionAnswers.files = [];
-    if (this.type === RegistryType.Presets || this.type === RegistryType.Projects) {
-      pkgVersionAnswers.plugins = [];
-    }
-    return this.createSave(`${pkgAnswers.org}/${pkgAnswers.package}`, pkgVersionAnswers as PackageVersion, dirPath);
+  createQuestions(): CreateQuestion[] {
+    return createPackageQuestions();
   }
 
-  // Split out from create() so package persistence is testable without driving inquirer's
-  // interactive prompts. A freshly created package is expected to be incomplete (e.g. `files`
-  // stays empty until a release is built and published) so, unlike Package.addVersion() which
-  // throws on any validation error, this only logs errors/recommendations as a report and always
-  // persists - the point of `create` is to scaffold the metadata file for a developer to fill in
-  // over time, not to produce a fully valid, publishable package on the first pass.
+  createVersionQuestions(org: string, pkg: string): CreateQuestion[] {
+    return createPackageVersionQuestions(this.type, org, pkg);
+  }
+
+  // A freshly created package is expected to be incomplete - there is no built/published release
+  // yet, so `files` (and, for Presets/Projects, `plugins`) default to empty rather than requiring
+  // the caller to remember to set them - so, unlike Package.addVersion() which throws on any
+  // validation error, this only logs errors/recommendations as a report and always persists - the
+  // point of `create` is to scaffold the metadata file for a developer to fill in over time, not
+  // to produce a fully valid, publishable package on the first pass.
   createSave(slug: string, pkgVersion: PackageVersion, dirPath?: string) {
     if (!isValidSlug(slug)) throw new Error(`Invalid package slug: ${slug}`);
+    if (!pkgVersion.files) pkgVersion.files = [];
+    if (this.type === RegistryType.Presets || this.type === RegistryType.Projects) {
+      const pkgVersionWithPlugins = pkgVersion as PresetInterface | ProjectInterface;
+      if (!pkgVersionWithPlugins.plugins) pkgVersionWithPlugins.plugins = {};
+    }
     const errors = packageErrors(pkgVersion);
     const recs = packageRecommendations(pkgVersion);
     this.logReport(slug, errors, recs);
