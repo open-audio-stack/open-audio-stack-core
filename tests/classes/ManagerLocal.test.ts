@@ -12,6 +12,7 @@ import {
 } from '../data/Project';
 import { CONFIG_LOCAL_TEST } from '../data/Config';
 import { ManagerLocal } from '../../src/classes/ManagerLocal';
+import { Package } from '../../src/classes/Package';
 import {
   dirCreate,
   dirDelete,
@@ -229,6 +230,37 @@ test('Install installer-only package still elevates when unprivileged', async ()
   await manager.sync();
   await manager.install(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
   expect(runCliAsAdminSpy).toHaveBeenCalledTimes(1);
+
+  isAdminSpy.mockRestore();
+  isTestsSpy.mockRestore();
+  runCliAsAdminSpy.mockRestore();
+});
+
+test('Install all installs every listed package', async () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  // Seed a single known package directly rather than sync()'ing the live registry - installAll()
+  // only cares about whatever's already in listPackages(), and this keeps the test's network
+  // footprint fixed regardless of how many packages the real registry happens to have.
+  const pkg = new Package(PLUGIN_PACKAGE.slug);
+  pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
+  manager.addPackage(pkg);
+
+  const packages = await manager.installAll();
+  expect(packages).toHaveLength(1);
+  expect(packages[0].getVersion(PLUGIN_PACKAGE.version)?.installed).toEqual(true);
+
+  await manager.uninstall(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
+});
+
+test('Install all elevates when unprivileged', async () => {
+  const isAdminSpy = vi.spyOn(fileHelpers, 'isAdmin').mockReturnValue(false);
+  const isTestsSpy = vi.spyOn(utilsLocalHelpers, 'isTests').mockReturnValue(false);
+  const runCliAsAdminSpy = vi.spyOn(fileHelpers, 'runCliAsAdmin').mockResolvedValue(undefined);
+
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  await manager.installAll();
+  expect(runCliAsAdminSpy).toHaveBeenCalledTimes(1);
+  expect(runCliAsAdminSpy).toHaveBeenCalledWith(expect.objectContaining({ operation: 'installAll' }));
 
   isAdminSpy.mockRestore();
   isTestsSpy.mockRestore();
