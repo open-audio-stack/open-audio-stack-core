@@ -1,4 +1,4 @@
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { SystemType } from '../types/SystemType.js';
 import { Architecture } from '../types/Architecture.js';
 
@@ -21,9 +21,14 @@ export function isTests() {
   return jest || vitest;
 }
 
+// Only ever called with literal values today ('dpkg'/'rpm' in ManagerLocal.install()'s Linux
+// branch), but uses execFile (no shell) rather than exec with a shell string on principle -
+// every other command execution in this codebase avoids building shell strings from values that
+// could someday trace back to registry/package metadata, and this should be no exception for
+// whoever calls it next.
 export function commandExists(cmd: string): Promise<boolean> {
   return new Promise(resolve => {
-    exec(`command -v ${cmd}`, (error, stdout) => {
+    execFile('which', [cmd], (error, stdout) => {
       resolve(Boolean(stdout.trim()) && !error);
     });
   });
