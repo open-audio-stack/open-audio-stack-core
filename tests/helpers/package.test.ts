@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 import {
   packageCompatibleFiles,
   packageDownloadsTotal,
+  packageIsVerified,
   packageRecommendations,
   packageVersionLatest,
   PackageVersionValidator,
@@ -136,6 +137,24 @@ test('Package compatible files returns empty when only unsupported formats exist
     [FileFormat.RedHatPackage],
   );
   expect(excludedResult).toHaveLength(0);
+});
+
+test('Package is verified when every file url matches the org', () => {
+  expect(packageIsVerified('surge-synthesizer/surge', PLUGIN)).toEqual(true);
+});
+
+test('Package is not verified when any file url does not match the org', () => {
+  const pluginWithForeignFile: PackageVersion = {
+    ...PLUGIN,
+    files: [
+      ...PLUGIN.files,
+      {
+        ...PLUGIN.files[0],
+        url: 'https://github.com/someone-else/unrelated/releases/download/1.0.0/file.deb',
+      },
+    ],
+  };
+  expect(packageIsVerified('surge-synthesizer/surge', pluginWithForeignFile)).toEqual(false);
 });
 
 test('Package compatible files respects exclusions when alternatives exist', () => {
