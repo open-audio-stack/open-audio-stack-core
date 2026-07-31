@@ -628,38 +628,37 @@ export class ManagerLocal extends Manager {
       throw new Error(`Package ${slug} has no compatible file with open command defined`);
     }
 
-    try {
-      const openPath = (openableFile as any).open;
-      const fileExt: string = path.extname(openPath).slice(1).toLowerCase();
-      let packageDir: string;
+    // Let fileOpen()/path errors propagate rather than catching them here - every other
+    // mutating method on this class (install, uninstall, installDependency, ...) throws on
+    // failure, and swallowing errors into a `false` return would be the only exception to that,
+    // silently discarding the actual cause in the (default, debug logging disabled) case.
+    const openPath = (openableFile as any).open;
+    const fileExt: string = path.extname(openPath).slice(1).toLowerCase();
+    let packageDir: string;
 
-      if (this.type === RegistryType.Plugins) {
-        // For plugins, use type-specific subdirectories
-        const formatDir: string = pluginFormatDir[fileExt as PluginFormat] || 'Plugin';
-        packageDir = path.join(this.typeDir, formatDir, slug, versionNum);
-      } else {
-        // For apps/projects/presets, files are in direct package directory
-        packageDir = path.join(this.typeDir, slug, versionNum);
-      }
-      let fullPath: string;
-      if (path.isAbsolute(openPath)) {
-        fullPath = openPath;
-      } else if (fileExt === 'app') {
-        // For .app bundles, construct path to executable inside Contents/MacOS/
-        const appName = path.basename(openPath, '.app');
-        fullPath = path.join(packageDir, openPath, 'Contents', 'MacOS', appName);
-      } else {
-        fullPath = path.join(packageDir, openPath);
-      }
-      const command = `"${fullPath}" ${options.join(' ')}`;
-
-      this.log(`Running: ${command}`);
-      fileOpen(fullPath, options);
-      return true;
-    } catch (error) {
-      this.log(`Error opening package ${slug}:`, error);
-      return false;
+    if (this.type === RegistryType.Plugins) {
+      // For plugins, use type-specific subdirectories
+      const formatDir: string = pluginFormatDir[fileExt as PluginFormat] || 'Plugin';
+      packageDir = path.join(this.typeDir, formatDir, slug, versionNum);
+    } else {
+      // For apps/projects/presets, files are in direct package directory
+      packageDir = path.join(this.typeDir, slug, versionNum);
     }
+    let fullPath: string;
+    if (path.isAbsolute(openPath)) {
+      fullPath = openPath;
+    } else if (fileExt === 'app') {
+      // For .app bundles, construct path to executable inside Contents/MacOS/
+      const appName = path.basename(openPath, '.app');
+      fullPath = path.join(packageDir, openPath, 'Contents', 'MacOS', appName);
+    } else {
+      fullPath = path.join(packageDir, openPath);
+    }
+    const command = `"${fullPath}" ${options.join(' ')}`;
+
+    this.log(`Running: ${command}`);
+    fileOpen(fullPath, options);
+    return true;
   }
 
   async uninstall(slug: string, version?: string) {

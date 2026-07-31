@@ -170,11 +170,17 @@ export function dirMove(dir: string, dirNew: string): void | boolean {
 
 export function dirOpen(dir: string) {
   if (process.env.CI) return Buffer.from('');
-  // execFileSync never invokes a shell, so `dir` can't break out into a second command
-  // regardless of its contents.
+  // execFileSync never invokes a shell itself, but on Windows the target of that call would be
+  // cmd.exe - which *is* a command interpreter, and re-parses its `/c` command line using cmd's
+  // own grammar (where `&`, `|`, `^`, etc are metacharacters) regardless of how Node quoted the
+  // argv it was given. explorer.exe has no such reinterpretation - it treats its argument as a
+  // literal path - so it's used instead of cmd.exe /c start. Its exit code is unreliable
+  // (frequently non-zero even on success), so this uses spawn() and doesn't wait on the result,
+  // same as the CI short-circuit above already implies callers don't depend on one.
   if (getSystem() === SystemType.Win) {
-    log('⎋', `cmd.exe /c start "" "${dir}"`);
-    return execFileSync('cmd.exe', ['/c', 'start', '""', dir]);
+    log('⎋', `explorer.exe "${dir}"`);
+    spawn('explorer.exe', [dir], { stdio: 'ignore' });
+    return;
   } else if (getSystem() === SystemType.Mac) {
     log('⎋', `open "${dir}"`);
     return execFileSync('open', [dir]);
@@ -455,9 +461,10 @@ export function filesMove(dirSource: string, dirTarget: string, dirSub: string, 
   return filesMoved;
 }
 
-// filePath (and, for the Windows/Linux branches, the surrounding options) ultimately come from
-// a package's `open` field in registry metadata, so this is the same command-injection surface
-// as fileInstall - execFileSync (no shell) rather than execSync everywhere below.
+// filePath (and, for the Mac/Linux branches, the surrounding options) ultimately come from a
+// package's `open` field in registry metadata, so this is the same command-injection surface as
+// fileInstall - execFileSync (no shell) rather than execSync for those branches. The Windows
+// branch below needs a different fix: see its own comment.
 export function fileOpen(filePath: string, options: string[] = []) {
   if (process.env.CI) return Buffer.from('');
 
@@ -475,8 +482,17 @@ export function fileOpen(filePath: string, options: string[] = []) {
   }
 
   if (getSystem() === SystemType.Win) {
-    log('⎋', `cmd.exe /c start "" "${filePath}"`);
-    return execFileSync('cmd.exe', ['/c', 'start', '""', filePath]);
+    // execFileSync never invokes a shell itself, but on Windows the target of that call would
+    // be cmd.exe - which *is* a command interpreter, and re-parses its `/c` command line using
+    // cmd's own grammar (where `&`, `|`, `^`, etc are metacharacters) regardless of how Node
+    // quoted the argv it was given, so a filePath containing them (this is untrusted, coming
+    // from a package's `open` field) could still be reinterpreted. explorer.exe has no such
+    // reinterpretation - it treats its argument as a literal path - so it's used instead of
+    // cmd.exe /c start. Its exit code is unreliable (frequently non-zero even on success), so
+    // this uses spawn() and doesn't wait on/check the result.
+    log('⎋', `explorer.exe "${filePath}"`);
+    spawn('explorer.exe', [filePath], { stdio: 'ignore' });
+    return;
   }
   log('⎋', `xdg-open "${filePath}"`);
   return execFileSync('xdg-open', [filePath]);

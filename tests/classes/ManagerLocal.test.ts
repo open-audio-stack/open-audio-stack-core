@@ -337,3 +337,46 @@ test('Clone throws for nonexistent template repo', async () => {
     manager.clone('template-org/template-plugin-3', 'open-audio-stack/this-repo-does-not-exist-xyz123'),
   ).rejects.toThrow('not found on GitHub');
 });
+
+test('Open throws for a package not found in the registry', () => {
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  expect(() => manager.open('nonexistent-org/nonexistent-plugin')).toThrow('not found');
+});
+
+test('Open throws for a package version not found in the registry', async () => {
+  const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
+  await manager.sync();
+  expect(() => manager.open(PROJECT_PACKAGE.slug, '99.99.99')).toThrow('version 99.99.99 not found');
+});
+
+test('Open throws for a package that is not installed', async () => {
+  const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
+  await manager.sync();
+  // Earlier tests in this file install PROJECT_PACKAGE and don't always uninstall it
+  // afterward (they're only exercising dependency install/uninstall) - don't assume a fresh
+  // not-installed state, ensure it here regardless of file execution order.
+  if (manager.isPackageInstalled(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version)) {
+    await manager.uninstall(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
+  }
+  expect(() => manager.open(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version)).toThrow('not installed');
+});
+
+test('Open runs the compatible file and propagates errors instead of swallowing them', async () => {
+  const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
+  await manager.sync();
+  await manager.install(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
+
+  const fileOpenSpy = vi.spyOn(fileHelpers, 'fileOpen').mockReturnValue(undefined as any);
+  expect(manager.open(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version)).toEqual(true);
+  expect(fileOpenSpy).toHaveBeenCalled();
+
+  // Regression check for the swallowed-error bug: open() must throw the underlying failure
+  // rather than catching it and returning false.
+  fileOpenSpy.mockImplementation(() => {
+    throw new Error('boom');
+  });
+  expect(() => manager.open(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version)).toThrow('boom');
+
+  fileOpenSpy.mockRestore();
+  await manager.uninstall(PROJECT_PACKAGE.slug, PROJECT_PACKAGE.version);
+});
