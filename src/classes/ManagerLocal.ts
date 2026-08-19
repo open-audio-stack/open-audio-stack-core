@@ -258,12 +258,16 @@ export class ManagerLocal extends Manager {
     // elevated command payload built below.
     if (!isValidSlug(slug)) throw new Error(`Invalid package slug: ${slug}`);
     if (version && !isValidVersion(version)) throw new Error(`Invalid package version: ${version}`);
-    // Get package information from registry.
+    // Get package information from registry. resolvePackageVersion() transparently fetches the
+    // full per-version payload (every file's url/sha256 included) whenever sync()'s cached
+    // summary doesn't have it - either because this isn't the latest version, or because each
+    // file's url/sha256 was omitted from the registry root/list endpoints (see specification.md
+    // "Listing endpoints vs package endpoints").
     const pkg: Package | undefined = this.getPackage(slug);
     if (!pkg) throw new Error(`Package ${slug} not found in registry`);
-    const versionNum: string = version || pkg.latestVersion();
-    const pkgVersion: PackageVersion | undefined = pkg?.getVersion(versionNum);
-    if (!pkgVersion) throw new Error(`Package ${slug} version ${versionNum} not found in registry`);
+    const resolved = await this.resolvePackageVersion(slug, version);
+    if (!resolved) throw new Error(`Package ${slug} version ${version || pkg.latestVersion()} not found in registry`);
+    const { pkgVersion, versionNum } = resolved;
     if (this.isPackageInstalled(slug, versionNum)) {
       this.log(`Package ${slug} version ${versionNum} already installed`);
       pkgVersion.installed = true;
@@ -506,9 +510,11 @@ export class ManagerLocal extends Manager {
     manager.scan();
     const pkg: Package | undefined = manager.getPackage(slug);
     if (!pkg) throw new Error(`Package ${slug} not found in registry`);
-    const versionNum: string = version || pkg.latestVersion();
-    const pkgVersion: PackageVersion | undefined = pkg?.getVersion(versionNum);
-    if (!pkgVersion) throw new Error(`Package ${slug} version ${versionNum} not found in registry`);
+    // resolvePackageVersion() fetches the full per-version payload on demand when sync()'s cached
+    // summary doesn't have it - see install()'s comment for why that can happen.
+    const resolved = await manager.resolvePackageVersion(slug, version);
+    if (!resolved) throw new Error(`Package ${slug} version ${version || pkg.latestVersion()} not found in registry`);
+    const { versionNum } = resolved;
     // Get local package file.
     const pkgFile = packageLoadFile(filePath) as any;
     if (pkgFile[type] && pkgFile[type][slug] && pkgFile[type][slug] === versionNum) {

@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
 import * as apiHelpers from '../src/helpers/api.js';
+import { PackageVersion } from '../src/types/Package.js';
 import { RegistryInterface } from '../src/types/Registry.js';
 
 // Deep-clones `value`, dropping any key in `keys` at any depth. Used to compare fixtures against
@@ -44,4 +45,18 @@ export function omitDownloads<T>(value: T): T {
 // sync() call into another the way resolving one shared fixture object repeatedly would.
 export function mockRegistrySync(registry: RegistryInterface) {
   return vi.spyOn(apiHelpers, 'apiJson').mockImplementation(async () => structuredClone(registry));
+}
+
+// The registry root/list endpoints only omit `url`/`sha256` from each file - not `files` itself,
+// and not the version's own top-level `url` (a different field, the plugin's website) - so
+// omitKeysDeep() (which would strip every key named `url` anywhere, including that one) isn't the
+// right tool here. This mirrors what Manager.sync() actually caches (see specification.md
+// "Listing endpoints vs package endpoints").
+export function toSummaryVersion(pkgVersion: PackageVersion): PackageVersion {
+  const summary = structuredClone(pkgVersion);
+  summary.files.forEach((file: any) => {
+    delete file.url;
+    delete file.sha256;
+  });
+  return summary;
 }

@@ -4,7 +4,9 @@ import {
   packageDownloadsTotal,
   packageIsVerified,
   packageRecommendations,
+  packageSummaryErrors,
   packageVersionLatest,
+  PackageVersionSummaryValidator,
   PackageVersionValidator,
 } from '../../src/helpers/package.js';
 import { PLUGIN, PLUGIN_PACKAGE_MULTIPLE } from '../data/Plugin';
@@ -12,6 +14,7 @@ import { PackageVersion } from '../../src/types/Package';
 import { Architecture } from '../../src/types/Architecture.js';
 import { SystemType } from '../../src/types/SystemType.js';
 import { FileFormat } from '../../src/types/FileFormat.js';
+import { toSummaryVersion } from '../testUtils';
 
 test('Package version latest', () => {
   expect(packageVersionLatest(PLUGIN_PACKAGE_MULTIPLE)).toEqual('1.3.2');
@@ -155,6 +158,55 @@ test('Package is not verified when any file url does not match the org', () => {
     ],
   };
   expect(packageIsVerified('surge-synthesizer/surge', pluginWithForeignFile)).toEqual(false);
+});
+
+test('Package is not verified when url is missing per file (summary payload)', () => {
+  const summaryPlugin = toSummaryVersion(PLUGIN);
+  expect(() => packageIsVerified('surge-synthesizer/surge', summaryPlugin)).not.toThrow();
+  expect(packageIsVerified('surge-synthesizer/surge', summaryPlugin)).toEqual(false);
+});
+
+test('Package compatible files still matches on architecture/system when url is missing (summary payload)', () => {
+  const summaryPlugin = toSummaryVersion(PLUGIN);
+  // PLUGIN has two Linux/x64 files (the .deb and the .rpm) - both should still match without
+  // needing url, since compatibility here is architecture/system only (no excludedFormats).
+  expect(() => packageCompatibleFiles(summaryPlugin, [Architecture.X64], [SystemType.Linux])).not.toThrow();
+  expect(packageCompatibleFiles(summaryPlugin, [Architecture.X64], [SystemType.Linux])).toHaveLength(2);
+});
+
+test('Package compatible files does not exclude a format it cannot determine (url missing)', () => {
+  const summaryPlugin = toSummaryVersion(PLUGIN);
+  // excludedFormats relies on the file's url extension - without it, format can't be checked, so
+  // this must not exclude the Linux files (unlike the full-data equivalent test above, which does
+  // exclude the .rpm).
+  const result = packageCompatibleFiles(
+    summaryPlugin,
+    [Architecture.X64],
+    [SystemType.Linux],
+    [FileFormat.RedHatPackage],
+  );
+  expect(result).toHaveLength(2);
+});
+
+test('Package summary validator accepts a version whose files are missing url/sha256', () => {
+  const summaryPlugin = toSummaryVersion(PLUGIN);
+  expect(PackageVersionSummaryValidator.safeParse(summaryPlugin).success).toEqual(true);
+  expect(packageSummaryErrors(summaryPlugin)).toEqual([]);
+});
+
+test('Package summary validator still rejects other missing required fields', () => {
+  const summaryPlugin = toSummaryVersion(PLUGIN);
+  // @ts-expect-error this is intentionally bad data.
+  delete summaryPlugin.image;
+  expect(packageSummaryErrors(summaryPlugin)).toEqual([
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      message: 'Required',
+      path: ['image'],
+      received: 'undefined',
+    },
+  ]);
 });
 
 test('Package compatible files respects exclusions when alternatives exist', () => {

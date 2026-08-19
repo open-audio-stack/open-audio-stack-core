@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 import { Package } from '../../src/classes/Package';
 import { PLUGIN, PLUGIN_PACKAGE, PLUGIN_PACKAGE_EMPTY } from '../data/Plugin';
 import { PackageInterface, PackageVersion } from '../../src/types/Package';
+import { toSummaryVersion } from '../testUtils';
 
 test('Package new', () => {
   const pkg = new Package(PLUGIN_PACKAGE.slug);
@@ -28,6 +29,30 @@ test('Package add invalid version', () => {
   const pkg = new Package(PLUGIN_PACKAGE.slug);
   expect(() => pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN_INVALID)).toThrow();
   expect(pkg.toJSON()).toEqual(PLUGIN_PACKAGE_EMPTY);
+});
+
+test('Package add version summary accepts a version whose files are missing url/sha256', () => {
+  const pluginSummary = toSummaryVersion(PLUGIN);
+  const pkg = new Package(PLUGIN_PACKAGE.slug);
+  expect(() => pkg.addVersionSummary(PLUGIN_PACKAGE.version, pluginSummary)).not.toThrow();
+  expect(pkg.getVersion(PLUGIN_PACKAGE.version)).toEqual({ ...pluginSummary, verified: false });
+});
+
+test('Package add version summary still rejects other missing required fields', () => {
+  const pluginSummary = toSummaryVersion(PLUGIN);
+  // @ts-expect-error this is intentionally bad data.
+  delete pluginSummary.image;
+  const pkg = new Package(PLUGIN_PACKAGE.slug);
+  expect(() => pkg.addVersionSummary(PLUGIN_PACKAGE.version, pluginSummary)).toThrow();
+  expect(pkg.toJSON()).toEqual(PLUGIN_PACKAGE_EMPTY);
+});
+
+test('Package add version upgrades a summary to the full version', () => {
+  const pluginSummary = toSummaryVersion(PLUGIN);
+  const pkg = new Package(PLUGIN_PACKAGE.slug);
+  pkg.addVersionSummary(PLUGIN_PACKAGE.version, pluginSummary);
+  pkg.addVersion(PLUGIN_PACKAGE.version, PLUGIN);
+  expect(pkg.getVersion(PLUGIN_PACKAGE.version)).toEqual(PLUGIN);
 });
 
 test('Package remove version', () => {

@@ -1,6 +1,6 @@
 import * as semver from 'semver';
 import { PackageVersionReport, PackageVersion, PackageVersions } from '../types/Package.js';
-import { packageErrors, packageIsVerified, packageRecommendations } from '../helpers/package.js';
+import { packageErrors, packageIsVerified, packageRecommendations, packageSummaryErrors } from '../helpers/package.js';
 import { isValidSlug } from '../helpers/utils.js';
 import { Base } from './Base.js';
 
@@ -19,21 +19,33 @@ export class Package extends Base {
     this.version = this.latestVersion();
   }
 
-  addVersion(num: string, version: PackageVersion) {
-    // For now allow package versions to be overwritten.
-    // if (this.versions.has(num)) return this.log(`Package ${version.name} version ${num} already exists`);
-    const errors = packageErrors(version);
+  private setVersion(num: string, version: PackageVersion, errors: PackageVersionReport['errors']) {
     const recs = packageRecommendations(version);
     const report: PackageVersionReport = {
-      ...(errors.length > 0 && { errors }),
+      ...(errors && errors.length > 0 && { errors }),
       ...(recs.length > 0 && { recs }),
     };
     if (Object.keys(report).length > 0) this.reports.set(num, report);
-    if (errors.length > 0)
+    if (errors && errors.length > 0)
       throw new Error(`Package ${version.name} version ${num} has validation errors: ${JSON.stringify(errors)}`);
     version.verified = packageIsVerified(this.slug, version);
     this.versions.set(num, version);
     this.version = this.latestVersion();
+  }
+
+  addVersion(num: string, version: PackageVersion) {
+    // For now allow package versions to be overwritten.
+    // if (this.versions.has(num)) return this.log(`Package ${version.name} version ${num} already exists`);
+    this.setVersion(num, version, packageErrors(version));
+  }
+
+  // Same as addVersion(), but validates against PackageVersionSummaryValidator instead - each
+  // file's `url`/`sha256` are optional, matching the trimmed payload the registry root/list
+  // endpoints actually serve (see specification.md "Listing endpoints vs package endpoints").
+  // Used by Manager.sync(); any caller that needs to actually download a file resolves the full
+  // version separately (see Manager.fetchPackageVersion()) and stores it via addVersion() instead.
+  addVersionSummary(num: string, version: PackageVersion) {
+    this.setVersion(num, version, packageSummaryErrors(version));
   }
 
   removeVersion(num: string) {

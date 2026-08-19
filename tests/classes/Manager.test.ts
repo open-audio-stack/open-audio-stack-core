@@ -16,7 +16,7 @@ import { SystemType } from '../../src/types/SystemType';
 import { Architecture } from '../../src/types/Architecture';
 import { PackageVersion } from '../../src/types/Package';
 import { packageCompatibleFiles } from '../../src/helpers/package';
-import { mockRegistrySync, omitDownloads } from '../testUtils';
+import { mockRegistrySync, omitDownloads, toSummaryVersion } from '../testUtils';
 import * as apiHelpers from '../../src/helpers/api';
 
 afterEach(() => {
@@ -132,6 +132,19 @@ test('Manager list packages incompatible', () => {
   manager.addPackage(pkgNoWin);
   expect(manager.listPackages(undefined, Architecture.X64, SystemType.Win)).toEqual([]);
   expect(manager.listPackages(undefined, Architecture.X64, SystemType.Linux)).toEqual([pkgNoWin]);
+});
+
+test('Manager list packages by architecture/system works on a sync()-cached summary (url/sha256 omitted)', () => {
+  // Unlike install(), listing/filtering doesn't need a fetchPackageVersion() round trip - every
+  // compatibility field (architectures, systems, contains, type, size) is already present on the
+  // registry root/list endpoints, only url/sha256 are missing (see specification.md "Listing
+  // endpoints vs package endpoints").
+  const manager = new Manager(RegistryType.Plugins);
+  const pkg = new Package(PLUGIN_PACKAGE.slug);
+  pkg.addVersionSummary(PLUGIN_PACKAGE.version, toSummaryVersion(PLUGIN));
+  manager.addPackageSummary(pkg);
+  expect(manager.listPackages(undefined, Architecture.X64, SystemType.Linux)).toEqual([pkg]);
+  expect(manager.listPackages(undefined, Architecture.Arm32, SystemType.Linux)).toEqual([]);
 });
 
 test('Manager filter packages', () => {
@@ -280,4 +293,91 @@ test('Manager sync with existing package', async () => {
   await manager.sync();
   const pkgReturned = manager.getPackage(PLUGIN_PACKAGE.slug);
   expect(pkgReturned?.getVersion(PLUGIN_PACKAGE.version)?.name).toEqual('Surge XT');
+});
+
+// The registry root/list endpoints only summarize each package's latest version, and omit
+// `url`/`sha256` from each file (see specification.md "Listing endpoints vs package endpoints") -
+// the following tests cover sync() ingesting that trimmed shape, and resolvePackageVersion()
+// transparently fetching the full version (with every file's url/sha256) on demand.
+test('Manager sync ingests a trimmed summary (files present, url/sha256 omitted) without rejecting the package', async () => {
+  const pluginSummary = toSummaryVersion(PLUGIN);
+  vi.spyOn(apiHelpers, 'apiJson').mockResolvedValue({
+    name: 'Mock Registry',
+    url: 'https://example.invalid/mock',
+    version: '1.0.0',
+    [RegistryType.Plugins]: {
+      [PLUGIN_PACKAGE.slug]: {
+        slug: PLUGIN_PACKAGE.slug,
+        version: PLUGIN_PACKAGE.version,
+        versions: { [PLUGIN_PACKAGE.version]: pluginSummary },
+      },
+    },
+  });
+
+  const manager = new Manager(RegistryType.Plugins, {
+    registries: [{ name: 'Mock Registry', url: 'https://example.invalid/mock' }],
+  });
+  await manager.sync();
+
+  expect(manager.getSyncErrors()).toEqual([]);
+  const pkgVersion = manager.getPackage(PLUGIN_PACKAGE.slug)?.getVersion(PLUGIN_PACKAGE.version);
+  expect(pkgVersion?.files).toHaveLength(PLUGIN.files.length);
+  expect(pkgVersion?.files.every(file => !file.url && !file.sha256)).toEqual(true);
+  expect(pkgVersion?.name).toEqual(PLUGIN.name);
+});
+
+test('Manager resolvePackageVersion fetches the full version when the cached summary is missing url/sha256', async () => {
+  const pluginSummary = toSummaryVersion(PLUGIN);
+  const versionUrl = `https://example.invalid/mock/${RegistryType.Plugins}/${PLUGIN_PACKAGE.slug}/${PLUGIN_PACKAGE.version}`;
+  const apiJsonSpy = vi.spyOn(apiHelpers, 'apiJson').mockImplementation(async (url: string) => {
+    if (url === versionUrl) return PLUGIN;
+    return {
+      name: 'Mock Registry',
+      url: 'https://example.invalid/mock',
+      version: '1.0.0',
+      [RegistryType.Plugins]: {
+        [PLUGIN_PACKAGE.slug]: {
+          slug: PLUGIN_PACKAGE.slug,
+          version: PLUGIN_PACKAGE.version,
+          versions: { [PLUGIN_PACKAGE.version]: pluginSummary },
+        },
+      },
+    };
+  });
+
+  const manager = new Manager(RegistryType.Plugins, {
+    registries: [{ name: 'Mock Registry', url: 'https://example.invalid/mock' }],
+  });
+  await manager.sync();
+  const resolved = await manager.resolvePackageVersion(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
+
+  expect(resolved?.pkgVersion.files).toEqual(PLUGIN.files);
+  expect(apiJsonSpy).toHaveBeenCalledWith(versionUrl);
+});
+
+test('Manager resolvePackageVersion returns undefined for an unknown package', async () => {
+  const manager = new Manager(RegistryType.Plugins);
+  expect(await manager.resolvePackageVersion('nonexistent-org/nonexistent-plugin')).toBeUndefined();
+});
+
+test('Manager resolvePackageVersion returns undefined when no registry has the version', async () => {
+  const apiJsonSpy = mockRegistrySync(REGISTRY_PLUGIN_VER);
+  const manager = new Manager(RegistryType.Plugins, {
+    registries: [{ name: 'Mock Registry', url: 'https://example.invalid/mock' }],
+  });
+  await manager.sync();
+  apiJsonSpy.mockRejectedValue(new Error('not found'));
+
+  expect(await manager.resolvePackageVersion(PLUGIN_PACKAGE.slug, '99.99.99')).toBeUndefined();
+});
+
+test('Manager resolvePackageVersion does not refetch when the cached version already has files', async () => {
+  const apiJsonSpy = mockRegistrySync(REGISTRY_PLUGIN_VER);
+  const manager = new Manager(RegistryType.Plugins);
+  await manager.sync();
+  apiJsonSpy.mockClear();
+
+  const resolved = await manager.resolvePackageVersion(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
+  expect(resolved?.pkgVersion.files).toEqual(PLUGIN.files);
+  expect(apiJsonSpy).not.toHaveBeenCalled();
 });
