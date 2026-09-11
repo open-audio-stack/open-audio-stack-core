@@ -210,6 +210,12 @@ export class Manager extends Base {
   // Resolves a package/version pair to installable data, transparently upgrading a sync()-cached
   // summary to the full payload (with `url`/`sha256`) on demand. Returns undefined if the
   // package/version genuinely doesn't exist in the registry.
+  //
+  // The spec guarantees a version's `files` array is ordered identically at every tier (see
+  // specification.md "Listing endpoints vs package endpoints"), so a caller may match a file
+  // selected from the pre-fetch summary to its full counterpart here by array index alone - do not
+  // sort, filter-and-rebuild, or otherwise reorder `pkgVersion.files` in this method or in
+  // fetchPackageVersion().
   async resolvePackageVersion(
     slug: string,
     version?: string,

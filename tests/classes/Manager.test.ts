@@ -355,6 +355,45 @@ test('Manager resolvePackageVersion fetches the full version when the cached sum
   expect(apiJsonSpy).toHaveBeenCalledWith(versionUrl);
 });
 
+// specification.md ("Listing endpoints vs package endpoints") guarantees a version's `files` array
+// is ordered identically at every tier, so a caller can select a file from the pre-fetch summary
+// (no url/sha256) and find its full counterpart in resolvePackageVersion()'s result by array index
+// alone - this is what studiorack-app's file picker relies on.
+test('Manager resolvePackageVersion preserves file array order between the cached summary and the resolved full version', async () => {
+  const pluginSummary = toSummaryVersion(PLUGIN);
+  const versionUrl = `https://example.invalid/mock/${RegistryType.Plugins}/${PLUGIN_PACKAGE.slug}/${PLUGIN_PACKAGE.version}`;
+  vi.spyOn(apiHelpers, 'apiJson').mockImplementation(async (url: string) => {
+    if (url === versionUrl) return PLUGIN;
+    return {
+      name: 'Mock Registry',
+      url: 'https://example.invalid/mock',
+      version: '1.0.0',
+      [RegistryType.Plugins]: {
+        [PLUGIN_PACKAGE.slug]: {
+          slug: PLUGIN_PACKAGE.slug,
+          version: PLUGIN_PACKAGE.version,
+          versions: { [PLUGIN_PACKAGE.version]: pluginSummary },
+        },
+      },
+    };
+  });
+
+  const manager = new Manager(RegistryType.Plugins, {
+    registries: [{ name: 'Mock Registry', url: 'https://example.invalid/mock' }],
+  });
+  await manager.sync();
+  const summaryFiles = manager.getPackage(PLUGIN_PACKAGE.slug)!.getVersion(PLUGIN_PACKAGE.version)!.files;
+  const resolved = await manager.resolvePackageVersion(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
+
+  expect(summaryFiles).toHaveLength(resolved!.pkgVersion.files.length);
+  summaryFiles.forEach((summaryFile, index) => {
+    const resolvedFile = resolved!.pkgVersion.files[index];
+    expect(resolvedFile.architectures).toEqual(summaryFile.architectures);
+    expect(resolvedFile.systems).toEqual(summaryFile.systems);
+    expect(resolvedFile.url).toBeDefined();
+  });
+});
+
 test('Manager resolvePackageVersion returns undefined for an unknown package', async () => {
   const manager = new Manager(RegistryType.Plugins);
   expect(await manager.resolvePackageVersion('nonexistent-org/nonexistent-plugin')).toBeUndefined();
