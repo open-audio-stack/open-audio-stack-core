@@ -39,6 +39,19 @@ export class Manager extends Base {
     if (isNewPackage) this.packages.set(pkg.slug, pkgExisting);
   }
 
+  // Same as addPackage(), but ingests via Package.addVersionSummary() - see sync().
+  addPackageSummary(pkg: Package) {
+    let pkgExisting = this.packages.get(pkg.slug);
+    const isNewPackage: boolean = !pkgExisting;
+    if (!pkgExisting) {
+      pkgExisting = new Package(pkg.slug);
+    }
+    for (const [version, pkgVersion] of pkg.versions) {
+      pkgExisting.addVersionSummary(version, pkgVersion);
+    }
+    if (isNewPackage) this.packages.set(pkg.slug, pkgExisting);
+  }
+
   filter(method: (pkgVersion: PackageVersion, pkg: Package) => boolean): Package[] {
     const results: Package[] = [];
     for (const [, pkg] of this.packages) {
@@ -152,13 +165,74 @@ export class Manager extends Base {
             // Add one version at a time (rather than the whole package via addPackage() in one
             // call) so a single malformed version - from a registry this manager doesn't
             // control - can't abort every other version/package still left to sync.
-            this.addPackage(new Package(slug, { [version]: json[type][slug].versions[version] }));
+            // The registry root only summarizes each package's latest version, and omits
+            // `url`/`sha256` from each file (see specification.md "Listing endpoints vs package
+            // endpoints") - addPackageSummary() ingests that shape without rejecting it for
+            // fields it never claimed to include. Anything that needs to actually download a file
+            // (install(), etc.) resolves the full version separately via fetchPackageVersion().
+            this.addPackageSummary(new Package(slug, { [version]: json[type][slug].versions[version] }));
           } catch (err) {
             this.syncErrors.push(`${slug}@${version}: ${(err as Error).message}`);
           }
         }
       }
     }
+  }
+
+  // Fetches the full per-version payload (every file's `url`/`sha256` included) directly from the
+  // org/package/version-level endpoint - used whenever a cached Package (populated by sync()'s
+  // trimmed summary) doesn't have everything an operation needs, e.g. an older version that isn't
+  // the latest, or the latest version's download data. Tries each configured registry in order,
+  // the same way sync() combines them; returns undefined if none of them have it.
+  protected async fetchPackageVersion(slug: string, version: string): Promise<PackageVersion | undefined> {
+    const registries: ConfigRegistry[] = this.config.get('registries') as ConfigRegistry[];
+    for (const registry of registries) {
+      try {
+        const url = `${registryUrl(registry).replace(/\/$/, '')}/${this.type}/${slug}/${version}`;
+        return (await apiJson(url)) as PackageVersion;
+      } catch {
+        continue;
+      }
+    }
+    return undefined;
+  }
+
+  // A sync()-cached summary version has every file's compatibility fields (architectures,
+  // systems, contains, type, size) but not `url`/`sha256` - so it's enough for listing/filtering,
+  // but not for an actual download. Every file having `url` is the reliable tell that this is the
+  // full payload, not the summary.
+  private isDownloadable(pkgVersion?: PackageVersion): pkgVersion is PackageVersion {
+    return (
+      !!pkgVersion && !!pkgVersion.files && pkgVersion.files.length > 0 && pkgVersion.files.every(file => !!file.url)
+    );
+  }
+
+  // Resolves a package/version pair to installable data, transparently upgrading a sync()-cached
+  // summary to the full payload (with `url`/`sha256`) on demand. Returns undefined if the
+  // package/version genuinely doesn't exist in the registry.
+  //
+  // The spec guarantees a version's `files` array is ordered identically at every tier (see
+  // specification.md "Listing endpoints vs package endpoints"), so a caller may match a file
+  // selected from the pre-fetch summary to its full counterpart here by array index alone - do not
+  // sort, filter-and-rebuild, or otherwise reorder `pkgVersion.files` in this method or in
+  // fetchPackageVersion().
+  async resolvePackageVersion(
+    slug: string,
+    version?: string,
+  ): Promise<{ pkg: Package; pkgVersion: PackageVersion; versionNum: string } | undefined> {
+    const pkg = this.getPackage(slug);
+    if (!pkg) return undefined;
+    const versionNum = version || pkg.latestVersion();
+    let pkgVersion = pkg.getVersion(versionNum);
+    if (!this.isDownloadable(pkgVersion)) {
+      const fetched = await this.fetchPackageVersion(slug, versionNum);
+      if (fetched) {
+        pkg.addVersion(versionNum, fetched);
+        pkgVersion = fetched;
+      }
+    }
+    if (!pkgVersion) return undefined;
+    return { pkg, pkgVersion, versionNum };
   }
 
   toJSON() {
