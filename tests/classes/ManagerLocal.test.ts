@@ -23,6 +23,7 @@ import {
   fileExists,
   fileReadJson,
 } from '../../src/helpers/file';
+import * as archiveHelpers from '../../src/helpers/archive';
 import * as fsHelpers from '../../src/helpers/fs';
 import * as installerHelpers from '../../src/helpers/installer';
 import * as utilsLocalHelpers from '../../src/helpers/utilsLocal';
@@ -291,14 +292,14 @@ test('Install rolls back already-installed files when a later file in the same v
   // to install; the second never will, regardless of content - this forces the failure to land
   // on the *second* file, after the first has already been fully installed.
   const fileHashSpy = vi
-    .spyOn(fileHelpers, 'fileHash')
+    .spyOn(fsHelpers, 'fileHash')
     .mockResolvedValueOnce('a'.repeat(64))
     .mockResolvedValueOnce('mismatched-hash');
   // archiveExtract() itself isn't under test here - stub it to just produce a small real
   // directory, so the real (unmocked) dirMove()/dirRead() logic downstream has something genuine
   // to move for the first file.
   const archiveExtractSpy = vi
-    .spyOn(fileHelpers, 'archiveExtract')
+    .spyOn(archiveHelpers, 'archiveExtract')
     .mockImplementation(async (_filePath: string, dirPath: string) => {
       dirCreate(dirPath);
       fileCreateJson(path.join(dirPath, 'dummy.json'), { ok: true });
