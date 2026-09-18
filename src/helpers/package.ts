@@ -22,6 +22,9 @@ export function packageCompatibleFiles(
   sys: SystemType[],
   excludedFormats?: FileFormat[],
 ) {
+  // Defensive - every real PackageVersion has `files`, but a malformed one shouldn't crash a
+  // filter/listing pass.
+  if (!pkg.files) return [];
   return pkg.files.filter((file: FileInterface) => {
     const archMatches = file.architectures.filter(architecture => {
       return arch.includes(architecture);
@@ -29,14 +32,28 @@ export function packageCompatibleFiles(
     const sysMatches = file.systems.filter(system => {
       return sys.includes(system.type);
     });
-    const formatAllowed =
-      excludedFormats && excludedFormats.includes(pathGetExt(file.url).toLowerCase() as FileFormat) ? false : true;
+    // `url` is omitted from each file at the registry root/list endpoints (see
+    // specification.md "Listing endpoints vs package endpoints") - format can't be determined
+    // from it there, so don't exclude on a format we can't check. install() always resolves the
+    // full version (with `url`) before this matters for real exclusion decisions.
+    const fileFormat = file.url ? (pathGetExt(file.url).toLowerCase() as FileFormat) : undefined;
+    const formatAllowed = !(fileFormat && excludedFormats && excludedFormats.includes(fileFormat));
     return archMatches.length && sysMatches.length && formatAllowed;
   });
 }
 
 export function packageErrors(pkgVersion: PackageVersion) {
   return PackageVersionValidator.safeParse(pkgVersion).error?.issues || [];
+}
+
+// The registry root and type-list endpoints (see specification.md "Listing endpoints vs package
+// endpoints") only summarize each package's latest version, and omit `url`/`sha256` from each
+// file to keep those documents small - used by Manager.sync() so that summary ingestion doesn't
+// reject every package over fields it never claimed to include. Org/package/version endpoints
+// still return every file in full, validated via packageErrors() when that data is actually
+// resolved (see Manager.fetchPackageVersion()).
+export function packageSummaryErrors(pkgVersion: PackageVersion) {
+  return PackageVersionSummaryValidator.safeParse(pkgVersion).error?.issues || [];
 }
 
 export function packageFileMap(pkgVersion: PackageVersion) {
@@ -100,6 +117,16 @@ export const PackageVersionValidator = z.object({
   url: z.string().min(8).max(256).startsWith('https://'),
 });
 
+// Same shape as PackageFileValidator, but `url`/`sha256` are optional - see
+// packageSummaryErrors().
+export const PackageFileSummaryValidator = PackageFileValidator.partial({ url: true, sha256: true });
+
+// Same shape as PackageVersionValidator, but each file is validated against
+// PackageFileSummaryValidator instead - see packageSummaryErrors().
+export const PackageVersionSummaryValidator = PackageVersionValidator.extend({
+  files: z.array(PackageFileSummaryValidator).min(1).max(256),
+});
+
 export const SemverValidator = z
   .string()
   .regex(
@@ -143,6 +170,12 @@ export function packageRecommendations(pkgVersion: PackageVersion) {
       file.systems.forEach(system => {
         supportedSystems[system.type] = true;
       });
+
+      // `url` is omitted from each file at the registry root/list endpoints (see
+      // specification.md "Listing endpoints vs package endpoints") - every recommendation below
+      // is derived from the url itself, so there's nothing to check without it.
+      if (!file.url) return;
+
       const ext: string = pathGetExt(file.url).toLowerCase();
       supportedFileFormats[ext] = true;
       packageRecommendationsUrl(file, recs, 'url', 'github');
@@ -243,8 +276,14 @@ export function packageYamlToJs(pkgYaml: string) {
 }
 
 export function packageIsVerified(slug: string, pkgVersion: PackageVersion) {
+  if (!pkgVersion.files || pkgVersion.files.length === 0) return false;
   const org: string = slug.split('/')[0];
   return pkgVersion.files.every(file => {
+    // `url` is omitted from each file at the registry root/list endpoints (see
+    // specification.md "Listing endpoints vs package endpoints") - nothing to verify against yet,
+    // so report unverified rather than throwing. install() re-resolves the full version (with
+    // `url`) before this ever matters for a real decision.
+    if (!file.url) return false;
     const url: string = file.url.toLowerCase();
     const root: string = url.startsWith('https://github.com/') ? 'https://github.com/' + org + '/' : `https://${org}.`;
     return url.startsWith(root);
