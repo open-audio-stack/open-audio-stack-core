@@ -15,6 +15,7 @@ import {
 } from 'fs';
 import { createHash } from 'crypto';
 import { Readable } from 'stream';
+import type { ReadableStream as NodeReadableStream } from 'stream/web';
 import stream from 'stream/promises';
 import { GlobOptionsWithFileTypesFalse, globSync } from 'glob';
 import { moveSync } from 'fs-extra/esm';
@@ -140,7 +141,7 @@ export async function fileCreateFromStream(filePath: string, body: ReadableStrea
   log('+', filePath);
   const filePathPart: string = `${filePath}.part`;
   try {
-    await stream.pipeline(Readable.fromWeb(body as any), createWriteStream(filePathPart));
+    await stream.pipeline(Readable.fromWeb(body as NodeReadableStream<Uint8Array>), createWriteStream(filePathPart));
     // Same directory as filePath, so this is an atomic rename rather than a cross-device copy.
     renameSync(filePathPart, filePath);
   } catch (error) {
