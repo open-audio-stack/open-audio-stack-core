@@ -2,6 +2,7 @@ import { execFileSync, spawn } from 'child_process';
 import {
   chmodSync,
   createReadStream,
+  createWriteStream,
   existsSync,
   mkdirSync,
   readdirSync,
@@ -12,6 +13,7 @@ import {
   writeFileSync,
 } from 'fs';
 import { createHash } from 'crypto';
+import { Readable } from 'stream';
 import stream from 'stream/promises';
 import { GlobOptionsWithFileTypesFalse, globSync } from 'glob';
 import { moveSync } from 'fs-extra/esm';
@@ -128,6 +130,12 @@ export function dirRename(dir: string, dirNew: string): void | boolean {
 export function fileCreate(filePath: string, data: string | Buffer): void {
   log('+', filePath);
   return writeFileSync(filePath, data);
+}
+
+// Writes a web stream to disk in chunks, so large downloads never need to fit in memory.
+export async function fileCreateFromStream(filePath: string, body: ReadableStream<Uint8Array>): Promise<void> {
+  log('+', filePath);
+  await stream.pipeline(Readable.fromWeb(body as any), createWriteStream(filePath));
 }
 
 export function fileCreateJson(filePath: string, data: object): void {

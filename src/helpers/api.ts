@@ -67,6 +67,14 @@ export async function apiBuffer(url: string, options?: ApiRequestOptions): Promi
   return (await apiFetch(url, options)).arrayBuffer();
 }
 
+// Streams the response body instead of buffering it, so files larger than the 2GB Buffer/
+// ArrayBuffer limit can be downloaded. Pair with fileCreateFromStream() to write them to disk.
+export async function apiStream(url: string, options?: ApiRequestOptions): Promise<ReadableStream<Uint8Array>> {
+  const res = await apiFetch(url, options);
+  if (!res.body) throw new Error(`Response contained no body (${url})`);
+  return res.body;
+}
+
 export async function apiJson(url: string, options?: ApiRequestOptions): Promise<any> {
   return (await apiFetch(url, options)).json();
 }

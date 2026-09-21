@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { apiBuffer, apiJson, apiText } from '../../src/helpers/api';
+import { apiBuffer, apiJson, apiStream, apiText } from '../../src/helpers/api';
 
 const API_URL: string = 'https://jsonplaceholder.typicode.com/todos/1';
 const API_TEXT: string = `{
@@ -84,4 +84,15 @@ test('Aborts and reports a timeout if the response never arrives', async () => {
   await expect(apiText('https://example.invalid/slow', { timeoutMs: 10, retries: 0 })).rejects.toThrow(
     'Request timed out after 10ms',
   );
+});
+
+test('Streams the response body without buffering it', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('streamed contents')));
+  const body = await apiStream('https://example.invalid/stream');
+  expect(await new Response(body).text()).toEqual('streamed contents');
+});
+
+test('Stream rejects when the response has no body', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 200 })));
+  await expect(apiStream('https://example.invalid/empty')).rejects.toThrow('Response contained no body');
 });

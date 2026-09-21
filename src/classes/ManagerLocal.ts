@@ -12,7 +12,7 @@ import {
   dirIs,
   dirMove,
   dirRead,
-  fileCreate,
+  fileCreateFromStream,
   fileCreateJson,
   fileCreateYaml,
   fileExec,
@@ -25,7 +25,7 @@ import {
 import { fileInstall, isAdmin, runCliAsAdmin } from '../helpers/installer.js';
 import { isValidGithubRepo, isValidSlug, isValidVersion, pathGetSlug, pathGetVersion } from '../helpers/utils.js';
 import { commandExists, getArchitecture, getSystem, isTests } from '../helpers/utilsLocal.js';
-import { apiBuffer } from '../helpers/api.js';
+import { apiStream } from '../helpers/api.js';
 import { CreateQuestion, createPackageQuestions, createPackageVersionQuestions } from '../helpers/createQuestions.js';
 import { FileInterface } from '../types/File.js';
 import { FileType } from '../types/FileType.js';
@@ -101,13 +101,13 @@ export class ManagerLocal extends Manager {
     dirCreate(dirDownloads);
     const zipPath: string = path.join(dirDownloads, 'HEAD.zip');
     if (!fileExists(zipPath)) {
-      let fileBuffer: ArrayBuffer;
+      let fileStream: ReadableStream<Uint8Array>;
       try {
-        fileBuffer = await apiBuffer(templateUrl);
+        fileStream = await apiStream(templateUrl);
       } catch {
         throw new Error(`Template ${template} not found on GitHub`);
       }
-      fileCreate(zipPath, Buffer.from(fileBuffer));
+      await fileCreateFromStream(zipPath, fileStream);
     }
 
     const dirExtract: string = path.join(this.config.get('appDir') as string, 'temp', 'templates', template);
@@ -341,8 +341,7 @@ export class ManagerLocal extends Manager {
         const file: FileInterface = files[key];
         const filePath: string = path.join(dirDownloads, path.basename(file.url));
         if (!fileExists(filePath)) {
-          const fileBuffer: ArrayBuffer = await apiBuffer(file.url);
-          fileCreate(filePath, Buffer.from(fileBuffer));
+          await fileCreateFromStream(filePath, await apiStream(file.url));
         }
 
         // Check file hash matches expected hash.
