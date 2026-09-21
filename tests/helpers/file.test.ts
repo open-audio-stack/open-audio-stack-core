@@ -21,6 +21,7 @@ import {
   dirRename,
   dirTemplates,
   fileCreate,
+  fileCreateFromStream,
   fileExists,
   fileHash,
   filesMove,
@@ -142,6 +143,13 @@ test('Directory is empty', () => {
 
 test('Directory exists', () => {
   expect(dirExists(DIR_PATH)).toEqual(true);
+});
+
+test('File create from stream', async () => {
+  const streamPath: string = path.join(DIR_PATH, 'stream.bin');
+  const body = new Response('streamed contents').body as ReadableStream<Uint8Array>;
+  await fileCreateFromStream(streamPath, body);
+  expect(fileReadString(streamPath)).toEqual('streamed contents');
 });
 
 test('Directory is', () => {

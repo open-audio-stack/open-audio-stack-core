@@ -287,7 +287,9 @@ test('Install rolls back already-installed files when a later file in the same v
   const manager = new ManagerLocal(RegistryType.Projects, CONFIG);
   manager.addPackage(pkg);
 
-  const apiBufferSpy = vi.spyOn(apiHelpers, 'apiBuffer').mockResolvedValue(new Uint8Array([1, 2, 3]).buffer);
+  const apiStreamSpy = vi.spyOn(apiHelpers, 'apiStream').mockImplementation(async () => {
+    return new Response(new Uint8Array([1, 2, 3])).body as ReadableStream<Uint8Array>;
+  });
   // The first file's hash matches what's configured above, so it clears the check and proceeds
   // to install; the second never will, regardless of content - this forces the failure to land
   // on the *second* file, after the first has already been fully installed.
@@ -313,7 +315,7 @@ test('Install rolls back already-installed files when a later file in the same v
     expect(dirExists(dirTarget)).toEqual(false);
     expect(manager.isPackageInstalled(slug, versionNum)).toEqual(false);
   } finally {
-    apiBufferSpy.mockRestore();
+    apiStreamSpy.mockRestore();
     fileHashSpy.mockRestore();
     archiveExtractSpy.mockRestore();
   }
