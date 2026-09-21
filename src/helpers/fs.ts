@@ -7,6 +7,7 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  renameSync,
   rmSync,
   statSync,
   unlinkSync,
@@ -133,9 +134,19 @@ export function fileCreate(filePath: string, data: string | Buffer): void {
 }
 
 // Writes a web stream to disk in chunks, so large downloads never need to fit in memory.
+// Write to a temporary `.part` file and rename it into place only after the
+// stream completes, preventing failed downloads from leaving truncated files.
 export async function fileCreateFromStream(filePath: string, body: ReadableStream<Uint8Array>): Promise<void> {
   log('+', filePath);
-  await stream.pipeline(Readable.fromWeb(body as any), createWriteStream(filePath));
+  const filePathPart: string = `${filePath}.part`;
+  try {
+    await stream.pipeline(Readable.fromWeb(body as any), createWriteStream(filePathPart));
+    // Same directory as filePath, so this is an atomic rename rather than a cross-device copy.
+    renameSync(filePathPart, filePath);
+  } catch (error) {
+    rmSync(filePathPart, { force: true });
+    throw error;
+  }
 }
 
 export function fileCreateJson(filePath: string, data: object): void {
