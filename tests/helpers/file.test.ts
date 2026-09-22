@@ -150,6 +150,20 @@ test('File create from stream', async () => {
   const body = new Response('streamed contents').body as ReadableStream<Uint8Array>;
   await fileCreateFromStream(streamPath, body);
   expect(fileReadString(streamPath)).toEqual('streamed contents');
+  expect(fileExists(`${streamPath}.part`)).toEqual(false);
+});
+
+test('File create from stream leaves nothing behind if the stream fails part way through', async () => {
+  const streamPath: string = path.join(DIR_PATH, 'stream-failed.bin');
+  const body: ReadableStream<Uint8Array> = new ReadableStream({
+    start(controller: ReadableStreamDefaultController<Uint8Array>) {
+      controller.enqueue(new TextEncoder().encode('half a download'));
+      controller.error(new Error('terminated'));
+    },
+  });
+  await expect(fileCreateFromStream(streamPath, body)).rejects.toThrow('terminated');
+  expect(fileExists(streamPath)).toEqual(false);
+  expect(fileExists(`${streamPath}.part`)).toEqual(false);
 });
 
 test('Directory is', () => {
