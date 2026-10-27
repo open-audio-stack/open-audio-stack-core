@@ -11,6 +11,7 @@ export enum FileFormat {
   RedHatPackage = 'rpm', // Installer
   Tarball = 'gz', // Archive
   TarballLegacy = 'tgz', // Archive
+  TarballXz = 'xz', // Archive
   WindowsInstaller = 'msi', // Installer
   Zip = 'zip', // Archive
   Zip7 = '7z', // Archive
@@ -62,6 +63,11 @@ export const fileFormats: FileFormatOption[] = [
     description: 'Legacy compressed archive format similar to .tar.gz.',
     value: FileFormat.TarballLegacy,
     name: 'Tarball (alt)',
+  },
+  {
+    description: 'Compressed archive format using xz compression, common on Linux.',
+    value: FileFormat.TarballXz,
+    name: 'Tarball (xz)',
   },
   {
     description: 'Installer format for Windows.',
