@@ -33,7 +33,7 @@ import { PackageVersion } from '../../src/types/Package';
 import { Architecture } from '../../src/types/Architecture';
 import { SystemType } from '../../src/types/SystemType';
 import { FileType } from '../../src/types/FileType';
-import { mockRegistrySync, omitDownloads } from '../testUtils';
+import { mockRegistrySync, omitDownloads, toSummaryVersion } from '../testUtils';
 import * as apiHelpers from '../../src/helpers/api';
 
 const APP_DIR: string = 'test';
@@ -175,6 +175,40 @@ test('Plugin sync, install, rescan, uninstall', async () => {
 
   const pkgReturned2: PackageVersion | void = await manager.uninstall(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
   expect(omitDownloads(pkgReturned2)).toEqual(omitDownloads(PLUGIN));
+});
+
+test('Install fetches the full version when sync only cached a trimmed summary (url/sha256 omitted)', async () => {
+  // Mirrors what the registry root/list endpoints actually serve (see specification.md
+  // "Listing endpoints vs package endpoints") - only the latest version, each file missing
+  // url/sha256. install() must fall back to the org/package/version endpoint for that data.
+  const pluginSummary = toSummaryVersion(PLUGIN);
+  const versionUrl =
+    'https://open-audio-stack.github.io/open-audio-stack-registry/plugins/surge-synthesizer/surge/1.3.1';
+  vi.spyOn(apiHelpers, 'apiJson').mockImplementation(async (url: string) => {
+    if (url === versionUrl) return PLUGIN;
+    return {
+      name: 'Open Audio Registry',
+      url: 'https://open-audio-stack.github.io/open-audio-stack-registry',
+      version: '1.0.0',
+      plugins: {
+        [PLUGIN_PACKAGE.slug]: {
+          slug: PLUGIN_PACKAGE.slug,
+          version: PLUGIN_PACKAGE.version,
+          versions: { [PLUGIN_PACKAGE.version]: pluginSummary },
+        },
+      },
+    };
+  });
+
+  const manager = new ManagerLocal(RegistryType.Plugins, CONFIG);
+  await manager.sync();
+  const cachedFiles = manager.getPackage(PLUGIN_PACKAGE.slug)?.getVersion(PLUGIN_PACKAGE.version)?.files;
+  expect(cachedFiles?.every(file => !file.url)).toEqual(true);
+
+  const pkgReturned: PackageVersion | void = await manager.install(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
+  expect(omitDownloads(pkgReturned)).toEqual(omitDownloads(PLUGIN_INSTALLED));
+
+  await manager.uninstall(PLUGIN_PACKAGE.slug, PLUGIN_PACKAGE.version);
 });
 
 test('Preset sync, install, rescan, uninstall', async () => {
