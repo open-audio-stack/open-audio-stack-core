@@ -104,6 +104,18 @@ test('Package recommendations does not flag mixed-case extensions as unsupported
   });
 });
 
+test('Package recommendations does not flag .tar.xz archives as unsupported', () => {
+  const PLUGIN_TAR_XZ: PackageVersion = structuredClone(PLUGIN);
+  PLUGIN_TAR_XZ.files = [
+    {
+      ...PLUGIN.files[0],
+      url: 'https://github.com/brummer10/NeuralRack/releases/download/v0.4.1/NeuralRack-v0.4.1-linux-x86_64.tar.xz',
+    },
+  ];
+  const recs = packageRecommendations(PLUGIN_TAR_XZ);
+  expect(recs).not.toContainEqual({ field: 'url', rec: 'not a supported format' });
+});
+
 test('Package compatible files excludes formats regardless of extension case', () => {
   const mixedCasePackage: PackageVersion = {
     ...PLUGIN,
