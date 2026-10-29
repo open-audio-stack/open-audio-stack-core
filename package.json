@@ -1,6 +1,6 @@
 {
   "name": "@open-audio-stack/core",
-  "version": "0.1.61",
+  "version": "0.1.62",
   "description": "Open-source audio plugin management software",
   "type": "module",
   "main": "./build/index.js",
@@ -45,14 +45,14 @@
     "@types/mime-types": "^3.0.1",
     "@types/node": "^22.15.0",
     "@types/semver": "^7.5.8",
-    "@vitest/coverage-v8": "^5.0.0",
+    "@vitest/coverage-v8": "^5.0.5",
     "eslint": "^10.8.0",
     "globals": "^15.2.0",
     "prettier": "^3.2.5",
     "tsx": "^4.19.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.0",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.5"
   },
   "dependencies": {
     "@vscode/sudo-prompt": "^9.3.1",
@@ -66,7 +66,7 @@
     "semver": "^7.6.3",
     "slugify": "^1.6.6",
     "tar": "^7.4.3",
-    "zod": "^3.25.49"
+    "zod": "^4.6.7"
   },
   "repository": {
     "type": "git",

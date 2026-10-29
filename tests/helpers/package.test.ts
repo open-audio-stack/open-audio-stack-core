@@ -66,9 +66,8 @@ test('Package validate missing field', () => {
     {
       code: 'invalid_type',
       expected: 'string',
-      message: 'Required',
+      message: 'Invalid input: expected string, received undefined',
       path: ['image'],
-      received: 'undefined',
     },
   ]);
 });
@@ -81,9 +80,8 @@ test('Package validate invalid type', () => {
     {
       code: 'invalid_type',
       expected: 'string',
-      message: 'Expected string, received number',
+      message: 'Invalid input: expected string, received number',
       path: ['image'],
-      received: 'number',
     },
   ]);
 });

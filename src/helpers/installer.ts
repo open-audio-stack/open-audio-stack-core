@@ -4,7 +4,7 @@ import os from 'os';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import sudoPrompt from '@vscode/sudo-prompt';
-import { ZodIssueCode, ZodParsedType, ZodIssue } from 'zod';
+import { ZodIssueCode, ZodIssue } from 'zod';
 import { PluginFile } from '../types/Plugin.js';
 import { PresetFile } from '../types/Preset.js';
 import { ProjectFile } from '../types/Project.js';
@@ -108,20 +108,20 @@ export async function fileValidateMetadata(filePath: string, fileMetadata: Plugi
   if (fileMetadata.sha256 !== hash) {
     errors.push({
       code: ZodIssueCode.invalid_type,
-      expected: fileMetadata.sha256 as ZodParsedType,
+      expected: fileMetadata.sha256,
       message: 'Required',
       path: ['sha256'],
-      received: hash as ZodParsedType,
-    });
+      received: hash,
+    } as ZodIssue);
   }
   if (fileMetadata.size !== fileSize(filePath)) {
     errors.push({
       code: ZodIssueCode.invalid_type,
-      expected: String(fileMetadata.size) as ZodParsedType,
+      expected: String(fileMetadata.size),
       message: 'Required',
       path: ['size'],
-      received: String(fileSize(filePath)) as ZodParsedType,
-    });
+      received: String(fileSize(filePath)),
+    } as ZodIssue);
   }
   return errors;
 }
